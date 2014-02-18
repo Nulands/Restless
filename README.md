@@ -2,6 +2,7 @@ Restless
 ========
 
 Rest like api that uses HttpWebRequest and HttpWebResponse internally.
+
 Uses Json and Xml (de)serializer from RestSharp (https://github.com/restsharp/RestSharp).
 
 More documentation will follow:
@@ -59,5 +60,18 @@ Usage:
         // Error handling
         ...
     }
+    
+    
+    
+    // Do an action on the underlying HttpWebRequest
+    request = new RestRequest().RequestAction((r) => r.ContinueTimeout = 500)
+                               .RequestAction((r) => r.Method = "POST");
+
+
+    // Fetch request with success and error actions.
+    request.FetchAction(HttpStatusCode.Ok, 
+                        (resp) => Console.WriteLine(resp.Data.Name), 
+                        (exc) => Console.WriteLine(exc.Message);
+                        
 ```
     
