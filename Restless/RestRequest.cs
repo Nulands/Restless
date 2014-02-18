@@ -226,5 +226,19 @@ namespace Restless
             return await base.FetchAsync<T>(wantedStatusCode);
         }
 
+        public new RestResponse<T> FetchAction<T>(HttpStatusCode wantedStatusCode,
+                                                   Action<RestResponse<T>> successAction = null,
+                                                   Action<WebException> errorAction = null)
+        {
+            return base.FetchAction<T>(wantedStatusCode, successAction, errorAction);
+        }
+
+        public new async Task<RestResponse<T>> FetchActionAsync<T>(HttpStatusCode wantedStatusCode,
+                                                                           Action<RestResponse<T>> successAction = null,
+                                                                           Action<WebException> errorAction = null)
+        {
+            return await base.FetchActionAsync<T>(wantedStatusCode, successAction, errorAction);
+        }
+
     }
 }

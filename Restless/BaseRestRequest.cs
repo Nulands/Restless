@@ -242,6 +242,71 @@ namespace Restless
             return result;
         }
 
+        protected virtual RestResponse<T> FetchAction<T>(HttpStatusCode wantedStatusCode,
+                                                   Action<RestResponse<T>> successAction = null,
+                                                   Action<WebException> errorAction = null)
+        {
+            HttpWebRequest request = makeHttpWebRequest();
+            RestResponse<T> result = new RestResponse<T>();
+
+            try
+            {
+                var httpResponse = request.GetResponse() as HttpWebResponse;
+                result.HttpResponse = httpResponse;
+            }
+            catch (WebException webExc)
+            {
+                if (errorAction != null)
+                    errorAction(webExc);
+                result.HttpResponse = webExc.Response as HttpWebResponse;
+            }
+
+            if (result.HttpResponse.StatusCode == wantedStatusCode)
+            {
+                if(!(typeof(T) is INot))
+                {
+                    IDeserializer deserializer = GetHandler(result.HttpResponse.ContentType);
+                    result.Data = deserializer.Deserialize<T>(result.HttpResponse);
+                }
+                if (successAction != null)
+                    successAction(result);
+            }
+            return result;
+        }
+
+        protected virtual async Task<RestResponse<T>> FetchActionAsync<T>(HttpStatusCode wantedStatusCode,
+                                                                           Action<RestResponse<T>> successAction = null,
+                                                                           Action<WebException> errorAction = null)
+        {
+            HttpWebRequest request = makeHttpWebRequest();
+            RestResponse<T> result = new RestResponse<T>();
+
+            try
+            {
+                var httpResponse = (await request.GetResponseAsync()) as HttpWebResponse;
+                result.HttpResponse = httpResponse;
+            }
+            catch (WebException webExc)
+            {
+                if (errorAction != null)
+                    errorAction(webExc);
+                result.HttpResponse = webExc.Response as HttpWebResponse;
+            }
+
+            if (result.HttpResponse.StatusCode == wantedStatusCode)
+            {
+                if (!(typeof(T) is INot))
+                {
+                    IDeserializer deserializer = GetHandler(result.HttpResponse.ContentType);
+                    result.Data = deserializer.Deserialize<T>(result.HttpResponse);
+                }
+                if (successAction != null)
+                    successAction(result);
+            }
+            return result;
+        }
+
+
         #region Helper functions
 
         protected bool containsParam(string name)
