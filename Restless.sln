@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Restless", "Restless\Restless.csproj", "{784051FB-C5FC-4CCA-9FE6-96D2646DAD99}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Restless", "Restless\Restless.csproj", "{0F840631-31E6-425C-A2E6-94E359875937}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4195ABD7-8F0A-4648-8EED-EF5F0883A102}"
 	ProjectSection(SolutionItems) = preProject
@@ -10,16 +10,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4195AB
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestlessSerialization", "RestlessSerialization\RestlessSerialization.csproj", "{857D83EA-0946-4DC0-A44E-D67A9726A493}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{784051FB-C5FC-4CCA-9FE6-96D2646DAD99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{784051FB-C5FC-4CCA-9FE6-96D2646DAD99}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{784051FB-C5FC-4CCA-9FE6-96D2646DAD99}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{784051FB-C5FC-4CCA-9FE6-96D2646DAD99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F840631-31E6-425C-A2E6-94E359875937}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F840631-31E6-425C-A2E6-94E359875937}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F840631-31E6-425C-A2E6-94E359875937}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F840631-31E6-425C-A2E6-94E359875937}.Release|Any CPU.Build.0 = Release|Any CPU
+		{857D83EA-0946-4DC0-A44E-D67A9726A493}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{857D83EA-0946-4DC0-A44E-D67A9726A493}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{857D83EA-0946-4DC0-A44E-D67A9726A493}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{857D83EA-0946-4DC0-A44E-D67A9726A493}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -203,41 +203,63 @@ namespace Restless
         {
             return await base.GetResponseAsync();
         }
-
-        /// <summary>
-        /// Calls GetResponse() and tries to deserialize the result.
-        /// </summary>
-        /// <typeparam name="T">The type of the deserialized object.</typeparam>
-        /// <param name="wantedStatusCode">Only tries to deserialize if response HttpStatus matches.</param>
-        /// <returns>The RestResponse. Use Data property to get the deserialized object.</returns>
-        public new RestResponse<T> Fetch<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK)
-        {
-            return base.Fetch<T>(wantedStatusCode);
-        }
-
-        /// <summary>
-        /// Calls GetResponse() and tries to deserialize the result.
-        /// </summary>
-        /// <typeparam name="T">The type of the deserialized object.</typeparam>
-        /// <param name="wantedStatusCode">Only tries to deserialize if response HttpStatus matches.</param>
-        /// <returns>The RestResponse. Use Data property to get the deserialized object.</returns>
-        public new async Task<RestResponse<T>> FetchAsync<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK)
-        {
-            return await base.FetchAsync<T>(wantedStatusCode);
-        }
-
-        public new RestResponse<T> FetchAction<T>(HttpStatusCode wantedStatusCode,
+        
+        public new RestResponse<T> Fetch<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
                                                    Action<RestResponse<T>> successAction = null,
-                                                   Action<WebException> errorAction = null)
+                                                   Action<RestResponse<T>> errorAction = null)
         {
-            return base.FetchAction<T>(wantedStatusCode, successAction, errorAction);
+            return base.Fetch<T>(wantedStatusCode, successAction, errorAction);
         }
 
-        public new async Task<RestResponse<T>> FetchActionAsync<T>(HttpStatusCode wantedStatusCode,
+        public new async Task<RestResponse<T>> FetchAsync<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
                                                                            Action<RestResponse<T>> successAction = null,
-                                                                           Action<WebException> errorAction = null)
+                                                                           Action<RestResponse<T>> errorAction = null)
         {
-            return await base.FetchActionAsync<T>(wantedStatusCode, successAction, errorAction);
+            return await base.FetchAsync<T>(wantedStatusCode, successAction, errorAction);
+        }
+
+        /// <summary>
+        /// Uses a WebClient for file uploading because POST query parameter are not 
+        /// allowed with HttpWebRequest. But that is needed for some rest apis.
+        /// </summary>
+        /// <typeparam name="T">The type of the object that is deserialized from the response content.
+        /// Use INot if no deserialization is needed.</typeparam>
+        /// <param name="localPath">The local path to the upload file.</param>
+        /// <param name="successAction">This action is called if there are no exceptions during the upload.
+        /// Then the RestResponse HttpResponse property will be null. Data is not null if 
+        /// deserialization was wanted and possible.</param>
+        /// <param name="errorAction">This is the on exception action. If this happens, the rest response 
+        /// Exception property will contain the exception that was thrown.
+        /// If the exception is a WebException, the RestResponse HttpResponse property will contain the HttpWebResponse
+        /// from the WebException directly.</param>
+        /// <returns>The result RestResponse.</returns>
+        public new RestResponse<T> Upload<T>(string localPath,
+                                            Action<RestResponse<T>> successAction = null,
+                                            Action<RestResponse<T>> errorAction = null)
+        {
+            return base.Upload<T>(localPath, successAction, errorAction);
+        }
+
+        /// <summary>
+        /// Uses a WebClient for file uploading because POST query parameter are not 
+        /// allowed with HttpWebRequest. But that is needed for some rest apis.
+        /// </summary>
+        /// <typeparam name="T">The type of the object that is deserialized from the response content.
+        /// Use INot if no deserialization is needed.</typeparam>
+        /// <param name="localPath">The local path to the upload file.</param>
+        /// <param name="successAction">This action is called if there are no exceptions during the upload.
+        /// Then the RestResponse HttpResponse property will be null. Data is not null if 
+        /// deserialization was wanted and possible.</param>
+        /// <param name="errorAction">This is the on exception action. If this happens, the rest response 
+        /// Exception property will contain the exception that was thrown.
+        /// If the exception is a WebException, the RestResponse HttpResponse property will contain the HttpWebResponse
+        /// from the WebException directly.</param>
+        /// <returns>The result RestResponse.</returns>
+        public new async Task<RestResponse<T>> UploadAsync<T>(string localPath,
+                                                            Action<RestResponse<T>> successAction = null,
+                                                            Action<RestResponse<T>> errorAction = null)
+        {
+            return await base.UploadAsync<T>(localPath, successAction, errorAction);
         }
 
     }

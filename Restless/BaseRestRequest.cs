@@ -43,7 +43,7 @@ namespace Restless
         private Dictionary<string, IDeserializer> _contentHandler = new Dictionary<string, IDeserializer>();
         protected Dictionary<string, string> _parameter = new Dictionary<string, string>();
         private string _url = "";
-        private HttpWebRequest _tmpRequest = WebRequest.CreateHttp("http://www.test.com");
+        protected HttpWebRequest _tmpRequest = WebRequest.CreateHttp("http://www.test.com");
 
         protected virtual HttpWebRequest HttpWebRequest
         {
@@ -134,6 +134,7 @@ namespace Restless
             return this;
 
         }
+        
         protected virtual BaseRestRequest Basic(string username, string password)
         {
             string base64AccessToken = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + password));
@@ -169,6 +170,8 @@ namespace Restless
             return this;
         }
 
+        #region Get response HttpWebResponse
+
         protected virtual HttpWebResponse GetResponse()
         {
             HttpWebResponse response = null;
@@ -197,54 +200,13 @@ namespace Restless
             return response;
         }
 
-        protected virtual RestResponse<T> Fetch<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK)
-        {
-            HttpWebRequest request = makeHttpWebRequest();
-            RestResponse<T> result = new RestResponse<T>();
+        #endregion 
 
-            try
-            {
-                var httpResponse = request.GetResponse() as HttpWebResponse;
-                result.HttpResponse = httpResponse;
-            }
-            catch (WebException webExc)
-            {
-                result.HttpResponse = webExc.Response as HttpWebResponse;
-            }
+        #region Fetch RestResponse and deserialize directly
 
-            if (result.HttpResponse.StatusCode == wantedStatusCode && !(typeof(T) is INot))
-            {
-                IDeserializer deserializer = GetHandler(result.HttpResponse.ContentType);
-                result.Data = deserializer.Deserialize<T>(result.HttpResponse);
-            }
-            return result;
-        }
-
-        protected virtual async Task<RestResponse<T>> FetchAsync<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK)
-        {
-            HttpWebRequest request = makeHttpWebRequest();
-            RestResponse<T> result = new RestResponse<T>();
-            
-            try
-            {
-                var httpResponse = (await request.GetResponseAsync()) as HttpWebResponse;
-                result.HttpResponse = httpResponse;
-            }
-            catch (WebException webExc)
-            {
-                result.HttpResponse = webExc.Response as HttpWebResponse;
-            }
-            if (result.HttpResponse.StatusCode == wantedStatusCode && !(typeof(T) is INot))
-            {
-                IDeserializer deserializer = GetHandler(result.HttpResponse.ContentType);
-                result.Data = deserializer.Deserialize<T>(result.HttpResponse);
-            }
-            return result;
-        }
-
-        protected virtual RestResponse<T> FetchAction<T>(HttpStatusCode wantedStatusCode,
+        protected virtual RestResponse<T> Fetch<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
                                                    Action<RestResponse<T>> successAction = null,
-                                                   Action<WebException> errorAction = null)
+                                                   Action<RestResponse<T>> errorAction = null)
         {
             HttpWebRequest request = makeHttpWebRequest();
             RestResponse<T> result = new RestResponse<T>();
@@ -253,30 +215,34 @@ namespace Restless
             {
                 var httpResponse = request.GetResponse() as HttpWebResponse;
                 result.HttpResponse = httpResponse;
+
+                if (result.HttpResponse.StatusCode == wantedStatusCode)
+                {
+                    if (!(typeof(T) is INot))
+                    {
+                        IDeserializer deserializer = GetHandler(result.HttpResponse.ContentType);
+                        result.Data = deserializer.Deserialize<T>(result.HttpResponse);
+                    }
+                    ActionIfNotNull<T>(result, successAction);
+                }
+                else
+                    ActionIfNotNull<T>(result, errorAction);
             }
-            catch (WebException webExc)
+            catch (Exception exc)
             {
-                if (errorAction != null)
-                    errorAction(webExc);
-                result.HttpResponse = webExc.Response as HttpWebResponse;
+                result.Exception = exc;
+                if(exc is WebException)
+                    result.HttpResponse = (exc as WebException).Response as HttpWebResponse;
+
+                ActionIfNotNull<T>(result, errorAction);
             }
 
-            if (result.HttpResponse.StatusCode == wantedStatusCode)
-            {
-                if(!(typeof(T) is INot))
-                {
-                    IDeserializer deserializer = GetHandler(result.HttpResponse.ContentType);
-                    result.Data = deserializer.Deserialize<T>(result.HttpResponse);
-                }
-                if (successAction != null)
-                    successAction(result);
-            }
             return result;
         }
 
-        protected virtual async Task<RestResponse<T>> FetchActionAsync<T>(HttpStatusCode wantedStatusCode,
+        protected virtual async Task<RestResponse<T>> FetchAsync<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
                                                                            Action<RestResponse<T>> successAction = null,
-                                                                           Action<WebException> errorAction = null)
+                                                                           Action<RestResponse<T>> errorAction = null)
         {
             HttpWebRequest request = makeHttpWebRequest();
             RestResponse<T> result = new RestResponse<T>();
@@ -285,35 +251,126 @@ namespace Restless
             {
                 var httpResponse = (await request.GetResponseAsync()) as HttpWebResponse;
                 result.HttpResponse = httpResponse;
-            }
-            catch (WebException webExc)
-            {
-                if (errorAction != null)
-                    errorAction(webExc);
-                result.HttpResponse = webExc.Response as HttpWebResponse;
-            }
 
-            if (result.HttpResponse.StatusCode == wantedStatusCode)
-            {
-                if (!(typeof(T) is INot))
+                if (result.HttpResponse.StatusCode == wantedStatusCode)
                 {
-                    IDeserializer deserializer = GetHandler(result.HttpResponse.ContentType);
-                    result.Data = deserializer.Deserialize<T>(result.HttpResponse);
+                    if (!(typeof(T) is INot))
+                    {
+                        IDeserializer deserializer = GetHandler(result.HttpResponse.ContentType);
+                        result.Data = deserializer.Deserialize<T>(result.HttpResponse);
+                    }
+                    ActionIfNotNull<T>(result, successAction);
                 }
-                if (successAction != null)
-                    successAction(result);
+                else
+                    ActionIfNotNull<T>(result, errorAction);
+            }
+            catch (Exception exc)
+            {
+                result.Exception = exc;
+                if (exc is WebException)
+                    result.HttpResponse = (exc as WebException).Response as HttpWebResponse;
+
+                ActionIfNotNull<T>(result, errorAction);
             }
             return result;
         }
 
+        #endregion 
+
+        #region Upload a file from local space to a net uri
+
+        protected virtual RestResponse<T> Upload<T>(string localPath,
+                                                    Action<RestResponse<T>> successAction = null,
+                                                    Action<RestResponse<T>> errorAction = null)
+        {
+            WebClient client = setupWebClient();
+            var restResponse = new RestResponse<T>();
+
+            string responseStr = null;
+
+            try
+            {
+                byte[] responseData = client.UploadFile(_url, "POST", localPath);
+                responseStr = UTF8Encoding.UTF8.GetString(responseData);
+
+                if (responseStr != null)
+                {
+                    IDeserializer deserializer = GetHandler(client.ResponseHeaders["Content-Type"]);
+                    restResponse.Data = deserializer.Deserialize<T>(responseStr);
+                }
+                ActionIfNotNull<T>(restResponse, successAction);
+            }
+            catch (Exception exc)
+            {
+                restResponse.Exception = exc;
+                if (exc is WebException)
+                    restResponse.HttpResponse = (exc as WebException).Response as HttpWebResponse;
+
+                ActionIfNotNull<T>(restResponse, errorAction);
+            }
+            return restResponse;
+        }
+
+        protected virtual async Task<RestResponse<T>> UploadAsync<T>(string localPath,
+                                                                    Action<RestResponse<T>> successAction = null,
+                                                                    Action<RestResponse<T>> errorAction = null)
+        {
+            WebClient client = setupWebClient();
+            var restResponse = new RestResponse<T>();
+
+            string responseStr = null;
+
+            try
+            {
+                byte[] responseData = await client.UploadFileTaskAsync(_url, "POST", localPath);
+                responseStr = UTF8Encoding.UTF8.GetString(responseData);
+
+                if (responseStr != null)
+                {
+                    IDeserializer deserializer = GetHandler(client.ResponseHeaders["Content-Type"]);
+                    restResponse.Data = deserializer.Deserialize<T>(responseStr);
+                }
+                ActionIfNotNull<T>(restResponse, successAction);
+            }
+            catch (Exception exc)
+            {
+                restResponse.Exception = exc;
+                if (exc is WebException)
+                    restResponse.HttpResponse = (exc as WebException).Response as HttpWebResponse;
+
+                ActionIfNotNull<T>(restResponse, errorAction);
+            }
+            return restResponse;
+        }
+
+
+        #endregion 
 
         #region Helper functions
+
+        private void ActionIfNotNull<T>(RestResponse<T> response, Action<RestResponse<T>> action)
+        {
+            if (action != null)
+                action(response);
+        }
+        private WebClient setupWebClient()
+        {
+            WebClient client = new WebClient();
+
+            foreach (var hName in _tmpRequest.Headers.AllKeys)
+                client.Headers[hName] = _tmpRequest.Headers[hName];
+
+            foreach (var param in _parameter)
+                client.QueryString[param.Key] = param.Value;
+
+            return client;
+        }
 
         protected bool containsParam(string name)
         {
             return _parameter.ContainsKey(name);
         }
-        private HttpWebRequest makeHttpWebRequest()
+        protected HttpWebRequest makeHttpWebRequest()
         {
             if (_tmpRequest.Method == "GET")
                 makeQueryUrl();

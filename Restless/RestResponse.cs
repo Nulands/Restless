@@ -13,14 +13,22 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-
+using System;
 using System.Net;
 
 namespace Restless
 {
     public sealed class RestResponse<T>
     {
+        public Exception Exception { get; set; }
         public HttpWebResponse HttpResponse { get; set; }
         public T Data { get; set; }
+        public bool HasData 
+        {
+            get
+            {
+                return Data.Equals(default(T));
+            }
+        }
     }
 }
