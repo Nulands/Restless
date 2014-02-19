@@ -233,11 +233,11 @@ namespace Restless
         /// If the exception is a WebException, the RestResponse HttpResponse property will contain the HttpWebResponse
         /// from the WebException directly.</param>
         /// <returns>The result RestResponse.</returns>
-        public new RestResponse<T> Upload<T>(string localPath,
+        public new RestResponse<T> UploadFile<T>(string localPath,
                                             Action<RestResponse<T>> successAction = null,
                                             Action<RestResponse<T>> errorAction = null)
         {
-            return base.Upload<T>(localPath, successAction, errorAction);
+            return base.UploadFile<T>(localPath, successAction, errorAction);
         }
 
         /// <summary>
@@ -255,11 +255,11 @@ namespace Restless
         /// If the exception is a WebException, the RestResponse HttpResponse property will contain the HttpWebResponse
         /// from the WebException directly.</param>
         /// <returns>The result RestResponse.</returns>
-        public new async Task<RestResponse<T>> UploadAsync<T>(string localPath,
+        public new async Task<RestResponse<T>> UploadFileAsync<T>(string localPath,
                                                             Action<RestResponse<T>> successAction = null,
                                                             Action<RestResponse<T>> errorAction = null)
         {
-            return await base.UploadAsync<T>(localPath, successAction, errorAction);
+            return await base.UploadFileAsync<T>(localPath, successAction, errorAction);
         }
 
     }

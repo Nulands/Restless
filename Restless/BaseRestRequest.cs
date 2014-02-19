@@ -279,7 +279,7 @@ namespace Restless
 
         #region Upload a file from local space to a net uri
 
-        protected virtual RestResponse<T> Upload<T>(string localPath,
+        protected virtual RestResponse<T> UploadFile<T>(string localPath,
                                                     Action<RestResponse<T>> successAction = null,
                                                     Action<RestResponse<T>> errorAction = null)
         {
@@ -311,7 +311,7 @@ namespace Restless
             return restResponse;
         }
 
-        protected virtual async Task<RestResponse<T>> UploadAsync<T>(string localPath,
+        protected virtual async Task<RestResponse<T>> UploadFileAsync<T>(string localPath,
                                                                     Action<RestResponse<T>> successAction = null,
                                                                     Action<RestResponse<T>> errorAction = null)
         {
