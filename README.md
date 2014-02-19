@@ -69,9 +69,9 @@ Usage:
 
 
     // Fetch request with success and error actions.
-    request.FetchAction(HttpStatusCode.Ok, 
-                        (resp) => Console.WriteLine(resp.Data.Name), 
-                        (exc) => Console.WriteLine(exc.Message);
+    request.Fetch(HttpStatusCode.Ok, 
+                  (resp) => Console.WriteLine(resp.Data.Name), 
+                  (exc) => Console.WriteLine(exc.Message);
                         
 ```
     
