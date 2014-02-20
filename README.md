@@ -209,7 +209,7 @@ You can make a class with static methods that creates a custom request:
     
     
     
-    var createResponse = Person.Create().Name("testUser2").Age(42).Fetch();
+    var createResponse = Persons.Create().Name("testUser2").Age(42).Fetch();
     
     // because PersonCreateRequest uses Fetch with INot,
     // there is no deserialized object in the Data property of the response.
