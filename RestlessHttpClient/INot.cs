@@ -1,4 +1,5 @@
-﻿/*
+﻿
+/*
     Copyright (C) 2014  Muraad Nofal
     Contact: muraad.nofal@gmail.com
  
@@ -17,24 +18,10 @@
  * 
  * */
 
-using System;
-using System.Linq;
 
-namespace Restless.Extensions
+namespace Restless
 {
-    public static class TExtension
+    public interface INot
     {
-        public static void SetFrom<T>(this T to, T from, params string[] excludePropertys)
-        {
-            var propertys = to.GetType().GetProperties();
-            for (int i = 0; i < propertys.Length; i++)
-            {
-                var prop = propertys[i];
-                if (prop.CanWrite && prop.CanRead && !excludePropertys.Contains(prop.Name))
-                {
-                    prop.SetValue(to, prop.GetValue(from));
-                }
-            }
-        }
     }
 }

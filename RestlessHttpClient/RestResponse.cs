@@ -18,22 +18,34 @@
  * */
 
 using System;
-using System.Linq;
+using System.Net;
+using System.Net.Http;
 
-namespace Restless.Extensions
+namespace Restless
 {
-    public static class TExtension
+    public sealed class RestResponse<T>
     {
-        public static void SetFrom<T>(this T to, T from, params string[] excludePropertys)
+        public RestResponse()
         {
-            var propertys = to.GetType().GetProperties();
-            for (int i = 0; i < propertys.Length; i++)
+            IsStatusCodeMissmatch = false;
+            Exception = null;
+            Response = null;
+        }
+
+        public Exception Exception { get; set; }
+        public HttpResponseMessage Response { get; set; }
+        public T Data { get; set; }
+
+        public bool IsStatusCodeMissmatch { get; set; }
+        public bool IsException
+        {
+            get { return Exception != null; }
+        }
+        public bool HasData 
+        {
+            get
             {
-                var prop = propertys[i];
-                if (prop.CanWrite && prop.CanRead && !excludePropertys.Contains(prop.Name))
-                {
-                    prop.SetValue(to, prop.GetValue(from));
-                }
+                return Data.Equals(default(T));
             }
         }
     }

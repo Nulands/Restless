@@ -18,30 +18,83 @@
  * */
 
 using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.IO;
 using Restless.Deserializers;
 using Restless.Extensions;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace Restless
 {
 
     public sealed class RestRequest : BaseRestRequest
     {
-        public new HttpWebRequest HttpWebRequest
+        public new HttpClient HttpClient
         {
-            get { return base.HttpWebRequest; }
-            private set { base.HttpWebRequest = value; }
+            get { return base.HttpClient; }
+            set { base.HttpClient = value; }
+        }
+
+        public new HttpRequestMessage Request
+        {
+            get { return base.Request; }
+            set { base.Request = value; }
         }
         
         public RestRequest() : base()
         {
         }
 
-        public RestRequest(HttpWebRequest defaultRequest) : base(defaultRequest)
+        public RestRequest(HttpRequestMessage defaultRequest) : base(defaultRequest)
         {
         }
+
+        #region Set and add content
+
+        public new RestRequest AddContent(HttpContent content, string name = "", string fileName = "")
+        {
+            return base.AddContent(content, name, fileName) as RestRequest;
+        }
+
+        public new RestRequest ClearContent()
+        {
+            return base.ClearContent() as RestRequest;
+        }
+
+        public new RestRequest AddByteArray(byte[] buffer, string name = "", string fileName = "")
+        {
+            return base.AddByteArray(buffer, name, fileName) as RestRequest;
+        }
+
+        public new RestRequest AddFormUrl(params string[] kvPairs)
+        {
+            return base.AddFormUrl(kvPairs) as RestRequest;
+        }
+
+        public new RestRequest AddMultipart(string subtype = "", string boundary = "")
+        {
+            return base.AddMultipart(subtype, boundary) as RestRequest;
+        }
+
+        public new RestRequest AddMultipartForm(string boundary = "")
+        {
+            return base.AddMultipartForm(boundary) as RestRequest;
+        }
+
+        public new RestRequest AddStream(Stream stream, string mediaType, int buffersize, string name = "", string fileName = "")
+        {
+            return base.AddStream(stream, mediaType, buffersize, name, fileName) as RestRequest;
+        }
+
+        public new RestRequest AddString(string content, Encoding encoding, string mediaType, string name = "", string fileName = "")
+        {
+            return base.AddString(content, encoding, mediaType, name, fileName) as RestRequest;
+        }
+
+        #endregion 
 
         /// <summary>
         /// Set the URL for this request.
@@ -133,20 +186,9 @@ namespace Restless
         /// </summary>
         /// <param name="action">An action that takes a HttpWebRequest as argument.</param>
         /// <returns>this</returns>
-        public new RestRequest RequestAction(Action<HttpWebRequest> action)
+        public new RestRequest RequestAction(Action<HttpRequestMessage> action)
         {
             return base.RequestAction(action) as RestRequest;
-        }
-
-        /// <summary>
-        /// Adds client credentials to the HttpWebRequest.
-        /// </summary>
-        /// <param name="credentials">The credentials</param>
-        /// <returns>this.</returns>
-        public new RestRequest Credentials(ICredentials credentials)
-        {
-            return base.Credentials(credentials) as RestRequest;
-
         }
 
         /// <summary>
@@ -193,76 +235,66 @@ namespace Restless
             return base.Header(name, value) as RestRequest;
         }
 
-        /// <summary>
-        /// Call GetResponse() on the underlying HttpWebRequest.
-        /// </summary>
-        /// <returns>The response.</returns>
-        public new HttpWebResponse GetResponse()
+        public new RestRequest Header(string name, IEnumerable<string> values)
         {
-            return base.GetResponse();
+            return base.Header(name, values) as RestRequest;
         }
 
-        public new async Task<HttpWebResponse> GetResponseAsync()
+        public new RestRequest QParam(string name, string value)
+        {
+            return base.QParam(name, value) as RestRequest;
+        }
+
+        public new async Task<HttpResponseMessage> GetResponseAsync()
         {
             return await base.GetResponseAsync();
         }
-        
+
         public new RestResponse<T> Fetch<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
-                                                   Action<RestResponse<T>> successAction = null,
-                                                   Action<RestResponse<T>> errorAction = null)
+                                                               Action<RestResponse<T>> successAction = null,
+                                                               Action<RestResponse<T>> errorAction = null)
         {
-            return base.Fetch<T>(wantedStatusCode, successAction, errorAction);
+            throw new NotImplementedException();
         }
 
         public new async Task<RestResponse<T>> FetchAsync<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
-                                                                           Action<RestResponse<T>> successAction = null,
-                                                                           Action<RestResponse<T>> errorAction = null)
+                                                   Action<RestResponse<T>> successAction = null,
+                                                   Action<RestResponse<T>> errorAction = null)
         {
             return await base.FetchAsync<T>(wantedStatusCode, successAction, errorAction);
         }
 
-        /// <summary>
-        /// Uses a WebClient for file uploading because POST query parameter are not 
-        /// allowed with HttpWebRequest. But that is needed for some rest apis.
-        /// </summary>
-        /// <typeparam name="T">The type of the object that is deserialized from the response content.
-        /// Use INot if no deserialization is needed.</typeparam>
-        /// <param name="localPath">The local path to the upload file.</param>
-        /// <param name="successAction">This action is called if there are no exceptions during the upload.
-        /// Then the RestResponse HttpResponse property will be null. Data is not null if 
-        /// deserialization was wanted and possible.</param>
-        /// <param name="errorAction">This is the on exception action. If this happens, the rest response 
-        /// Exception property will contain the exception that was thrown.
-        /// If the exception is a WebException, the RestResponse HttpResponse property will contain the HttpWebResponse
-        /// from the WebException directly.</param>
-        /// <returns>The result RestResponse.</returns>
-        public new RestResponse<T> UploadFile<T>(string localPath,
-                                            Action<RestResponse<T>> successAction = null,
-                                            Action<RestResponse<T>> errorAction = null)
+        public new async Task<RestResponse<T>> UploadFileBinary<T>(string localPath,
+                                                                    string contentType,
+                                                                    Action<RestResponse<T>> successAction = null,
+                                                                    Action<RestResponse<T>> errorAction = null)
         {
-            return base.UploadFile<T>(localPath, successAction, errorAction);
+            return await base.UploadFileBinary<T>(localPath, contentType, successAction, errorAction);
         }
 
-        /// <summary>
-        /// Uses a WebClient for file uploading because POST query parameter are not 
-        /// allowed with HttpWebRequest. But that is needed for some rest apis.
-        /// </summary>
-        /// <typeparam name="T">The type of the object that is deserialized from the response content.
-        /// Use INot if no deserialization is needed.</typeparam>
-        /// <param name="localPath">The local path to the upload file.</param>
-        /// <param name="successAction">This action is called if there are no exceptions during the upload.
-        /// Then the RestResponse HttpResponse property will be null. Data is not null if 
-        /// deserialization was wanted and possible.</param>
-        /// <param name="errorAction">This is the on exception action. If this happens, the rest response 
-        /// Exception property will contain the exception that was thrown.
-        /// If the exception is a WebException, the RestResponse HttpResponse property will contain the HttpWebResponse
-        /// from the WebException directly.</param>
-        /// <returns>The result RestResponse.</returns>
-        public new async Task<RestResponse<T>> UploadFileAsync<T>(string localPath,
-                                                            Action<RestResponse<T>> successAction = null,
-                                                            Action<RestResponse<T>> errorAction = null)
+        public new async Task<RestResponse<T>> UploadFileFormData<T>(string localPath,
+                                                                    string contentType,
+                                                                    Action<RestResponse<T>> successAction = null,
+                                                                    Action<RestResponse<T>> errorAction = null)
         {
-            return await base.UploadFileAsync<T>(localPath, successAction, errorAction);
+            return await base.UploadFileFormData<T>(localPath, contentType, successAction, errorAction);
+        }
+
+        public new async Task<RestResponse<T>> UploadFileBinary<T>(Stream fileStream,
+                                                                            string contentType,
+                                                                    Action<RestResponse<T>> successAction = null,
+                                                                    Action<RestResponse<T>> errorAction = null)
+        {
+            return await base.UploadFileBinary<T>(fileStream, contentType, successAction, errorAction);
+        }
+
+        public new async Task<RestResponse<T>> UploadFileFormData<T>(Stream fileStream,
+                                                                            string contentType,
+                                                                            string localPath,
+                                                                            Action<RestResponse<T>> successAction = null,
+                                                                            Action<RestResponse<T>> errorAction = null)
+        {
+            return await base.UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction);
         }
 
     }
