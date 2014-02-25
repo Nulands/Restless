@@ -7,6 +7,10 @@ Uses Json and Xml (de)serializer from RestSharp (https://github.com/restsharp/Re
 
 More documentation will follow:
 
+-----------------------------------------------------
+
+HttpWebRequest version 
+
 Usage:
 
 ```c#
