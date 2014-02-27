@@ -3,14 +3,94 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using System.Threading.Tasks;
+using System.Net;
+using System.Net.Http;
+
 namespace Restless
 {
+
 
     /// <summary>
     /// Helper class to identify file type by the file header, not file extension.
     /// </summary>
     public static class Detective
     {
+        public static FileType LearnMimeType(FileInfo file, string mimeType, int headerSize, int offset = 0)
+        {
+            byte?[] data = new byte?[headerSize];
+            using (FileStream stream = file.OpenRead())
+            {
+                int b = 0;
+                for (int i = 0; i < headerSize; i++)
+                {
+                    data[i] = (byte)((b = stream.ReadByte()) == -1 ? 0 : b);
+                    if (b == -1)
+                        break;
+                }
+            }
+            return new FileType(data, offset, file.Extension, mimeType);
+        }
+ 
+        public static FileType LearnMimeType(FileInfo first, FileInfo second, string mimeType, int minMatches = 2, int maxNonMatch = 0)
+        {
+            byte?[] header = null;
+
+            List<byte?> headerList = new List<byte?>();
+
+            using(Stream firstFile = first.OpenRead())
+            using (Stream secondFile = second.OpenRead())
+            {
+                bool match = false;
+                int missmatchCounter = 0;       // missmatches after first match
+
+                int bFst = 0, bSnd = 0;         // current bytes
+                int index = 0;
+                int offset = 0;             // index of first match
+
+                // Read from both files until one of the file streams reaches the end.
+                while ((bFst = firstFile.ReadByte()) != -1 && 
+                      (bSnd = secondFile.ReadByte()) != -1) {
+
+                    bFst = firstFile.ReadByte();
+                    bSnd = secondFile.ReadByte();
+
+                    if (bFst == bSnd){
+                        if (!match){
+                            match = true;       // first match
+                            offset = index;
+                        }
+
+                        headerList.Add((byte)bFst);     // add match to header 
+                    }
+                    else{
+                        if (match){      // if there was a match before 
+                        
+                            // no more matching
+
+                            if (missmatchCounter < maxNonMatch){
+                                headerList.Add (null);       // Add a null header, this could be non generic, file size for example
+                                missmatchCounter++;
+                            }
+                            else
+                                break;  // too much missmatches after the first match 
+                        }
+                    }
+                    index++;
+                }
+
+                FileType type = null;
+
+                if (headerList.Count((b) => b != null) >= minMatches)       // check for enough non null byte? ´s.
+                {         
+                    header = headerList.ToArray();
+                    type = new FileType(header, offset, first.Extension, mimeType);
+                }
+
+                return type;
+            }
+        }
+
         #region Constants
 
         // file headers are taken from here:
@@ -23,73 +103,106 @@ namespace Restless
         public readonly static FileType EXCEL = new FileType(new byte?[] { 0x09, 0x08, 0x10, 0x00, 0x00, 0x06, 0x05, 0x00 }, 512, "xls", "application/excel");
         public readonly static FileType PPT = new FileType(new byte?[] { 0xFD, 0xFF, 0xFF, 0xFF, null, 0x00, 0x00, 0x00 }, 512, "ppt", "application/mspowerpoint");
         
-        /*doc 208 207 17 224 161 177 26 225
+        /*
+         * doc 208 207 17 224 161 177 26 225
 
         [512 byte offset]
-0F 00 E8 03	 	[512 byte offset]
-..è.
-PPT	 	PowerPoint presentation subheader (MS Office)
+        0F 00 E8 03	 	[512 byte offset]
+        ..è.
+        PPT	 	PowerPoint presentation subheader (MS Office)
 
 
-    [512 byte offset]
-00 6E 1E F0	 	[512 byte offset]
-.n.ð
-PPT	 	PowerPoint presentation subheader (MS Office)
-*/
+            [512 byte offset]
+        00 6E 1E F0	 	[512 byte offset]
+        .n.ð
+        PPT	 	PowerPoint presentation subheader (MS Office)
+        */
 
         // common documents
         public readonly static FileType RTF = new FileType(new byte?[] { 0x7B, 0x5C, 0x72, 0x74, 0x66, 0x31 }, "rtf", "application/rtf");
         public readonly static FileType PDF = new FileType(new byte?[] { 0x25, 0x50, 0x44, 0x46 }, "pdf", "application/pdf");
+        public readonly static FileType MSDOC = new FileType(new byte?[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }, "", "application/octet-stream");
+        //application/xml text/xml
+        public readonly static FileType XML = new FileType(new byte?[] { 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x3D, 0x22, 0x31, 0x2E, 0x30, 0x22, 0x3F, 0x3E },
+                                                            "xml,xul", "text/xml");
 
         // graphics
+        #region Graphics jpeg, png, gif, bmp, ico
+
         public readonly static FileType JPEG = new FileType(new byte?[] { 0xFF, 0xD8, 0xFF }, "jpg", "image/jpeg");
         public readonly static FileType PNG = new FileType(new byte?[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, "png", "image/png");
         public readonly static FileType GIF = new FileType(new byte?[] { 0x47, 0x49, 0x46, 0x38, null, 0x61 }, "gif", "image/gif");
         public readonly static FileType BMP = new FileType(new byte?[] { 66, 77}, "bmp", "image/gif");
         public readonly static FileType ICO = new FileType(new byte?[] { 0, 0, 1, 0}, "ico", "image/x-icon");
 
+        #endregion 
+
         //bmp, tiff
+        #region Zip, 7zip, rar, dll_exe, tar, bz2, gz_tgz
+
+        public readonly static FileType GZ_TGZ = new FileType(new byte?[] { 0x1F, 0x8B, 0x08 }, "gz, tgz", "application/x-gz");
+
         public readonly static FileType ZIP_7z = new FileType(new byte?[] { 66, 77}, "7z", "application/x-compressed");
         public readonly static FileType ZIP_7z_2 = new FileType(new byte?[] {0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C}, "7z", "application/x-compressed");
     
         public readonly static FileType ZIP = new FileType(new byte?[] { 0x50, 0x4B, 0x03, 0x04 }, "zip", "application/x-compressed");
         public readonly static FileType RAR = new FileType(new byte?[] { 0x52, 0x61, 0x72, 0x21 }, "rar", "application/x-compressed");
         public readonly static FileType DLL_EXE = new FileType(new byte?[] { 0x4D, 0x5A }, "dll, exe", "application/octet-stream");
-        public readonly static FileType MSDOC = new FileType(new byte?[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 }, "", "application/octet-stream");
+
+        //Compressed tape archive file using standard (Lempel-Ziv-Welch) compression
+        public readonly static FileType TAR_ZV = new FileType(new byte?[] { 0x1F, 0x9D }, "tar.z", "application/x-tar");
+
+        //Compressed tape archive file using LZH (Lempel-Ziv-Huffman) compression
+        public readonly static FileType TAR_ZH = new FileType(new byte?[] { 0x1F, 0xA0 }, "tar.z", "application/x-tar");
+
+        //bzip2 compressed archive
+        public readonly static FileType BZ2 = new FileType(new byte?[] { 0x42, 0x5A, 0x68 }, "bz2,tar,bz2,tbz2,tb2", "application/x-bzip2");
+
+        #endregion
+
+
+        #region Media ogg, midi, flv
 
         // media 
         public readonly static FileType OGG = new FileType(new byte?[] { 103, 103, 83, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0}, "oga,ogg,ogv,ogx", "application/ogg");
+        //MID, MIDI	 	Musical Instrument Digital Interface (MIDI) sound file
+        public readonly static FileType MIDI = new FileType(new byte?[] { 0x4D, 0x54, 0x68, 0x64 }, "midi,mid", "audio/midi");
 
-        public readonly static FileType GZ_TGZ = new FileType(new byte?[] { 0x1F, 0x8B, 0x08}, "gz, tgz", "application/x-gz");
+        //FLV	 	Flash video file
+        public readonly static FileType FLV = new FileType(new byte?[] { 0x46, 0x4C, 0x56, 0x01 }, "flv", "application/unknown");
 
-        //Compressed tape archive file using standard (Lempel-Ziv-Welch) compression
-        public readonly static FileType TAR_ZV = new FileType(new byte?[] { 0x1F, 0x9D}, "tar.z", "application/x-tar");
+        //WAV	 	Resource Interchange File Format -- Audio for Windows file, where xx xx xx xx is the file size (little endian), audio/wav audio/x-wav
+        public readonly static FileType WAVE = new FileType(new byte?[] { 0x52, 0x49, 0x46, 0x46, null, null, null, null, 
+                                                            0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20	}, "wav", "audio/wav");
 
-        //Compressed tape archive file using LZH (Lempel-Ziv-Huffman) compression
-        public readonly static FileType TAR_ZH = new FileType(new byte?[] { 0x1F, 0xA0}, "tar.z", "application/x-tar");
-	
+
+        #endregion 
+
+        //eneric AutoCAD drawing image/vnd.dwg  image/x-dwg application/acad
+        public readonly static FileType DWG = new FileType(new byte?[] { 0x41, 0x43, 0x31, 0x30 }, "dwg", "application/acad");
+
         public readonly static FileType LIB_COFF = new FileType(new byte?[] { 0x21, 0x3C, 0x61, 0x72, 0x63, 0x68, 0x3E, 0x0A}, "lib", "application/octet-stream");
         
         public readonly static FileType PST = new FileType(new byte?[] { 0x21, 0x42, 0x44, 0x4E}, "pst", "application/octet-stream");
 
         //Photoshop image file
         public readonly static FileType PSD = new FileType(new byte?[] { 0x38, 0x42, 0x50, 0x53}, "psd", "application/octet-stream");
-        
-        //bzip2 compressed archive
-        public readonly static FileType BZ2 = new FileType(new byte?[] { 0x42, 0x5A, 0x68}, "bz2,tar,bz2,tbz2,tb2", "application/x-bzip2");
-        
+
+        #region Crypto aes, skr, skr_2, pkr
+
         //AES Crypt file format. (The fourth byte is the version number.)
         public readonly static FileType AES = new FileType(new byte?[] { 0x41, 0x45, 0x53}, "aes", "application/octet-stream");
-        
-        //eneric AutoCAD drawing image/vnd.dwg  image/x-dwg application/acad
-        public readonly static FileType DWG = new FileType(new byte?[] { 0x41, 0x43, 0x31, 0x30}, "dwg", "application/acad");
 
-        //application/xml text/xml
-        public readonly static FileType XML = new FileType(new byte?[] { 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x3D, 0x22, 0x31, 0x2E, 0x30, 0x22, 0x3F, 0x3E}, 
-                                                            "xml,xul", "text/xml");
+        //SKR	 	PGP secret keyring file
+        public readonly static FileType SKR = new FileType(new byte?[] { 0x95, 0x00 }, "skr", "application/octet-stream");
 
-        //MID, MIDI	 	Musical Instrument Digital Interface (MIDI) sound file
-        public readonly static FileType MIDI = new FileType(new byte?[] { 0x4D, 0x54, 0x68, 0x64}, "midi,mid", "audio/midi");
+        //SKR	 	PGP secret keyring file
+        public readonly static FileType SKR_2 = new FileType(new byte?[] { 0x95, 0x01 }, "skr", "application/octet-stream");
+
+        //PKR	 	PGP public keyring file
+        public readonly static FileType PKR = new FileType(new byte?[] { 0x99, 0x01 }, "pkr", "application/octet-stream");
+
+        #endregion 
 
         /*
          * 46 72 6F 6D 20 20 20 or	 	From
@@ -101,9 +214,6 @@ PPT	 	PowerPoint presentation subheader (MS Office)
          */
         public readonly static FileType EML_FROM = new FileType(new byte?[] { 0x4D, 0x54, 0x68, 0x64}, "midi,mid", "audio/midi");
 
-
-        //FLV	 	Flash video file
-        public readonly static FileType FLV = new FileType(new byte?[] { 0x46, 0x4C, 0x56, 0x01}, "flv", "application/unknown");
 
         //EVTX	 	Windows Vista event log file
         public readonly static FileType ELF = new FileType(new byte?[] { 0x45, 0x6C, 0x66, 0x46, 0x69, 0x6C, 0x65, 0x00	}, "elf", "text/plain");
@@ -120,20 +230,7 @@ PPT	 	PowerPoint presentation subheader (MS Office)
         More information can be found at MacTech or at ECMA.
 
         */
-
-        //WAV	 	Resource Interchange File Format -- Audio for Windows file, where xx xx xx xx is the file size (little endian), audio/wav audio/x-wav
-        public readonly static FileType WAVE = new FileType(new byte?[] { 0x52, 0x49, 0x46, 0x46, null, null, null, null, 
-                                                            0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20	}, "wav", "audio/wav");
-
-
-        //SKR	 	PGP secret keyring file
-        public readonly static FileType SKR = new FileType(new byte?[] { 0x95, 0x00}, "skr", "application/octet-stream");
-
-        //SKR	 	PGP secret keyring file
-        public readonly static FileType SKR_2 = new FileType(new byte?[] { 0x95, 0x01}, "skr", "application/octet-stream");
-
-        //PKR	 	PGP public keyring file
-        public readonly static FileType PKR = new FileType(new byte?[] { 0x99, 0x01}, "pkr", "application/octet-stream");
+        
 
         /*
         00 00 00 14 66 74 79 70

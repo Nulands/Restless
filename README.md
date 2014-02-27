@@ -1,11 +1,17 @@
 Restless
 ========
 
-Rest like api that uses HttpWebRequest and HttpWebResponse internally.
+Rest like api.
+One uses HttpWebRequest and HttpWebResponse internally, the other version uses HttpClient.
+
 
 Uses Json and Xml (de)serializer from RestSharp (https://github.com/restsharp/RestSharp).
 
 More documentation will follow:
+
+-----------------------------------------------------
+
+HttpWebRequest version 
 
 Usage:
 

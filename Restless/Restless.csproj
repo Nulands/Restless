@@ -50,7 +50,7 @@
     <Compile Include="RestResponse.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RestlessSerialization\RestlessSerialization.csproj">
+    <ProjectReference Include="..\..\RestlessSerialization\RestlessSerialization\RestlessSerialization.csproj">
       <Project>{857d83ea-0946-4dc0-a44e-d67a9726a493}</Project>
       <Name>RestlessSerialization</Name>
     </ProjectReference>

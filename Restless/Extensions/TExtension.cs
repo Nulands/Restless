@@ -24,6 +24,16 @@ namespace Restless.Extensions
 {
     public static class TExtension
     {
+        public static void ThrowIfNull<T>(this T obj, string name = "")
+        {
+            if(obj == null)
+            {
+                if(String.IsNullOrEmpty(name))
+                    name = obj.GetType().Name;
+                throw new ArgumentNullException(name);
+            }
+        }
+
         public static void SetFrom<T>(this T to, T from, params string[] excludePropertys)
         {
             var propertys = to.GetType().GetProperties();

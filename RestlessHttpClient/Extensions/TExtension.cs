@@ -19,11 +19,92 @@
 
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
-namespace Restless.Extensions
+namespace Restless
 {
-    public static class TExtension
+    public static class Extensions
     {
+        public static void ThrowIfNullOrEmpty<T>(this IEnumerable<T> enumerable, string name = "")
+        {
+            
+            if (String.IsNullOrEmpty(name))
+                name = enumerable.GetType().Name;
+
+            if(enumerable == null)
+                throw new ArgumentNullException("Parameter is null.", name);
+
+
+            int count = 0;
+            foreach(T value in enumerable){
+                count = 1;
+                break;
+            }
+
+            if (count == 0)
+                throw new ArgumentException("Parameter is empty.", name);
+        }
+
+        public static void ThrowIfNullOrEmpty(this object[] array, string name = "")
+        {
+            if (array == null || array.Length == 0)
+            {
+                if (String.IsNullOrEmpty(name))
+                    name = array.GetType().Name;
+                throw new ArgumentException("Parameter is null or empty.", name);
+            }
+        }
+        
+        public static void ThrowIfNullOrEmpty(this string obj, string name = "")
+        {
+            if (String.IsNullOrEmpty(obj))
+            {
+                if (String.IsNullOrEmpty(name))
+                    name = obj.GetType().Name;
+                throw new ArgumentException("Parameter is null or empty.", name);
+            }
+        }
+
+        public static void ThrowIfNotFound(this string path, bool isFile = true, string name = "")
+        {
+            path.ThrowIfNull("ThrowIfNotFound - path");
+
+            if (String.IsNullOrEmpty(name))
+                name = path.GetType().Name;
+
+            if (isFile && !System.IO.File.Exists(path))
+            {
+                throw new System.IO.FileNotFoundException("File not found.", path);
+            }
+
+            if (!isFile && !System.IO.Directory.Exists(path))
+            {
+                string msg = String.Format("Directory {0} not found.", path);
+                throw new System.IO.DirectoryNotFoundException(msg);
+            }
+        }
+       
+        public static void ThrowIfNull<T>(this T obj, string name = "")
+        {
+            if (obj == null)
+            {
+                if (String.IsNullOrEmpty(name))
+                    name = obj.GetType().Name;
+                throw new ArgumentNullException(name);
+            }
+        }
+
+        public static void ThrowIfNullOrToStrEmpty<T>(this T obj, string name = "")
+        {
+            if (String.IsNullOrEmpty(name))
+                name = obj.GetType().Name;
+
+            if (obj == null)
+                throw new ArgumentNullException(name);
+
+            obj.ToString().ThrowIfNullOrEmpty(name);
+        }
+        
         public static void SetFrom<T>(this T to, T from, params string[] excludePropertys)
         {
             var propertys = to.GetType().GetProperties();

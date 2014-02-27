@@ -18,12 +18,12 @@
  * */
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.IO;
 using Restless.Deserializers;
-using Restless.Extensions;
 using System.Threading.Tasks;
 using System.Text;
 
@@ -44,11 +44,12 @@ namespace Restless
             set { base.Request = value; }
         }
         
-        public RestRequest() : base()
+        /*public RestRequest() : base()
         {
-        }
+        }*/
 
-        public RestRequest(HttpRequestMessage defaultRequest) : base(defaultRequest)
+        public RestRequest(HttpRequestMessage defaultRequest = null, HttpClient httpClient = null)
+            : base(defaultRequest, httpClient)
         {
         }
 
@@ -96,26 +97,7 @@ namespace Restless
 
         #endregion 
 
-        /// <summary>
-        /// Set the URL for this request.
-        /// Can be a format string too.
-        /// </summary>
-        /// <param name="url">The URL string.</param>
-        /// <returns>this</returns>
-        public new RestRequest Url(string url)
-        {
-            return base.Url(url) as RestRequest;
-        }
-
-        /// <summary>
-        /// Formats the url format string.
-        /// </summary>
-        /// <param name="objects">Format objects.</param>
-        /// <returns>this</returns>
-        public new RestRequest UrlFormat(params object[] objects)
-        {
-            return base.UrlFormat(objects) as RestRequest;
-        }
+        #region Set Http method type
 
         /// <summary>
         /// Sets the method to GET.
@@ -180,15 +162,50 @@ namespace Restless
             return base.Connect() as RestRequest;
         }
 
+        #endregion 
+
+        #region Url, CancellationToken, parameters and headers
+
+        public new RestRequest CancelToken(CancellationToken token)
+        {
+            return base.CancelToken(token) as RestRequest;
+        }
+
         /// <summary>
-        /// Do an action on the underlying HttpWebRequest.
+        /// Set the URL for this request.
+        /// Can be a format string too.
+        /// </summary>
+        /// <param name="url">The URL string.</param>
+        /// <returns>this</returns>
+        public new RestRequest Url(string url)
+        {
+            return base.Url(url) as RestRequest;
+        }
+
+        /// <summary>
+        /// Formats the url format string.
+        /// </summary>
+        /// <param name="objects">Format objects.</param>
+        /// <returns>this</returns>
+        public new RestRequest UrlFormat(params object[] objects)
+        {
+            return base.UrlFormat(objects) as RestRequest;
+        }
+
+        /// <summary>
+        /// Do an action on the underlying HttpClient.
         /// Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
         /// </summary>
-        /// <param name="action">An action that takes a HttpWebRequest as argument.</param>
+        /// <param name="action">An action that takes a HttpClient as argument.</param>
         /// <returns>this</returns>
         public new RestRequest RequestAction(Action<HttpRequestMessage> action)
         {
             return base.RequestAction(action) as RestRequest;
+        }
+
+        public new RestRequest ClientAction(Action<HttpClient> action)
+        {
+            return base.ClientAction(action) as RestRequest;
         }
 
         /// <summary>
@@ -213,13 +230,41 @@ namespace Restless
 
         /// <summary>
         /// Adds a parameter to the request.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="value">The parameter value.</param>
+        /// <param name="type">The type. Query, FormUrlEncoded or Url.</param>
+        /// <returns>this.</returns>
+        public new RestRequest Param(string name, object value, ParameterType type)
+        {
+            return base.Param(name, value, type) as RestRequest;
+        }
+
+        /// <summary>
+        /// Adds a parameter to the url.
+        /// The url should contain "{name}". 
+        /// Example: url is www.test.com/{person_name}/{person_age}
+        /// then ...UrlParam("person_name", "TestUser").UrlParam("person_age", 42); 
+        /// result is www.test.com/TestUser/42
+        /// Url is build up only when 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public new RestRequest UrlParam(string name, object value)
+        {
+            return base.UrlParam(name, value) as RestRequest;
+        }
+
+        /// <summary>
+        /// Adds a parameter to the request.
         /// If method is Get() the parameters will be added as query parameters.
         /// Otherwise they are body parameters like specified with the POST request.
         /// </summary>
         /// <param name="name">The parameter name.</param>
         /// <param name="value">The parameter value.</param>
         /// <returns>this.</returns>
-        public new RestRequest Param(string name, string value)
+        public new RestRequest Param(string name, object value)
         {
             return base.Param(name, value) as RestRequest;
         }
@@ -240,62 +285,64 @@ namespace Restless
             return base.Header(name, values) as RestRequest;
         }
 
-        public new RestRequest QParam(string name, string value)
+        public new RestRequest QParam(string name, object value)
         {
             return base.QParam(name, value) as RestRequest;
         }
+
+        #endregion 
 
         public new async Task<HttpResponseMessage> GetResponseAsync()
         {
             return await base.GetResponseAsync();
         }
 
-        public new RestResponse<T> Fetch<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
-                                                               Action<RestResponse<T>> successAction = null,
-                                                               Action<RestResponse<T>> errorAction = null)
+        public new async Task<RestResponse<T>> Fetch<T>(
+            HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
+            Action<RestResponse<T>> successAction = null,
+            Action<RestResponse<T>> errorAction = null)
         {
-            throw new NotImplementedException();
+            return await base.Fetch<T>(wantedStatusCode, successAction, errorAction);
         }
 
-        public new async Task<RestResponse<T>> FetchAsync<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
-                                                   Action<RestResponse<T>> successAction = null,
-                                                   Action<RestResponse<T>> errorAction = null)
-        {
-            return await base.FetchAsync<T>(wantedStatusCode, successAction, errorAction);
-        }
+        #region Upload file binary with StreamContent
 
-        public new async Task<RestResponse<T>> UploadFileBinary<T>(string localPath,
-                                                                    string contentType,
-                                                                    Action<RestResponse<T>> successAction = null,
-                                                                    Action<RestResponse<T>> errorAction = null)
+        public new async Task<RestResponse<T>> UploadFileBinary<T>(
+            string localPath, string contentType,
+            Action<RestResponse<T>> successAction = null,
+            Action<RestResponse<T>> errorAction = null)
         {
             return await base.UploadFileBinary<T>(localPath, contentType, successAction, errorAction);
         }
 
-        public new async Task<RestResponse<T>> UploadFileFormData<T>(string localPath,
-                                                                    string contentType,
-                                                                    Action<RestResponse<T>> successAction = null,
-                                                                    Action<RestResponse<T>> errorAction = null)
-        {
-            return await base.UploadFileFormData<T>(localPath, contentType, successAction, errorAction);
-        }
-
-        public new async Task<RestResponse<T>> UploadFileBinary<T>(Stream fileStream,
-                                                                            string contentType,
-                                                                    Action<RestResponse<T>> successAction = null,
-                                                                    Action<RestResponse<T>> errorAction = null)
+        public new async Task<RestResponse<T>> UploadFileBinary<T>(
+            Stream fileStream, string contentType,
+            Action<RestResponse<T>> successAction = null,
+            Action<RestResponse<T>> errorAction = null)
         {
             return await base.UploadFileBinary<T>(fileStream, contentType, successAction, errorAction);
         }
 
-        public new async Task<RestResponse<T>> UploadFileFormData<T>(Stream fileStream,
-                                                                            string contentType,
-                                                                            string localPath,
-                                                                            Action<RestResponse<T>> successAction = null,
-                                                                            Action<RestResponse<T>> errorAction = null)
+        #endregion 
+
+        #region Upload file with multipart content and formData
+
+        public new async Task<RestResponse<T>> UploadFileFormData<T>(
+            string localPath, string contentType,
+            Action<RestResponse<T>> successAction = null,
+            Action<RestResponse<T>> errorAction = null)
+        {
+            return await base.UploadFileFormData<T>(localPath, contentType, successAction, errorAction);
+        }
+
+        public new async Task<RestResponse<T>> UploadFileFormData<T>(
+            Stream fileStream, string contentType, string localPath,
+            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
             return await base.UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction);
         }
+
+        #endregion 
 
     }
 }

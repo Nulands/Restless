@@ -18,6 +18,7 @@
  * */
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
@@ -26,10 +27,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Formatting;
 
 using System.Text;
-using System.Net;
 using System.IO;
 using Restless.Deserializers;
-using Restless.Extensions;
 using System.Threading.Tasks;
 
 namespace Restless
@@ -45,6 +44,13 @@ namespace Restless
         String
     }
 
+    public enum ParameterType
+    {
+        Query,
+        FormUrlEncoded,
+        Url
+    }
+
     /// <summary>
     /// Base class for a RestRequest based on HttpWebRequest.
     /// Protected methods are commented in RestRequest.
@@ -56,34 +62,74 @@ namespace Restless
     /// </summary>
     public abstract class BaseRestRequest
     {
+        /// <summary>
+        /// Content (de)serialization handler.
+        /// </summary>
+        private Dictionary<string, IDeserializer> content_handler = new Dictionary<string, IDeserializer>();
 
-        private Dictionary<string, IDeserializer> _contentHandler = new Dictionary<string, IDeserializer>();
+        /// <summary>
+        /// Url query parameters: ?name=value
+        /// </summary>
+        protected Dictionary<string, object> query_params = new Dictionary<string, object>(); 
 
-        protected Dictionary<string, object> _qParameter = new Dictionary<string, object>(); 
-        protected Dictionary<string, object> _parameter = new Dictionary<string, object>();
-        private string _url = "";
+        /// <summary>
+        /// When method is GET then added as query parameters too.
+        /// Otherwise added as FormUrlEncoded parameters: name=value
+        /// </summary>
+        protected Dictionary<string, object> param = new Dictionary<string, object>();
 
-        protected HttpClient _client = new HttpClient();
-        protected HttpRequestMessage _request = new HttpRequestMessage();
+        /// <summary>
+        /// Url parameters ../{name}.
+        /// </summary>
+        protected Dictionary<string, object> url_params = new Dictionary<string, object>();
 
+        /// <summary>
+        /// The url string. Can contain {name} and/or format strings {0}.
+        /// </summary>
+        private string url = "";
+
+        protected System.Threading.CancellationToken cancellation = new System.Threading.CancellationToken();
+        
+        /// <summary>
+        /// HttpClient used to send the request message.
+        /// </summary>
+        protected HttpClient client = new HttpClient();
+
+        /// <summary>
+        /// Internal request message.
+        /// </summary>
+        protected HttpRequestMessage request = new HttpRequestMessage();
+
+        /// <summary>
+        /// HttpClient property.
+        /// </summary>
         protected virtual HttpClient HttpClient
         {
-            get { return _client; }
-            set { _client = value; }
+            get { return client; }
+            set { client = value; }
         }
 
+        /// <summary>
+        /// HttpRequestMessage property.
+        /// </summary>
         protected virtual HttpRequestMessage Request
         {
-            get { return _request; }
-            set { _request = value; }
+            get { return request; }
+            set { request = value; }
         }
 
-        protected BaseRestRequest(HttpRequestMessage defaultRequest = null, HttpClient client = null)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="defaultRequest">The initial request message, or null if not used.</param>
+        /// <param name="httpClient">The initial http client, or null if not used.</param>
+        protected BaseRestRequest(HttpRequestMessage defaultRequest = null, HttpClient httpClient = null)
         {
             if (defaultRequest != null)
-                _request = defaultRequest;
-            if (client != null)
-                _client = client;
+                request = defaultRequest;
+            if (httpClient != null)
+                client = httpClient;
+
             registerDefaultHandlers();
         }
 
@@ -91,43 +137,43 @@ namespace Restless
 
         protected virtual BaseRestRequest Get()
         {
-            _request.Method = new HttpMethod("GET");
+            request.Method = new HttpMethod("GET");
             return this;
         }
 
         protected virtual BaseRestRequest Head()
         {
-            _request.Method = new HttpMethod("HEAD");
+            request.Method = new HttpMethod("HEAD");
             return this;
         }
 
         protected virtual BaseRestRequest Post()
         {
-            _request.Method = new HttpMethod("POST");
+            request.Method = new HttpMethod("POST");
             return this;
         }
 
         protected virtual BaseRestRequest Put()
         {
-            _request.Method = new HttpMethod("PUT");
+            request.Method = new HttpMethod("PUT");
             return this;
         }
 
         protected virtual BaseRestRequest Delete()
         {
-            _request.Method = new HttpMethod("DELETE");
+            request.Method = new HttpMethod("DELETE");
             return this;
         }
 
         protected virtual BaseRestRequest Trace()
         {
-            _request.Method = new HttpMethod("TRACE");
+            request.Method = new HttpMethod("TRACE");
             return this;
         }
 
         protected virtual BaseRestRequest Connect()
         {
-            _request.Method = new HttpMethod("CONNECT");
+            request.Method = new HttpMethod("CONNECT");
             return this;
         }
 
@@ -137,18 +183,18 @@ namespace Restless
 
         protected virtual BaseRestRequest AddContent(HttpContent content, string name = "", string fileName = "")
         {
-            if (_request.Content is MultipartContent)
-                (_request.Content as MultipartContent).Add(content);
-            else if (_request.Content is MultipartFormDataContent)
-                (_request.Content as MultipartFormDataContent).Add(content, name, fileName);
+            if (request.Content is MultipartContent)
+                (request.Content as MultipartContent).Add(content);
+            else if (request.Content is MultipartFormDataContent)
+                (request.Content as MultipartFormDataContent).Add(content, name, fileName);
             else
-                _request.Content = content;
+                request.Content = content;
             return this;
         }
 
         protected virtual BaseRestRequest ClearContent()
         {
-            _request.Content = null;
+            request.Content = null;
             return this;
         }
 
@@ -167,7 +213,7 @@ namespace Restless
             if (kvPairs.Length == 0)
             {
                 // use the parameters added with Param(..)
-                foreach (var element in _parameter)
+                foreach (var element in param)
                     keyValues.Add(new KeyValuePair<string, string>(element.Key, (string)element.Value));
             }
             else
@@ -203,111 +249,154 @@ namespace Restless
 
         #endregion 
 
+        #region Url, CancellationToken, parameters and headers
+
+        protected virtual BaseRestRequest CancelToken(CancellationToken token)
+        {
+            token.ThrowIfNull("CancelToken");
+
+            cancellation = token;
+            return this;
+        }
+
         protected virtual BaseRestRequest Url(string url)
         {
-            if (url == null)
-                throw new ArgumentException("Url is null!");
-            else
-                _url = url;
+            url.ThrowIfNull("Url");            
+            this.url = url;
             return this;
         }
 
         protected virtual BaseRestRequest UrlFormat(params object[] objects)
         {
-            if (objects != null && objects.Length > 0)
-                String.Format(_url, objects);
+            objects.ThrowIfNullOrEmpty("UrlFormat");
+
+            String.Format(url, objects);
             return this;
         }
 
         protected virtual BaseRestRequest RequestAction(Action<HttpRequestMessage> action)
         {
-            action(_request);
+            action.ThrowIfNull("RequestAction");
+            action(request);
             return this;
         }
-        
+
+        protected virtual BaseRestRequest ClientAction(Action<HttpClient> action)
+        {
+            action.ThrowIfNull("ClientAction");
+            action(client);
+            return this;
+        }
+
         protected virtual BaseRestRequest Basic(string username, string password)
         {
-            
+            username.ThrowIfNullOrEmpty("Basic - username");
+            password.ThrowIfNullOrEmpty("Basic - password");
+
             string base64authStr = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + password));
-            _request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64authStr);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64authStr);
             return this;
         }
 
         protected virtual BaseRestRequest Bearer(string token)
         {
+            token.ThrowIfNullOrEmpty("Bearer");
             string base64AccessToken = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(token));
-            _request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", base64AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", base64AccessToken);
+            return this;
+        }
+
+        protected virtual BaseRestRequest Param(string name, object value, ParameterType type)
+        {
+            name.ThrowIfNullOrEmpty("Param - name");
+            value.ThrowIfNullOrToStrEmpty("Param - value");
+
+            if (type == ParameterType.FormUrlEncoded)
+                param[name] = value;
+            else if (type == ParameterType.Query)
+                query_params[name] = value;
+            else // type == ParameterType.Url
+            {
+                if (url.Contains("{" + name + "}"))
+                    url_params.Add(name, value);
+                else
+                    throw new ArgumentException("Url does not contain a parameter : " + name);
+            }
+
+            return this;
+        }
+
+        protected virtual BaseRestRequest UrlParam(string name, object value)
+        {
+            name.ThrowIfNullOrEmpty("UrlParam - name");
+            value.ThrowIfNullOrToStrEmpty("UrlParam - value");
+            url = url.Replace("{" + name + "}", value.ToString());
             return this;
         }
 
         protected virtual BaseRestRequest Param(string name, object value)
         {
-            if (String.IsNullOrEmpty(name))
-                throw new ArgumentException("Parameter name is null or empty!");
-            if (value == null)
-                throw new ArgumentException("Parameter value is null!");
-            _parameter[name] = value;
+            name.ThrowIfNullOrEmpty("Param - name");
+            value.ThrowIfNullOrToStrEmpty("Param - value");
+
+            param[name] = value;
             return this;
         }
 
         protected virtual BaseRestRequest QParam(string name, object value)
         {
-            if (String.IsNullOrEmpty(name))
-                throw new ArgumentException("Parameter name is null or empty!");
-            if (value == null)
-                throw new ArgumentException("Parameter value is null!");
-            _qParameter[name] = value;
+            name.ThrowIfNullOrEmpty("QParam - name");
+            value.ThrowIfNullOrToStrEmpty("QParam - value");
+
+            query_params[name] = value;
             return this;
 
         }
 
         protected virtual BaseRestRequest Header(string name, string value)
         {
-            if (String.IsNullOrEmpty(name))
-                throw new ArgumentException("Parameter name is null!");
-            if (String.IsNullOrEmpty(value))
-                throw new ArgumentException("Parameter value is null!");
+            name.ThrowIfNullOrEmpty("Header - name");
+            value.ThrowIfNullOrEmpty("Header - value");
 
-            _request.Headers.Add(name, value);
+            request.Headers.Add(name, value);
             return this;
         }
 
         protected virtual BaseRestRequest Header(string name, IEnumerable<string> values)
         {
-            if (String.IsNullOrEmpty(name))
-                throw new ArgumentException("Parameter name is null!");
-            if (values == null)
-                throw new ArgumentException("Parameters are null!");
+            name.ThrowIfNullOrEmpty("Header - name");
+            values.ThrowIfNullOrEmpty("Header - values");
 
-            _request.Headers.Add(name, values);
+            request.Headers.Add(name, values);
             return this;
         }
 
-        #region Get response HttpWebResponse
+        #endregion 
+
+        #region Get HttpWebResponse async 
 
         protected virtual async Task<HttpResponseMessage> GetResponseAsync()
         {
-            makeQueryUrl();
-            _request.RequestUri = new Uri(_url);
+            //makeQueryUrl();
+            //makeRequestUri();
 
-            return await _client.SendAsync(_request);
+            if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
+                AddFormUrl();           // Add form url encoded parameter to request if needed
+
+            //request.RequestUri = new Uri(url);
+            request.RequestUri = new Uri(makeRequestUri());
+
+            return await client.SendAsync(request);
         }
 
         #endregion 
 
         #region Fetch RestResponse and deserialize directly
 
-        protected virtual RestResponse<T> Fetch<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
-                                                               Action<RestResponse<T>> successAction = null,
-                                                               Action<RestResponse<T>> errorAction = null)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        protected virtual async Task<RestResponse<T>> FetchAsync<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
-                                                               Action<RestResponse<T>> successAction = null,
-                                                               Action<RestResponse<T>> errorAction = null)
+        protected virtual async Task<RestResponse<T>> Fetch<T>(
+            HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
+            Action<RestResponse<T>> successAction = null,
+            Action<RestResponse<T>> errorAction = null)
         {
             HttpResponseMessage response = null;
             RestResponse<T> result = new RestResponse<T>();
@@ -315,22 +404,28 @@ namespace Restless
             // Add query parameter to the url
             // If method is GET then paramater added with QParam AND with Param are treated as
             // Query parameter.
-            makeQueryUrl();
+            //url = makeQueryUrl(url);
+            //makeRequestUri();
 
-            if (_request.Method.Method != "GET" && _request.Content == null && _parameter.Count > 0)
+            if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
                 AddFormUrl();           // Add form url encoded parameter to request if needed
 
-            _request.RequestUri = new Uri(_url);
+            //request.RequestUri = new Uri(url);
+            string requestUri = makeRequestUri();
+            request.RequestUri = new Uri(makeRequestUri());
+
             try
             {
-                response = await _client.SendAsync(_request);
+                response = await client.SendAsync(request);
                 //response = response.EnsureSuccessStatusCode();
 
                 result.Response = response;
 
                 if (response.StatusCode == wantedStatusCode)
                 {
-                    result.Data = await tryDeserialization<T>(response);
+                    if (!(typeof(T) is INot))
+                        result.Data = await tryDeserialization<T>(response);
+
                     ActionIfNotNull<T>(result, successAction);
                 }
                 else
@@ -341,6 +436,7 @@ namespace Restless
             }
             catch (Exception exc)
             {
+                Console.WriteLine(exc);
                 result.Exception = exc;
                 ActionIfNotNull<T>(result, errorAction);
             }
@@ -350,14 +446,15 @@ namespace Restless
 
         #endregion 
     
+        #region Upload file binary with StreamContent
 
-        protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(string localPath,
-                                                                        string contentType,
-                                                                        Action<RestResponse<T>> successAction = null,
-                                                                        Action<RestResponse<T>> errorAction = null)
+        protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(
+            string localPath, string contentType,
+            Action<RestResponse<T>> successAction = null,Action<RestResponse<T>> errorAction = null)
         {
-            RestResponse<T> result = new RestResponse<T>();
+            localPath.ThrowIfNotFound(true, "UploadFileBinary - localPath");
 
+            RestResponse<T> result = new RestResponse<T>();
             using (FileStream fileStream = File.OpenRead(localPath))
             {
                 result = await UploadFileBinary<T>(fileStream, contentType, successAction, errorAction);
@@ -365,27 +462,14 @@ namespace Restless
             return result;
         }
 
-        protected virtual async Task<RestResponse<T>> UploadFileFormData<T>(string localPath,
-                                                                    string contentType,
-                                                                    Action<RestResponse<T>> successAction = null,
-                                                                    Action<RestResponse<T>> errorAction = null)
+        protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(
+            Stream fileStream, String contentType,
+            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
+            fileStream.ThrowIfNull("UploadFileBinary - fileStream");
+            contentType.ThrowIfNullOrEmpty("UploadFileBinary - contentType");
+
             RestResponse<T> result = new RestResponse<T>();
-
-            using (FileStream fileStream = File.OpenRead(localPath))
-            {
-                result = await UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction); 
-            }
-            return result;
-        }
-
-        protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(Stream fileStream,
-                                                                            string contentType,
-                                                                    Action<RestResponse<T>> successAction = null,
-                                                                    Action<RestResponse<T>> errorAction = null)
-        {
-            RestResponse<T> result = new RestResponse<T>();
-
             try
             {
                 // TODO: clear complete request to be sure we have a fresh one?
@@ -399,11 +483,13 @@ namespace Restless
 
                 // Add query parameter to the url
                 // Some apis need query parameter even with post and put
-                makeQueryUrl();
+                //makeQueryUrl();
+                //makeRequestUri();
 
-                _request.RequestUri = new Uri(_url);
+                //request.RequestUri = new Uri(url);
+                request.RequestUri = new Uri(makeRequestUri());
 
-                response = await _client.SendAsync(_request);
+                response = await client.SendAsync(request);
 
                 response = response.EnsureSuccessStatusCode();
 
@@ -428,14 +514,38 @@ namespace Restless
             return result;
         }
 
-        protected virtual async Task<RestResponse<T>> UploadFileFormData<T>(Stream fileStream,
-                                                                            string contentType,
-                                                                            string localPath,
-                                                                            Action<RestResponse<T>> successAction = null,
-                                                                            Action<RestResponse<T>> errorAction = null)
-        {
-            RestResponse<T> result = new RestResponse<T>();
+        #endregion 
 
+        #region Upload file via multipart form and stream content. Possible parameters are added via FormUrlEncoded content.
+
+        protected virtual async Task<RestResponse<T>> UploadFileFormData<T>(
+            string localPath, string contentType,
+            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
+        {
+            localPath.ThrowIfNotFound(true, "UploadFileBinary - localPath");
+
+            RestResponse<T> result = new RestResponse<T>();
+            using (FileStream fileStream = File.OpenRead(localPath))
+            {
+                result = await UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction); 
+            }
+            return result;
+        }
+
+        
+        protected virtual async Task<RestResponse<T>> UploadFileFormData<T>(
+            Stream fileStream, string contentType, string localPath, 
+            Action<RestResponse<T>> successAction = null,Action<RestResponse<T>> errorAction = null)
+        {
+            fileStream.ThrowIfNull("UploadFileFormData - fileStream");
+            contentType.ThrowIfNullOrEmpty("UploadFileFormData - contentType");
+
+            // Only check for null or empty, not for existing
+            // here its only used for content-disposition
+            // the file is already loaded, see fileStream
+            localPath.ThrowIfNullOrEmpty("UploadFileFormData - localPath");
+
+            RestResponse<T> result = new RestResponse<T>();
             try
             {
                 // TODO: clear complete request to be sure we have a fresh one?
@@ -448,17 +558,22 @@ namespace Restless
 
                 // TODO: create and add (random?) boundary
                 AddMultipartForm();
+                if (param.Count > 0)
+                    AddFormUrl();           // Add form url encoded parameter to request if needed    
+ 
                 AddStream(fileStream, contentType, 1024, Path.GetFileNameWithoutExtension(localPath), Path.GetFileName(localPath));
 
                 HttpResponseMessage response = null;
 
                 // Add query parameter to the url
                 // Some apis need query parameter even with post and put
-                makeQueryUrl();
+                //makeQueryUrl();
+                //makeRequestUri();
 
-                _request.RequestUri = new Uri(_url);
+                //request.RequestUri = new Uri(url);
+                request.RequestUri = new Uri(makeRequestUri());
 
-                response = await _client.SendAsync(_request);
+                response = await client.SendAsync(request);
 
                 //response = response.EnsureSuccessStatusCode();
 
@@ -482,17 +597,20 @@ namespace Restless
             }
             return result;
         }
+
+        #endregion 
+
         #region Helper functions
 
         private async Task<T> tryDeserialization<T>(HttpResponseMessage response)
         {
             T result = default(T);
-            if (!(typeof(T) is INot))
-            {
+            //if (!(typeof(T) is INot))
+            //{
                 // TODO: Check media type for json and xml?
                 IDeserializer deserializer = GetHandler(response.Content.Headers.ContentType.MediaType);
                 result = deserializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
-            }
+            //}
             return result;
 
         }
@@ -504,19 +622,19 @@ namespace Restless
 
         protected bool containsParam(string name)
         {
-            return _parameter.ContainsKey(name);
+            return param.ContainsKey(name);
         }
 
         private void registerDefaultHandlers()
         {
             // register default handlers
-            _contentHandler.Add("application/json", new JsonDeserializer());
-            _contentHandler.Add("application/xml", new XmlDeserializer());
-            _contentHandler.Add("text/json", new JsonDeserializer());
-            _contentHandler.Add("text/x-json", new JsonDeserializer());
-            _contentHandler.Add("text/javascript", new JsonDeserializer());
-            _contentHandler.Add("text/xml", new XmlDeserializer());
-            _contentHandler.Add("*", new XmlDeserializer());
+            content_handler.Add("application/json", new JsonDeserializer());
+            content_handler.Add("application/xml", new XmlDeserializer());
+            content_handler.Add("text/json", new JsonDeserializer());
+            content_handler.Add("text/x-json", new JsonDeserializer());
+            content_handler.Add("text/javascript", new JsonDeserializer());
+            content_handler.Add("text/xml", new XmlDeserializer());
+            content_handler.Add("*", new XmlDeserializer());
         }
 
         /// <summary>
@@ -526,24 +644,64 @@ namespace Restless
         /// <returns>IDeserializer instance</returns>
         protected IDeserializer GetHandler(string contentType)
         {
-            if (string.IsNullOrEmpty(contentType) && _contentHandler.ContainsKey("*"))
+            if (string.IsNullOrEmpty(contentType) && content_handler.ContainsKey("*"))
             {
-                return _contentHandler["*"];
+                return content_handler["*"];
             }
 
             var semicolonIndex = contentType.IndexOf(';');
             if (semicolonIndex > -1) contentType = contentType.Substring(0, semicolonIndex);
             IDeserializer handler = null;
-            if (_contentHandler.ContainsKey(contentType))
+            if (content_handler.ContainsKey(contentType))
             {
-                handler = _contentHandler[contentType];
+                handler = content_handler[contentType];
             }
-            else if (_contentHandler.ContainsKey("*"))
+            else if (content_handler.ContainsKey("*"))
             {
-                handler = _contentHandler["*"];
+                handler = content_handler["*"];
             }
 
             return handler;
+        }
+
+        private string makeRequestUri()
+        {
+            string requestUrl = makeUrlParams(url);
+            requestUrl = makeQueryUrl(requestUrl);
+            return requestUrl;
+        }
+
+        private string makeUrlParams(string url)
+        {
+            StringBuilder builder = new StringBuilder(url);
+            foreach (var element in url_params)
+            {
+                string pattern = "{" + element.Key + "}";
+                if (url.Contains(pattern))
+                    builder.Replace(pattern, element.Value.ToString());
+            }
+            //url = builder.ToString();
+            return builder.ToString();
+        }
+
+        private string makeQueryUrl(string url)
+        {
+            // Add query parameter to url
+            string query = makeParameterString(query_params);
+
+            // if method is GET treat all parameters as query parameter
+            if (request.Method.Method == "GET")
+            {
+                string pQuery = makeParameterString(param);
+                if (String.IsNullOrEmpty(query))
+                    query = pQuery;
+                else
+                    query += "&" + pQuery;
+            }
+
+            if (!String.IsNullOrEmpty(query))
+                url += "?" + query;
+            return url;
         }
 
         private string makeParameterString(Dictionary<string, object> paramList)
@@ -560,25 +718,6 @@ namespace Restless
                 i++;
             }
             return str.ToString();
-        }
-
-        private void makeQueryUrl()
-        {
-            // Add query parameter to url
-            string query = makeParameterString(_qParameter);
-
-            // if method is GET treat all parameters as query parameter
-            if(_request.Method.Method == "GET")
-            {
-                string pQuery = makeParameterString(_parameter);
-                if(String.IsNullOrEmpty(query))
-                    query = pQuery;
-                else
-                    query += "&" + pQuery;
-            }
-
-            if(!String.IsNullOrEmpty(query))
-                _url += "?" + query;
         }
 
         #endregion 
