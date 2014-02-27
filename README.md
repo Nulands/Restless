@@ -9,13 +9,11 @@ Uses Json and Xml (de)serializer from RestSharp (https://github.com/restsharp/Re
 
 More documentation will follow:
 
-<<<<<<< HEAD
 -----------------------------------------------------
 
 HttpWebRequest version 
 =======
 HttpClient version 
->>>>>>> 6c04d344dee5b1d513f2ffb0c5db8ae632354e4a
 
 Usage:
 
