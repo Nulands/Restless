@@ -297,6 +297,8 @@ namespace Restless
             return await base.GetResponseAsync();
         }
 
+        #region Fetch response 
+
         public new async Task<RestResponse<T>> Fetch<T>(
             HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
             Action<RestResponse<T>> successAction = null,
@@ -304,6 +306,16 @@ namespace Restless
         {
             return await base.Fetch<T>(wantedStatusCode, successAction, errorAction);
         }
+
+        public async Task<RestResponse<INothing>> Fetch(
+            HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
+            Action<RestResponse<INothing>> successAction = null,
+            Action<RestResponse<INothing>> errorAction = null)
+        {
+            return await base.Fetch(wantedStatusCode, successAction, errorAction);
+        }
+
+        #endregion 
 
         #region Upload file binary with StreamContent
 
@@ -315,6 +327,17 @@ namespace Restless
             return await base.UploadFileBinary<T>(localPath, contentType, successAction, errorAction);
         }
 
+
+        public async Task<RestResponse<INothing>> UploadFileBinary(
+            string localPath, string contentType,
+            Action<RestResponse<INothing>> successAction = null,
+            Action<RestResponse<INothing>> errorAction = null)
+        {
+            return await base.UploadFileBinary(localPath, contentType, successAction, errorAction);
+
+        }
+
+
         public new async Task<RestResponse<T>> UploadFileBinary<T>(
             Stream fileStream, string contentType,
             Action<RestResponse<T>> successAction = null,
@@ -323,6 +346,14 @@ namespace Restless
             return await base.UploadFileBinary<T>(fileStream, contentType, successAction, errorAction);
         }
 
+
+        public async Task<RestResponse<INothing>> UploadFileBinary(
+            Stream fileStream, string contentType,
+            Action<RestResponse<INothing>> successAction = null,
+            Action<RestResponse<INothing>> errorAction = null)
+        {
+            return await base.UploadFileBinary(fileStream, contentType, successAction, errorAction);
+        }
         #endregion 
 
         #region Upload file with multipart content and formData
@@ -340,6 +371,22 @@ namespace Restless
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
             return await base.UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction);
+        }
+
+        public async Task<RestResponse<INothing>> UploadFileFormData(
+            string localPath, string contentType,
+            Action<RestResponse<INothing>> successAction = null,
+            Action<RestResponse<INothing>> errorAction = null)
+        {
+            return await base.UploadFileFormData(localPath, contentType, successAction, errorAction);
+        }
+
+        public async Task<RestResponse<INothing>> UploadFileFormData(
+            Stream fileStream, string contentType, string localPath,
+            Action<RestResponse<INothing>> successAction = null,
+            Action<RestResponse<INothing>> errorAction = null)
+        {
+            return await base.UploadFileFormData(fileStream, contentType, localPath, successAction, errorAction);
         }
 
         #endregion 

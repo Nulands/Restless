@@ -21,7 +21,7 @@
 
 namespace Restless
 {
-    public interface INot
+    public interface INothing
     {
     }
 }

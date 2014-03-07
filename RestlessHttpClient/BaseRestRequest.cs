@@ -377,13 +377,9 @@ namespace Restless
 
         protected virtual async Task<HttpResponseMessage> GetResponseAsync()
         {
-            //makeQueryUrl();
-            //makeRequestUri();
-
             if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
                 AddFormUrl();           // Add form url encoded parameter to request if needed
 
-            //request.RequestUri = new Uri(url);
             request.RequestUri = new Uri(makeRequestUri());
 
             return await client.SendAsync(request);
@@ -401,29 +397,21 @@ namespace Restless
             HttpResponseMessage response = null;
             RestResponse<T> result = new RestResponse<T>();
 
-            // Add query parameter to the url
-            // If method is GET then paramater added with QParam AND with Param are treated as
-            // Query parameter.
-            //url = makeQueryUrl(url);
-            //makeRequestUri();
-
             if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
                 AddFormUrl();           // Add form url encoded parameter to request if needed
 
-            //request.RequestUri = new Uri(url);
             string requestUri = makeRequestUri();
             request.RequestUri = new Uri(makeRequestUri());
 
             try
             {
                 response = await client.SendAsync(request);
-                //response = response.EnsureSuccessStatusCode();
 
                 result.Response = response;
 
                 if (response.StatusCode == wantedStatusCode)
                 {
-                    if (!(typeof(T) is INot))
+                    if (!(typeof(T) is INothing))
                         result.Data = await tryDeserialization<T>(response);
 
                     ActionIfNotNull<T>(result, successAction);
@@ -481,23 +469,16 @@ namespace Restless
 
                 HttpResponseMessage response = null;
 
-                // Add query parameter to the url
-                // Some apis need query parameter even with post and put
-                //makeQueryUrl();
-                //makeRequestUri();
-
-                //request.RequestUri = new Uri(url);
                 request.RequestUri = new Uri(makeRequestUri());
 
                 response = await client.SendAsync(request);
-
-                response = response.EnsureSuccessStatusCode();
 
                 result.Response = response;
 
                 if (response.IsSuccessStatusCode)
                 {
-                    result.Data = await tryDeserialization<T>(response);
+                    if (!(typeof(T) is INothing))
+                        result.Data = await tryDeserialization<T>(response);
                     ActionIfNotNull<T>(result, successAction);
                 }
                 else
@@ -531,7 +512,6 @@ namespace Restless
             }
             return result;
         }
-
         
         protected virtual async Task<RestResponse<T>> UploadFileFormData<T>(
             Stream fileStream, string contentType, string localPath, 
@@ -565,23 +545,16 @@ namespace Restless
 
                 HttpResponseMessage response = null;
 
-                // Add query parameter to the url
-                // Some apis need query parameter even with post and put
-                //makeQueryUrl();
-                //makeRequestUri();
-
-                //request.RequestUri = new Uri(url);
                 request.RequestUri = new Uri(makeRequestUri());
 
                 response = await client.SendAsync(request);
-
-                //response = response.EnsureSuccessStatusCode();
 
                 result.Response = response;
 
                 if (response.IsSuccessStatusCode)
                 {
-                    result.Data = await tryDeserialization<T>(response);
+                    if (!(typeof(T) is INothing))
+                        result.Data = await tryDeserialization<T>(response);
                     ActionIfNotNull<T>(result, successAction);
                 }
                 else

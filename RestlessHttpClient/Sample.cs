@@ -78,10 +78,10 @@ namespace Restless
             return Param("age", age) as PersonCreateRequest;
         }
 
-        public new async Task<RestResponse<INot>> Fetch(Action<RestResponse<INot>> successAction = null,
-                                                        Action<RestResponse<INot>> errorAction = null)
+        public new async Task<RestResponse<INothing>> Fetch(Action<RestResponse<INothing>> successAction = null,
+                                                        Action<RestResponse<INothing>> errorAction = null)
         {
-            return await base.Fetch<INot>(HttpStatusCode.Created, successAction, errorAction);
+            return await base.Fetch<INothing>(HttpStatusCode.Created, successAction, errorAction);
         }
     }
 
@@ -106,7 +106,7 @@ namespace Restless
             RestRequest request = new RestRequest();
             string url = "https://duckduckgo.com/";
 
-            var response = await request.Get().Url(url).QParam("q", "RestlessHttpClient").Fetch<INot>();
+            var response = await request.Get().Url(url).QParam("q", "RestlessHttpClient").Fetch<INothing>();
 
             if (response.IsStatusCodeMissmatch)
             {
@@ -157,7 +157,7 @@ namespace Restless
             //createPerson.Post().Url(url).AddFormUrl("name", "NewUser", "age", 99.ToString());        
 
             // Default wanted status code for Fetch is OK, no Created is needed to indicate success.
-            RestResponse<INot> createResponse = await createPerson.Fetch<INot>(HttpStatusCode.Created);
+            RestResponse<INothing> createResponse = await createPerson.Fetch<INothing>(HttpStatusCode.Created);
 
             if (createResponse.IsStatusCodeMissmatch)
             {

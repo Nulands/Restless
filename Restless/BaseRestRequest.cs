@@ -23,11 +23,13 @@ using System.Collections.Specialized;
 
 using System.Text;
 using System.Net;
+
 using System.IO;
 
-using Restless.Deserializers;
+
 using Restless.Extensions;
 using System.Threading.Tasks;
+using Restless.Deserializers;
 
 namespace Restless
 {
@@ -223,6 +225,7 @@ namespace Restless
                 {
                     if (!(typeof(T) is INot))
                     {
+                        
                         IDeserializer deserializer = GetHandler(result.HttpResponse.ContentType);
                         result.Data = deserializer.Deserialize<T>(result.HttpResponse);
                     }

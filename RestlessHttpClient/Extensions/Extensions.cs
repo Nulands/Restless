@@ -32,7 +32,7 @@ namespace Restless
                 name = enumerable.GetType().Name;
 
             if(enumerable == null)
-                throw new ArgumentNullException("Parameter is null.", name);
+                throw new ArgumentNullException("IEnumerable is null.", name);
 
 
             int count = 0;
@@ -42,17 +42,17 @@ namespace Restless
             }
 
             if (count == 0)
-                throw new ArgumentException("Parameter is empty.", name);
+                throw new ArgumentException("IEnumerable is empty.", name);
         }
 
         public static void ThrowIfNullOrEmpty(this object[] array, string name = "")
         {
-            if (array == null || array.Length == 0)
-            {
-                if (String.IsNullOrEmpty(name))
-                    name = array.GetType().Name;
-                throw new ArgumentException("Parameter is null or empty.", name);
-            }
+            if (String.IsNullOrEmpty(name))
+                name = array.GetType().Name;
+            if (array == null)
+                throw new ArgumentException("object[] is null.", name);
+            if (array.Length == 0)
+                throw new ArgumentException("object[] is empty.", name);
         }
         
         public static void ThrowIfNullOrEmpty(this string obj, string name = "")
@@ -61,27 +61,20 @@ namespace Restless
             {
                 if (String.IsNullOrEmpty(name))
                     name = obj.GetType().Name;
-                throw new ArgumentException("Parameter is null or empty.", name);
+                throw new ArgumentException("Object is null.", name);
             }
         }
 
         public static void ThrowIfNotFound(this string path, bool isFile = true, string name = "")
         {
-            path.ThrowIfNull("ThrowIfNotFound - path");
-
-            if (String.IsNullOrEmpty(name))
-                name = path.GetType().Name;
+            path.ThrowIfNull("ThrowIfNotFound - path is null.");
 
             if (isFile && !System.IO.File.Exists(path))
-            {
-                throw new System.IO.FileNotFoundException("File not found.", path);
-            }
+                throw new System.IO.FileNotFoundException(String.Format("File {0} not found. {1}.", path, name));
 
             if (!isFile && !System.IO.Directory.Exists(path))
-            {
-                string msg = String.Format("Directory {0} not found.", path);
-                throw new System.IO.DirectoryNotFoundException(msg);
-            }
+                throw new System.IO.DirectoryNotFoundException(String.Format("Directory {0} not found. {1}.", path, name));
+
         }
        
         public static void ThrowIfNull<T>(this T obj, string name = "")
@@ -90,7 +83,7 @@ namespace Restless
             {
                 if (String.IsNullOrEmpty(name))
                     name = obj.GetType().Name;
-                throw new ArgumentNullException(name);
+                throw new ArgumentNullException(name, "Was null. ");
             }
         }
 
@@ -100,9 +93,9 @@ namespace Restless
                 name = obj.GetType().Name;
 
             if (obj == null)
-                throw new ArgumentNullException(name);
+                throw new ArgumentNullException(name, "Was null");
 
-            obj.ToString().ThrowIfNullOrEmpty(name);
+            obj.ToString().ThrowIfNullOrEmpty(name + " ToString()");
         }
         
         public static void SetFrom<T>(this T to, T from, params string[] excludePropertys)

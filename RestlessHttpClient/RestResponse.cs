@@ -32,21 +32,65 @@ namespace Restless
             Response = null;
         }
 
-        public Exception Exception { get; set; }
-        public HttpResponseMessage Response { get; set; }
-        public T Data { get; set; }
+        /// <summary>
+        /// The Exception that could be thrown during the request fetching.
+        /// </summary>
+        public Exception Exception { get; internal set; }
 
-        public bool IsStatusCodeMissmatch { get; set; }
+        /// <summary>
+        /// The "raw" HttpResponseMessage.
+        /// </summary>
+        public HttpResponseMessage Response { get; internal set; }
+
+        /// <summary>
+        /// The deserialized data if T is not INothing.
+        /// </summary>
+        public T Data { get; internal set; }
+
+        /// <summary>
+        /// Check if the returned status code matches the wanted status code.
+        /// </summary>
+        public bool IsStatusCodeMissmatch { get; internal set; }
+
+        /// <summary>
+        /// Check if the request that was producing this response has encountered an exception.
+        /// </summary>
         public bool IsException
         {
             get { return Exception != null; }
         }
+
+        /// <summary>
+        /// Check if T is INothing
+        /// </summary>
+        public bool IsNothing
+        {
+            get { return typeof(T) is INothing; }
+        }
+
+        /// <summary>
+        /// Check if deserialized object is available.
+        /// </summary>
         public bool HasData 
         {
             get
             {
-                return Data.Equals(default(T));
+                return !IsNothing && Data.Equals(default(T));
             }
+        }
+
+        /// <summary>
+        /// If an exception occurred during the request throw it again.
+        /// Usage:
+        /// var data = response.ThrowIfException().Data;
+        /// 
+        /// </summary>
+        /// <returns>this.</returns>
+        public RestResponse<T> ThrowIfException()
+        {
+            if (Exception != null)
+                throw Exception;
+            return this;
         }
     }
 }
