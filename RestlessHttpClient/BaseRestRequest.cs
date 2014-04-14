@@ -29,6 +29,7 @@ using System.Net.Http.Formatting;
 using System.Text;
 using System.IO;
 using Restless.Deserializers;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Restless
@@ -62,6 +63,8 @@ namespace Restless
     /// </summary>
     public abstract class BaseRestRequest
     {
+        #region Variables 
+
         /// <summary>
         /// Content (de)serialization handler.
         /// </summary>
@@ -88,7 +91,7 @@ namespace Restless
         /// </summary>
         private string url = "";
 
-        protected System.Threading.CancellationToken cancellation = new System.Threading.CancellationToken();
+        protected CancellationToken cancellation = new CancellationToken();
         
         /// <summary>
         /// HttpClient used to send the request message.
@@ -100,6 +103,12 @@ namespace Restless
         /// </summary>
         protected HttpRequestMessage request = new HttpRequestMessage();
 
+        #endregion
+
+        protected virtual CancellationToken CancellationToken
+        {
+            get { return cancellation; }
+        }
         /// <summary>
         /// HttpClient property.
         /// </summary>
@@ -133,7 +142,7 @@ namespace Restless
             registerDefaultHandlers();
         }
 
-        #region Set request methods
+        #region Set request methods GET, HEAD, POST, PUT ...
 
         protected virtual BaseRestRequest Get()
         {
@@ -179,7 +188,7 @@ namespace Restless
 
         #endregion
 
-        #region Set and add content
+        #region Set and add HttpContent
 
         protected virtual BaseRestRequest AddContent(HttpContent content, string name = "", string fileName = "")
         {
@@ -394,42 +403,10 @@ namespace Restless
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
-            HttpResponseMessage response = null;
-            RestResponse<T> result = new RestResponse<T>();
-
             if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
                 AddFormUrl();           // Add form url encoded parameter to request if needed
 
-            string requestUri = makeRequestUri();
-            request.RequestUri = new Uri(makeRequestUri());
-
-            try
-            {
-                response = await client.SendAsync(request);
-
-                result.Response = response;
-
-                if (response.StatusCode == wantedStatusCode)
-                {
-                    if (!(typeof(T) is INothing))
-                        result.Data = await tryDeserialization<T>(response);
-
-                    ActionIfNotNull<T>(result, successAction);
-                }
-                else
-                {
-                    result.IsStatusCodeMissmatch = true;
-                    ActionIfNotNull<T>(result, errorAction);
-                }
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine(exc);
-                result.Exception = exc;
-                ActionIfNotNull<T>(result, errorAction);
-            }
-
-            return result;
+            return await buildAndSendRequest<T>(successAction, errorAction);
         }
 
         #endregion 
@@ -438,7 +415,7 @@ namespace Restless
 
         protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(
             string localPath, string contentType,
-            Action<RestResponse<T>> successAction = null,Action<RestResponse<T>> errorAction = null)
+            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
             localPath.ThrowIfNotFound(true, "UploadFileBinary - localPath");
 
@@ -450,6 +427,24 @@ namespace Restless
             return result;
         }
 
+        protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(
+            Stream fileStream, String contentType,
+            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
+        {
+            fileStream.ThrowIfNull("UploadFileBinary - fileStream");
+            contentType.ThrowIfNullOrEmpty("UploadFileBinary - contentType");
+
+            // TODO: clear complete request to be sure we have a fresh one?
+            // TODO: Verify method is POST or PUT ?
+
+            // Clear _request.Content to be sure we are not in a multipart ?
+            // ClearContent();
+            AddStream(fileStream, contentType);
+
+            return await buildAndSendRequest<T>(successAction, errorAction);
+        }
+
+        /*
         protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(
             Stream fileStream, String contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
@@ -477,7 +472,7 @@ namespace Restless
 
                 if (response.IsSuccessStatusCode)
                 {
-                    if (!(typeof(T) is INothing))
+                    //if (!(typeof(T) is IVoid))
                         result.Data = await tryDeserialization<T>(response);
                     ActionIfNotNull<T>(result, successAction);
                 }
@@ -494,7 +489,7 @@ namespace Restless
             }
             return result;
         }
-
+        */
         #endregion 
 
         #region Upload file via multipart form and stream content. Possible parameters are added via FormUrlEncoded content.
@@ -525,36 +520,45 @@ namespace Restless
             // the file is already loaded, see fileStream
             localPath.ThrowIfNullOrEmpty("UploadFileFormData - localPath");
 
+            // TODO: clear complete request to be sure we have a fresh one?
+            // TODO: Verify method is POST or PUT ?
+
+            //FileInfo info = new FileInfo(localPath);
+
+            // Clear _request.Content to be sure we are not in a multipart ?
+            // ClearContent();
+
+            // TODO: create and add (random?) boundary
+            AddMultipartForm();
+            if (param.Count > 0)
+                AddFormUrl();           // Add form url encoded parameter to request if needed    
+
+            AddStream(fileStream, contentType, 1024, Path.GetFileNameWithoutExtension(localPath), Path.GetFileName(localPath));
+
+            return await buildAndSendRequest<T>(successAction, errorAction);
+        }
+
+        #endregion 
+
+        #region Helper functions
+
+        private async Task<RestResponse<T>> buildAndSendRequest<T>(
+            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
+        {
             RestResponse<T> result = new RestResponse<T>();
             try
             {
-                // TODO: clear complete request to be sure we have a fresh one?
-                // TODO: Verify method is POST or PUT ?
-
-                //FileInfo info = new FileInfo(localPath);
-
-                // Clear _request.Content to be sure we are not in a multipart ?
-                // ClearContent();
-
-                // TODO: create and add (random?) boundary
-                AddMultipartForm();
-                if (param.Count > 0)
-                    AddFormUrl();           // Add form url encoded parameter to request if needed    
- 
-                AddStream(fileStream, contentType, 1024, Path.GetFileNameWithoutExtension(localPath), Path.GetFileName(localPath));
-
-                HttpResponseMessage response = null;
-
                 request.RequestUri = new Uri(makeRequestUri());
 
-                response = await client.SendAsync(request);
+                cancellation = new System.Threading.CancellationToken();
 
-                result.Response = response;
+                result.Response = await client.SendAsync(request, cancellation);
 
-                if (response.IsSuccessStatusCode)
+
+                if (result.Response.IsSuccessStatusCode)
                 {
-                    if (!(typeof(T) is INothing))
-                        result.Data = await tryDeserialization<T>(response);
+                    //if (!(typeof(T) is IVoid))
+                    result.Data = await tryDeserialization<T>(result.Response);
                     ActionIfNotNull<T>(result, successAction);
                 }
                 else
@@ -570,23 +574,7 @@ namespace Restless
             }
             return result;
         }
-
-        #endregion 
-
-        #region Helper functions
-
-        private async Task<T> tryDeserialization<T>(HttpResponseMessage response)
-        {
-            T result = default(T);
-            //if (!(typeof(T) is INot))
-            //{
-                // TODO: Check media type for json and xml?
-                IDeserializer deserializer = GetHandler(response.Content.Headers.ContentType.MediaType);
-                result = deserializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
-            //}
-            return result;
-
-        }
+        
         private void ActionIfNotNull<T>(RestResponse<T> response, Action<RestResponse<T>> action)
         {
             if (action != null)
@@ -597,7 +585,9 @@ namespace Restless
         {
             return param.ContainsKey(name);
         }
-
+        
+        #region Serialization
+        
         private void registerDefaultHandlers()
         {
             // register default handlers
@@ -608,6 +598,21 @@ namespace Restless
             content_handler.Add("text/javascript", new JsonDeserializer());
             content_handler.Add("text/xml", new XmlDeserializer());
             content_handler.Add("*", new XmlDeserializer());
+        }
+
+        
+
+        private async Task<T> tryDeserialization<T>(HttpResponseMessage response)
+        {
+            T result = default(T);
+            if (!(typeof(T) is IVoid))
+            {
+                // TODO: Check media type for json and xml?
+                IDeserializer deserializer = GetHandler(response.Content.Headers.ContentType.MediaType);
+                result = deserializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+            }
+            return result;
+
         }
 
         /// <summary>
@@ -637,6 +642,8 @@ namespace Restless
             return handler;
         }
 
+        #endregion 
+
         private string makeRequestUri()
         {
             string requestUrl = makeUrlParams(url);
@@ -653,7 +660,6 @@ namespace Restless
                 if (url.Contains(pattern))
                     builder.Replace(pattern, element.Value.ToString());
             }
-            //url = builder.ToString();
             return builder.ToString();
         }
 
@@ -662,7 +668,7 @@ namespace Restless
             // Add query parameter to url
             string query = makeParameterString(query_params);
 
-            // if method is GET treat all parameters as query parameter
+            // if method is GET treat all added parameters as query parameter
             if (request.Method.Method == "GET")
             {
                 string pQuery = makeParameterString(param);

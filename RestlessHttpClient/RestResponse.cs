@@ -65,7 +65,7 @@ namespace Restless
         /// </summary>
         public bool IsNothing
         {
-            get { return typeof(T) is INothing; }
+            get { return typeof(T) is IVoid; }
         }
 
         /// <summary>

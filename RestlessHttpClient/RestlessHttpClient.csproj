@@ -52,8 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseRestRequest.cs" />
-    <Compile Include="Extensions\RestResponseExtensions.cs" />
-    <Compile Include="INothing.cs" />
+    <Compile Include="IVoid.cs" />
     <Compile Include="RestRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extensions\Extensions.cs" />

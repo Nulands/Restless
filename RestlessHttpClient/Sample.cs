@@ -78,10 +78,10 @@ namespace Restless
             return Param("age", age) as PersonCreateRequest;
         }
 
-        public new async Task<RestResponse<INothing>> Fetch(Action<RestResponse<INothing>> successAction = null,
-                                                        Action<RestResponse<INothing>> errorAction = null)
+        public new async Task<RestResponse<IVoid>> Fetch(Action<RestResponse<IVoid>> successAction = null,
+                                                        Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await base.Fetch<INothing>(HttpStatusCode.Created, successAction, errorAction);
+            return await base.Fetch<IVoid>(HttpStatusCode.Created, successAction, errorAction);
         }
     }
 
@@ -106,7 +106,7 @@ namespace Restless
             RestRequest request = new RestRequest();
             string url = "https://duckduckgo.com/";
 
-            var response = await request.Get().Url(url).QParam("q", "RestlessHttpClient").Fetch<INothing>();
+            var response = await request.Get().Url(url).QParam("q", "RestlessHttpClient").Fetch<IVoid>();
 
             if (response.IsStatusCodeMissmatch)
             {
@@ -157,7 +157,7 @@ namespace Restless
             //createPerson.Post().Url(url).AddFormUrl("name", "NewUser", "age", 99.ToString());        
 
             // Default wanted status code for Fetch is OK, no Created is needed to indicate success.
-            RestResponse<INothing> createResponse = await createPerson.Fetch<INothing>(HttpStatusCode.Created);
+            RestResponse<IVoid> createResponse = await createPerson.Fetch<IVoid>(HttpStatusCode.Created);
 
             if (createResponse.IsStatusCodeMissmatch)
             {
@@ -234,7 +234,7 @@ namespace Restless
 
             var persCreateResponse = await Persons.Create().Name("testUser2").Age(42).Fetch();
 
-            // because PersonCreateRequest uses Fetch with INot,
+            // because PersonCreateRequest uses Fetch with IVoid,
             // there is no deserialized object in the Data property of the response.
             if (persCreateResponse.IsStatusCodeMissmatch)
             {

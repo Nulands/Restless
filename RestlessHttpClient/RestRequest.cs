@@ -43,10 +43,6 @@ namespace Restless
             get { return base.Request; }
             set { base.Request = value; }
         }
-        
-        /*public RestRequest() : base()
-        {
-        }*/
 
         public RestRequest(HttpRequestMessage defaultRequest = null, HttpClient httpClient = null)
             : base(defaultRequest, httpClient)
@@ -307,10 +303,10 @@ namespace Restless
             return await base.Fetch<T>(wantedStatusCode, successAction, errorAction);
         }
 
-        public async Task<RestResponse<INothing>> Fetch(
+        public async Task<RestResponse<IVoid>> Fetch(
             HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
-            Action<RestResponse<INothing>> successAction = null,
-            Action<RestResponse<INothing>> errorAction = null)
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
         {
             return await base.Fetch(wantedStatusCode, successAction, errorAction);
         }
@@ -328,10 +324,10 @@ namespace Restless
         }
 
 
-        public async Task<RestResponse<INothing>> UploadFileBinary(
+        public async Task<RestResponse<IVoid>> UploadFileBinary(
             string localPath, string contentType,
-            Action<RestResponse<INothing>> successAction = null,
-            Action<RestResponse<INothing>> errorAction = null)
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
         {
             return await base.UploadFileBinary(localPath, contentType, successAction, errorAction);
 
@@ -347,10 +343,10 @@ namespace Restless
         }
 
 
-        public async Task<RestResponse<INothing>> UploadFileBinary(
+        public async Task<RestResponse<IVoid>> UploadFileBinary(
             Stream fileStream, string contentType,
-            Action<RestResponse<INothing>> successAction = null,
-            Action<RestResponse<INothing>> errorAction = null)
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
         {
             return await base.UploadFileBinary(fileStream, contentType, successAction, errorAction);
         }
@@ -373,18 +369,18 @@ namespace Restless
             return await base.UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction);
         }
 
-        public async Task<RestResponse<INothing>> UploadFileFormData(
+        public async Task<RestResponse<IVoid>> UploadFileFormData(
             string localPath, string contentType,
-            Action<RestResponse<INothing>> successAction = null,
-            Action<RestResponse<INothing>> errorAction = null)
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
         {
             return await base.UploadFileFormData(localPath, contentType, successAction, errorAction);
         }
 
-        public async Task<RestResponse<INothing>> UploadFileFormData(
+        public async Task<RestResponse<IVoid>> UploadFileFormData(
             Stream fileStream, string contentType, string localPath,
-            Action<RestResponse<INothing>> successAction = null,
-            Action<RestResponse<INothing>> errorAction = null)
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
         {
             return await base.UploadFileFormData(fileStream, contentType, localPath, successAction, errorAction);
         }

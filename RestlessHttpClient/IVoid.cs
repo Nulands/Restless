@@ -21,7 +21,7 @@
 
 namespace Restless
 {
-    public interface INothing
+    public interface IVoid
     {
     }
 }
