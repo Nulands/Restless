@@ -61,7 +61,7 @@ namespace Restless
         }
 
         /// <summary>
-        /// Check if T is INothing
+        /// Check if T is IVoid
         /// </summary>
         public bool IsNothing
         {
@@ -69,13 +69,13 @@ namespace Restless
         }
 
         /// <summary>
-        /// Check if deserialized object is available.
+        /// Check if a deserialized object is available.
         /// </summary>
         public bool HasData 
         {
             get
             {
-                return !IsNothing && Data.Equals(default(T));
+                return !IsNothing && !Data.Equals(default(T));
             }
         }
 
@@ -83,7 +83,6 @@ namespace Restless
         /// If an exception occurred during the request throw it again.
         /// Usage:
         /// var data = response.ThrowIfException().Data;
-        /// 
         /// </summary>
         /// <returns>this.</returns>
         public RestResponse<T> ThrowIfException()

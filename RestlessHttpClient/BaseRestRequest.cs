@@ -29,7 +29,6 @@ using System.Net.Http.Formatting;
 using System.Text;
 using System.IO;
 using Restless.Deserializers;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Restless
@@ -61,7 +60,7 @@ namespace Restless
     /// Otherwise the new class has a "clean" interface, and only higher level methods are exposed public.
     /// See RestRequest.
     /// </summary>
-    public abstract class BaseRestRequest
+    public abstract class BaseRestRequest : IDisposable
     {
         #region Variables 
 
@@ -91,6 +90,9 @@ namespace Restless
         /// </summary>
         private string url = "";
 
+        /// <summary>
+        /// A CancellationToken that is used in buildAndSendRequest (client.sendAsync(.., cancellation)).
+        /// </summary>
         protected CancellationToken cancellation = new CancellationToken();
         
         /// <summary>
@@ -102,17 +104,23 @@ namespace Restless
         /// Internal request message.
         /// </summary>
         protected HttpRequestMessage request = new HttpRequestMessage();
-
+        
         #endregion
 
-        protected virtual CancellationToken CancellationToken
+        #region CancellationToken, HttpClient and HttpRequestMessage propertys
+
+        /// <summary>
+        /// The CancellationToken for this request.
+        /// </summary>
+        protected  CancellationToken CancellationToken
         {
             get { return cancellation; }
         }
+
         /// <summary>
         /// HttpClient property.
         /// </summary>
-        protected virtual HttpClient HttpClient
+        protected  HttpClient HttpClient
         {
             get { return client; }
             set { client = value; }
@@ -121,11 +129,13 @@ namespace Restless
         /// <summary>
         /// HttpRequestMessage property.
         /// </summary>
-        protected virtual HttpRequestMessage Request
+        protected  HttpRequestMessage Request
         {
             get { return request; }
             set { request = value; }
         }
+
+        #endregion
 
         /// <summary>
         /// Constructor.
@@ -144,43 +154,43 @@ namespace Restless
 
         #region Set request methods GET, HEAD, POST, PUT ...
 
-        protected virtual BaseRestRequest Get()
+        protected BaseRestRequest Get()
         {
             request.Method = new HttpMethod("GET");
             return this;
         }
 
-        protected virtual BaseRestRequest Head()
+        protected BaseRestRequest Head()
         {
             request.Method = new HttpMethod("HEAD");
             return this;
         }
 
-        protected virtual BaseRestRequest Post()
+        protected  BaseRestRequest Post()
         {
             request.Method = new HttpMethod("POST");
             return this;
         }
 
-        protected virtual BaseRestRequest Put()
+        protected  BaseRestRequest Put()
         {
             request.Method = new HttpMethod("PUT");
             return this;
         }
 
-        protected virtual BaseRestRequest Delete()
+        protected  BaseRestRequest Delete()
         {
             request.Method = new HttpMethod("DELETE");
             return this;
         }
 
-        protected virtual BaseRestRequest Trace()
+        protected  BaseRestRequest Trace()
         {
             request.Method = new HttpMethod("TRACE");
             return this;
         }
 
-        protected virtual BaseRestRequest Connect()
+        protected  BaseRestRequest Connect()
         {
             request.Method = new HttpMethod("CONNECT");
             return this;
@@ -188,9 +198,9 @@ namespace Restless
 
         #endregion
 
-        #region Set and add HttpContent
+        #region Set and add HttpContent, Byte, form url encoded, multipart, multipart form, stream and string content.
 
-        protected virtual BaseRestRequest AddContent(HttpContent content, string name = "", string fileName = "")
+        protected  BaseRestRequest AddContent(HttpContent content, string name = "", string fileName = "")
         {
             if (request.Content is MultipartContent)
                 (request.Content as MultipartContent).Add(content);
@@ -201,18 +211,18 @@ namespace Restless
             return this;
         }
 
-        protected virtual BaseRestRequest ClearContent()
+        protected  BaseRestRequest ClearContent()
         {
             request.Content = null;
             return this;
         }
 
-        protected virtual BaseRestRequest AddByteArray(byte[] buffer, string name = "", string fileName = "")
+        protected  BaseRestRequest AddByteArray(byte[] buffer, string name = "", string fileName = "")
         {
             return AddContent(new ByteArrayContent(buffer), name, fileName);
         }
 
-        protected virtual BaseRestRequest AddFormUrl(params string[] kvPairs)
+        protected  BaseRestRequest AddFormUrl(params string[] kvPairs)
         {
             if (kvPairs.Length % 2 != 0)
                 throw new ArgumentException("No value for every name given!");
@@ -234,24 +244,24 @@ namespace Restless
             return AddContent(new FormUrlEncodedContent(keyValues));
         }
 
-        protected virtual BaseRestRequest AddMultipart(string subtype = "", string boundary = "")
+        protected  BaseRestRequest AddMultipart(string subtype = "", string boundary = "")
         {
             return AddContent(new MultipartContent(subtype, boundary));
         }
 
-        protected virtual BaseRestRequest AddMultipartForm(string boundary = "")
+        protected  BaseRestRequest AddMultipartForm(string boundary = "")
         {
             return AddContent(new MultipartFormDataContent(boundary));
         }
 
-        protected virtual BaseRestRequest AddStream(Stream stream, string mediaType, int buffersize = 1024, string name = "", string fileName = "")
+        protected  BaseRestRequest AddStream(Stream stream, string mediaType, int buffersize = 1024, string name = "", string fileName = "")
         {
             var content = new StreamContent(stream, buffersize);
             content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
             return AddContent(content, name, fileName);
         }
 
-        protected virtual BaseRestRequest AddString(string content, Encoding encoding, string mediaType, string name = "", string fileName = "")
+        protected  BaseRestRequest AddString(string content, Encoding encoding, string mediaType, string name = "", string fileName = "")
         {
             return AddContent(new StringContent(content, encoding, mediaType), name, fileName);
         }
@@ -260,7 +270,7 @@ namespace Restless
 
         #region Url, CancellationToken, parameters and headers
 
-        protected virtual BaseRestRequest CancelToken(CancellationToken token)
+        protected BaseRestRequest CancelToken(CancellationToken token)
         {
             token.ThrowIfNull("CancelToken");
 
@@ -268,14 +278,14 @@ namespace Restless
             return this;
         }
 
-        protected virtual BaseRestRequest Url(string url)
+        protected BaseRestRequest Url(string url)
         {
             url.ThrowIfNull("Url");            
             this.url = url;
             return this;
         }
 
-        protected virtual BaseRestRequest UrlFormat(params object[] objects)
+        protected BaseRestRequest UrlFormat(params object[] objects)
         {
             objects.ThrowIfNullOrEmpty("UrlFormat");
 
@@ -283,21 +293,21 @@ namespace Restless
             return this;
         }
 
-        protected virtual BaseRestRequest RequestAction(Action<HttpRequestMessage> action)
+        protected  BaseRestRequest RequestAction(Action<HttpRequestMessage> action)
         {
             action.ThrowIfNull("RequestAction");
             action(request);
             return this;
         }
 
-        protected virtual BaseRestRequest ClientAction(Action<HttpClient> action)
+        protected  BaseRestRequest ClientAction(Action<HttpClient> action)
         {
             action.ThrowIfNull("ClientAction");
             action(client);
             return this;
         }
 
-        protected virtual BaseRestRequest Basic(string username, string password)
+        protected  BaseRestRequest Basic(string username, string password)
         {
             username.ThrowIfNullOrEmpty("Basic - username");
             password.ThrowIfNullOrEmpty("Basic - password");
@@ -307,7 +317,7 @@ namespace Restless
             return this;
         }
 
-        protected virtual BaseRestRequest Bearer(string token)
+        protected  BaseRestRequest Bearer(string token)
         {
             token.ThrowIfNullOrEmpty("Bearer");
             string base64AccessToken = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(token));
@@ -315,7 +325,7 @@ namespace Restless
             return this;
         }
 
-        protected virtual BaseRestRequest Param(string name, object value, ParameterType type)
+        protected  BaseRestRequest Param(string name, object value, ParameterType type)
         {
             name.ThrowIfNullOrEmpty("Param - name");
             value.ThrowIfNullOrToStrEmpty("Param - value");
@@ -335,7 +345,7 @@ namespace Restless
             return this;
         }
 
-        protected virtual BaseRestRequest UrlParam(string name, object value)
+        protected  BaseRestRequest UrlParam(string name, object value)
         {
             name.ThrowIfNullOrEmpty("UrlParam - name");
             value.ThrowIfNullOrToStrEmpty("UrlParam - value");
@@ -343,7 +353,7 @@ namespace Restless
             return this;
         }
 
-        protected virtual BaseRestRequest Param(string name, object value)
+        protected  BaseRestRequest Param(string name, object value)
         {
             name.ThrowIfNullOrEmpty("Param - name");
             value.ThrowIfNullOrToStrEmpty("Param - value");
@@ -352,7 +362,7 @@ namespace Restless
             return this;
         }
 
-        protected virtual BaseRestRequest QParam(string name, object value)
+        protected  BaseRestRequest QParam(string name, object value)
         {
             name.ThrowIfNullOrEmpty("QParam - name");
             value.ThrowIfNullOrToStrEmpty("QParam - value");
@@ -362,7 +372,7 @@ namespace Restless
 
         }
 
-        protected virtual BaseRestRequest Header(string name, string value)
+        protected  BaseRestRequest Header(string name, string value)
         {
             name.ThrowIfNullOrEmpty("Header - name");
             value.ThrowIfNullOrEmpty("Header - value");
@@ -371,7 +381,7 @@ namespace Restless
             return this;
         }
 
-        protected virtual BaseRestRequest Header(string name, IEnumerable<string> values)
+        protected  BaseRestRequest Header(string name, IEnumerable<string> values)
         {
             name.ThrowIfNullOrEmpty("Header - name");
             values.ThrowIfNullOrEmpty("Header - values");
@@ -382,9 +392,9 @@ namespace Restless
 
         #endregion 
 
-        #region Get HttpWebResponse async 
+        #region Get HttpWebResponse or RestResponse<IVoid> async 
 
-        protected virtual async Task<HttpResponseMessage> GetResponseAsync()
+        protected async Task<HttpResponseMessage> GetResponseAsync()
         {
             if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
                 AddFormUrl();           // Add form url encoded parameter to request if needed
@@ -394,12 +404,21 @@ namespace Restless
             return await client.SendAsync(request);
         }
 
+        protected async Task<RestResponse<IVoid>> GetRestResponseAsync(
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
+        {
+            if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
+                AddFormUrl();           // Add form url encoded parameter to request if needed
+
+            return await buildAndSendRequest<IVoid>(successAction, errorAction);
+        }
+
         #endregion 
 
         #region Fetch RestResponse and deserialize directly
 
-        protected virtual async Task<RestResponse<T>> Fetch<T>(
-            HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
+        protected  async Task<RestResponse<T>> Fetch<T>(
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
@@ -413,7 +432,7 @@ namespace Restless
     
         #region Upload file binary with StreamContent
 
-        protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(
+        protected  async Task<RestResponse<T>> UploadFileBinary<T>(
             string localPath, string contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
@@ -427,7 +446,7 @@ namespace Restless
             return result;
         }
 
-        protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(
+        protected  async Task<RestResponse<T>> UploadFileBinary<T>(
             Stream fileStream, String contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
@@ -444,57 +463,11 @@ namespace Restless
             return await buildAndSendRequest<T>(successAction, errorAction);
         }
 
-        /*
-        protected virtual async Task<RestResponse<T>> UploadFileBinary<T>(
-            Stream fileStream, String contentType,
-            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
-        {
-            fileStream.ThrowIfNull("UploadFileBinary - fileStream");
-            contentType.ThrowIfNullOrEmpty("UploadFileBinary - contentType");
-
-            RestResponse<T> result = new RestResponse<T>();
-            try
-            {
-                // TODO: clear complete request to be sure we have a fresh one?
-                // TODO: Verify method is POST or PUT ?
-
-                // Clear _request.Content to be sure we are not in a multipart ?
-                // ClearContent();
-                AddStream(fileStream, contentType);
-
-                HttpResponseMessage response = null;
-
-                request.RequestUri = new Uri(makeRequestUri());
-
-                response = await client.SendAsync(request);
-
-                result.Response = response;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    //if (!(typeof(T) is IVoid))
-                        result.Data = await tryDeserialization<T>(response);
-                    ActionIfNotNull<T>(result, successAction);
-                }
-                else
-                {
-                    result.IsStatusCodeMissmatch = true;
-                    ActionIfNotNull<T>(result, errorAction);
-                }
-            }
-            catch (Exception exc)
-            {
-                result.Exception = exc;
-                ActionIfNotNull<T>(result, errorAction);
-            }
-            return result;
-        }
-        */
         #endregion 
 
         #region Upload file via multipart form and stream content. Possible parameters are added via FormUrlEncoded content.
 
-        protected virtual async Task<RestResponse<T>> UploadFileFormData<T>(
+        protected  async Task<RestResponse<T>> UploadFileFormData<T>(
             string localPath, string contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
@@ -508,7 +481,7 @@ namespace Restless
             return result;
         }
         
-        protected virtual async Task<RestResponse<T>> UploadFileFormData<T>(
+        protected  async Task<RestResponse<T>> UploadFileFormData<T>(
             Stream fileStream, string contentType, string localPath, 
             Action<RestResponse<T>> successAction = null,Action<RestResponse<T>> errorAction = null)
         {
@@ -605,7 +578,7 @@ namespace Restless
         private async Task<T> tryDeserialization<T>(HttpResponseMessage response)
         {
             T result = default(T);
-            if (!(typeof(T) is IVoid))
+            if (!(typeof(T).IsAssignableFrom(typeof(IVoid))))
             {
                 // TODO: Check media type for json and xml?
                 IDeserializer deserializer = GetHandler(response.Content.Headers.ContentType.MediaType);
@@ -700,6 +673,36 @@ namespace Restless
         }
 
         #endregion 
+
+    
+        #region  IDisposable implementation
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // The bulk of the clean-up code is implemented in Dispose(bool)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                if (client != null)
+                {
+                    client.Dispose();
+                    client = null;
+                }
+                if (request != null)
+                {
+                    request.Dispose();
+                    request = null;
+                }
+            }
+        }
+
+        #endregion
 
     }
 }

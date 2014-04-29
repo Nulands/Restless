@@ -54,7 +54,7 @@ namespace Restless
         public new async Task<RestResponse<Person>> Fetch(Action<RestResponse<Person>> successAction = null,
                                                     Action<RestResponse<Person>> errorAction = null)
         {
-            return await base.Fetch<Person>(HttpStatusCode.OK, successAction, errorAction);
+            return await base.Fetch<Person>(successAction, errorAction);
         }
 
     }
@@ -81,7 +81,7 @@ namespace Restless
         public new async Task<RestResponse<IVoid>> Fetch(Action<RestResponse<IVoid>> successAction = null,
                                                         Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await base.Fetch<IVoid>(HttpStatusCode.Created, successAction, errorAction);
+            return await base.Fetch<IVoid>(successAction, errorAction);
         }
     }
 
@@ -157,7 +157,7 @@ namespace Restless
             //createPerson.Post().Url(url).AddFormUrl("name", "NewUser", "age", 99.ToString());        
 
             // Default wanted status code for Fetch is OK, no Created is needed to indicate success.
-            RestResponse<IVoid> createResponse = await createPerson.Fetch<IVoid>(HttpStatusCode.Created);
+            RestResponse<IVoid> createResponse = await createPerson.Fetch<IVoid>();
 
             if (createResponse.IsStatusCodeMissmatch)
             {
@@ -181,7 +181,6 @@ namespace Restless
 
             // Fetch request with success and error actions.
             await getPerson.Fetch<Person>(
-                HttpStatusCode.OK,
                 (r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
                 (r) => Console.WriteLine(r.Exception.Message));
 

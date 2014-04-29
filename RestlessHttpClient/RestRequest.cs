@@ -32,17 +32,36 @@ namespace Restless
 
     public sealed class RestRequest : BaseRestRequest
     {
+
+        #region CancellationToken, HttpClient and HttpRequestMessage propertys
+
+        /// <summary>
+        /// The underlying HttpClient.
+        /// </summary>
         public new HttpClient HttpClient
         {
             get { return base.HttpClient; }
             set { base.HttpClient = value; }
         }
 
+        /// <summary>
+        /// The underlying HttpRequestMessage.
+        /// </summary>
         public new HttpRequestMessage Request
         {
             get { return base.Request; }
             set { base.Request = value; }
         }
+
+        /// <summary>
+        /// The CancellationToken for this request.
+        /// </summary>
+        public new CancellationToken CancellationToken
+        {
+            get { return cancellation; }
+        }
+
+        #endregion
 
         public RestRequest(HttpRequestMessage defaultRequest = null, HttpClient httpClient = null)
             : base(defaultRequest, httpClient)
@@ -162,6 +181,11 @@ namespace Restless
 
         #region Url, CancellationToken, parameters and headers
 
+        /// <summary>
+        /// Set the CancellationToken for this request.
+        /// </summary>
+        /// <param name="token">The token.</param>
+        /// <returns>this.</returns>
         public new RestRequest CancelToken(CancellationToken token)
         {
             return base.CancelToken(token) as RestRequest;
@@ -288,27 +312,29 @@ namespace Restless
 
         #endregion 
 
+        #region Get HttpWebResponse async
+        
         public new async Task<HttpResponseMessage> GetResponseAsync()
         {
             return await base.GetResponseAsync();
         }
 
-        #region Fetch response 
+        #endregion
+
+        #region Fetch response
 
         public new async Task<RestResponse<T>> Fetch<T>(
-            HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
-            return await base.Fetch<T>(wantedStatusCode, successAction, errorAction);
+            return await base.Fetch<T>(successAction, errorAction);
         }
 
         public async Task<RestResponse<IVoid>> Fetch(
-            HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await base.Fetch(wantedStatusCode, successAction, errorAction);
+            return await base.Fetch(successAction, errorAction);
         }
 
         #endregion 
