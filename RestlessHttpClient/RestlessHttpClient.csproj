@@ -55,7 +55,7 @@
     <Compile Include="IVoid.cs" />
     <Compile Include="RestRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Extensions\Extensions.cs" />
+    <Compile Include="Extensions\RestlessExtensions.cs" />
     <Compile Include="RestResponse.cs" />
     <Compile Include="Sample.cs" />
   </ItemGroup>

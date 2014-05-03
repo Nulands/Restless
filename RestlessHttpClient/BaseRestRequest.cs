@@ -18,6 +18,8 @@
  * */
 
 using System;
+using System.Linq;
+
 using System.Threading;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -115,6 +117,7 @@ namespace Restless
         protected  CancellationToken CancellationToken
         {
             get { return cancellation; }
+            set { cancellation = value; }
         }
 
         /// <summary>
@@ -202,10 +205,15 @@ namespace Restless
 
         protected  BaseRestRequest AddContent(HttpContent content, string name = "", string fileName = "")
         {
+            content.ThrowIfNull("content");
             if (request.Content is MultipartContent)
                 (request.Content as MultipartContent).Add(content);
             else if (request.Content is MultipartFormDataContent)
+            {
                 (request.Content as MultipartFormDataContent).Add(content, name, fileName);
+                name.ThrowIfNullOrEmpty("name");
+                fileName.ThrowIfNullOrEmpty("fileName");
+            }
             else
                 request.Content = content;
             return this;
@@ -219,17 +227,15 @@ namespace Restless
 
         protected  BaseRestRequest AddByteArray(byte[] buffer, string name = "", string fileName = "")
         {
+            buffer.ThrowIfNullOrEmpty("buffer");
             return AddContent(new ByteArrayContent(buffer), name, fileName);
         }
 
         protected  BaseRestRequest AddFormUrl(params string[] kvPairs)
         {
-            if (kvPairs.Length % 2 != 0)
-                throw new ArgumentException("No value for every name given!");
-
             List<KeyValuePair<string, string>> keyValues = new List<KeyValuePair<string, string>>();
 
-            if (kvPairs.Length == 0)
+            if (kvPairs == null || kvPairs.Length == 0)
             {
                 // use the parameters added with Param(..)
                 foreach (var element in param)
@@ -237,6 +243,8 @@ namespace Restless
             }
             else
             {
+                kvPairs.ThrowIf(pairs => pairs.Length % 2 != 0, "kvPairs. No value for every name given.");
+
                 // use the given parameters.
                 for (int i = 0; i < kvPairs.Length; i += 2)
                     keyValues.Add(new KeyValuePair<string, string>(kvPairs[i], kvPairs[i + 1]));
@@ -256,6 +264,10 @@ namespace Restless
 
         protected  BaseRestRequest AddStream(Stream stream, string mediaType, int buffersize = 1024, string name = "", string fileName = "")
         {
+            stream.ThrowIfNull("stream");
+            mediaType.ThrowIfNullOrEmpty("mediaType");
+            buffersize.ThrowIf(b => b <= 0, "bufferSize");
+
             var content = new StreamContent(stream, buffersize);
             content.Headers.ContentType = new MediaTypeHeaderValue(mediaType);
             return AddContent(content, name, fileName);
@@ -263,6 +275,10 @@ namespace Restless
 
         protected  BaseRestRequest AddString(string content, Encoding encoding, string mediaType, string name = "", string fileName = "")
         {
+            content.ThrowIfNullOrEmpty("content");
+            encoding.ThrowIfNull("encoding");
+            mediaType.ThrowIfNullOrEmpty("mediaType");
+
             return AddContent(new StringContent(content, encoding, mediaType), name, fileName);
         }
 
@@ -272,45 +288,43 @@ namespace Restless
 
         protected BaseRestRequest CancelToken(CancellationToken token)
         {
-            token.ThrowIfNull("CancelToken");
-
+            token.ThrowIfNull("token");
             cancellation = token;
             return this;
         }
 
         protected BaseRestRequest Url(string url)
         {
-            url.ThrowIfNull("Url");            
+            url.ThrowIfNull("url");            
             this.url = url;
             return this;
         }
 
         protected BaseRestRequest UrlFormat(params object[] objects)
         {
-            objects.ThrowIfNullOrEmpty("UrlFormat");
-
+            objects.ThrowIfNullOrEmpty("objects");
             String.Format(url, objects);
             return this;
         }
 
         protected  BaseRestRequest RequestAction(Action<HttpRequestMessage> action)
         {
-            action.ThrowIfNull("RequestAction");
+            action.ThrowIfNull("action");
             action(request);
             return this;
         }
 
         protected  BaseRestRequest ClientAction(Action<HttpClient> action)
         {
-            action.ThrowIfNull("ClientAction");
+            action.ThrowIfNull("action");
             action(client);
             return this;
         }
 
         protected  BaseRestRequest Basic(string username, string password)
         {
-            username.ThrowIfNullOrEmpty("Basic - username");
-            password.ThrowIfNullOrEmpty("Basic - password");
+            username.ThrowIfNullOrEmpty("username");
+            password.ThrowIfNullOrEmpty("password");
 
             string base64authStr = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + password));
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64authStr);
@@ -319,7 +333,7 @@ namespace Restless
 
         protected  BaseRestRequest Bearer(string token)
         {
-            token.ThrowIfNullOrEmpty("Bearer");
+            token.ThrowIfNullOrEmpty("token");
             string base64AccessToken = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(token));
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", base64AccessToken);
             return this;
@@ -327,8 +341,8 @@ namespace Restless
 
         protected  BaseRestRequest Param(string name, object value, ParameterType type)
         {
-            name.ThrowIfNullOrEmpty("Param - name");
-            value.ThrowIfNullOrToStrEmpty("Param - value");
+            name.ThrowIfNullOrEmpty("name");
+            value.ThrowIfNullOrToStrEmpty("value");
 
             if (type == ParameterType.FormUrlEncoded)
                 param[name] = value;
@@ -347,16 +361,16 @@ namespace Restless
 
         protected  BaseRestRequest UrlParam(string name, object value)
         {
-            name.ThrowIfNullOrEmpty("UrlParam - name");
-            value.ThrowIfNullOrToStrEmpty("UrlParam - value");
+            name.ThrowIfNullOrEmpty("name");
+            value.ThrowIfNullOrToStrEmpty("value");
             url = url.Replace("{" + name + "}", value.ToString());
             return this;
         }
 
         protected  BaseRestRequest Param(string name, object value)
         {
-            name.ThrowIfNullOrEmpty("Param - name");
-            value.ThrowIfNullOrToStrEmpty("Param - value");
+            name.ThrowIfNullOrEmpty("name");
+            value.ThrowIfNullOrToStrEmpty("value");
 
             param[name] = value;
             return this;
@@ -364,8 +378,8 @@ namespace Restless
 
         protected  BaseRestRequest QParam(string name, object value)
         {
-            name.ThrowIfNullOrEmpty("QParam - name");
-            value.ThrowIfNullOrToStrEmpty("QParam - value");
+            name.ThrowIfNullOrEmpty("name");
+            value.ThrowIfNullOrToStrEmpty("value");
 
             query_params[name] = value;
             return this;
@@ -374,8 +388,8 @@ namespace Restless
 
         protected  BaseRestRequest Header(string name, string value)
         {
-            name.ThrowIfNullOrEmpty("Header - name");
-            value.ThrowIfNullOrEmpty("Header - value");
+            name.ThrowIfNullOrEmpty("name");
+            value.ThrowIfNullOrEmpty("value");
 
             request.Headers.Add(name, value);
             return this;
@@ -383,8 +397,8 @@ namespace Restless
 
         protected  BaseRestRequest Header(string name, IEnumerable<string> values)
         {
-            name.ThrowIfNullOrEmpty("Header - name");
-            values.ThrowIfNullOrEmpty("Header - values");
+            name.ThrowIfNullOrEmpty("name");
+            values.ThrowIfNullOrEmpty("values");
 
             request.Headers.Add(name, values);
             return this;
@@ -399,8 +413,7 @@ namespace Restless
             if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
                 AddFormUrl();           // Add form url encoded parameter to request if needed
 
-            request.RequestUri = new Uri(makeRequestUri());
-
+            request.RequestUri = new Uri(url.CreateRequestUri(query_params, param, request.Method.Method));
             return await client.SendAsync(request);
         }
 
@@ -418,7 +431,7 @@ namespace Restless
 
         #region Fetch RestResponse and deserialize directly
 
-        protected  async Task<RestResponse<T>> Fetch<T>(
+        protected async Task<RestResponse<T>> Fetch<T>(
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
@@ -436,7 +449,7 @@ namespace Restless
             string localPath, string contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
-            localPath.ThrowIfNotFound(true, "UploadFileBinary - localPath");
+            localPath.ThrowIfNotFound(true, "localPath");
 
             RestResponse<T> result = new RestResponse<T>();
             using (FileStream fileStream = File.OpenRead(localPath))
@@ -450,8 +463,8 @@ namespace Restless
             Stream fileStream, String contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
-            fileStream.ThrowIfNull("UploadFileBinary - fileStream");
-            contentType.ThrowIfNullOrEmpty("UploadFileBinary - contentType");
+            fileStream.ThrowIfNull("fileStream");
+            contentType.ThrowIfNullOrEmpty("contentType");
 
             // TODO: clear complete request to be sure we have a fresh one?
             // TODO: Verify method is POST or PUT ?
@@ -471,7 +484,8 @@ namespace Restless
             string localPath, string contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
-            localPath.ThrowIfNotFound(true, "UploadFileBinary - localPath");
+            localPath.ThrowIfNotFound(true, "localPath");
+            // contenttype string is checked from call above
 
             RestResponse<T> result = new RestResponse<T>();
             using (FileStream fileStream = File.OpenRead(localPath))
@@ -485,13 +499,13 @@ namespace Restless
             Stream fileStream, string contentType, string localPath, 
             Action<RestResponse<T>> successAction = null,Action<RestResponse<T>> errorAction = null)
         {
-            fileStream.ThrowIfNull("UploadFileFormData - fileStream");
-            contentType.ThrowIfNullOrEmpty("UploadFileFormData - contentType");
+            fileStream.ThrowIfNull("fileStream");
+            contentType.ThrowIfNullOrEmpty("contentType");
 
             // Only check for null or empty, not for existing
             // here its only used for content-disposition
-            // the file is already loaded, see fileStream
-            localPath.ThrowIfNullOrEmpty("UploadFileFormData - localPath");
+            // the file is should be loaded allready, see fileStream
+            localPath.ThrowIfNullOrEmpty("localPath");
 
             // TODO: clear complete request to be sure we have a fresh one?
             // TODO: Verify method is POST or PUT ?
@@ -518,19 +532,21 @@ namespace Restless
         private async Task<RestResponse<T>> buildAndSendRequest<T>(
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
-            RestResponse<T> result = new RestResponse<T>();
+            // RestResponse<T> result = new RestResponse<T>();
+            // TODO: Good or bad to have a reference from the response to the request?!
+            // TODO: the result.Response.RequestMessage already points to this.Request...
+            RestResponse<T> result = new RestResponse<T>(this);
             try
             {
-                request.RequestUri = new Uri(makeRequestUri());
+                request.RequestUri = new Uri(url.CreateRequestUri(query_params, param, request.Method.Method));
 
-                cancellation = new System.Threading.CancellationToken();
+                // TODO: Maybe its better that cancellation is set from an external source/caller?
+                //cancellation = new System.Threading.CancellationToken();
 
                 result.Response = await client.SendAsync(request, cancellation);
 
-
                 if (result.Response.IsSuccessStatusCode)
                 {
-                    //if (!(typeof(T) is IVoid))
                     result.Data = await tryDeserialization<T>(result.Response);
                     ActionIfNotNull<T>(result, successAction);
                 }
@@ -617,64 +633,8 @@ namespace Restless
 
         #endregion 
 
-        private string makeRequestUri()
-        {
-            string requestUrl = makeUrlParams(url);
-            requestUrl = makeQueryUrl(requestUrl);
-            return requestUrl;
-        }
+        #endregion
 
-        private string makeUrlParams(string url)
-        {
-            StringBuilder builder = new StringBuilder(url);
-            foreach (var element in url_params)
-            {
-                string pattern = "{" + element.Key + "}";
-                if (url.Contains(pattern))
-                    builder.Replace(pattern, element.Value.ToString());
-            }
-            return builder.ToString();
-        }
-
-        private string makeQueryUrl(string url)
-        {
-            // Add query parameter to url
-            string query = makeParameterString(query_params);
-
-            // if method is GET treat all added parameters as query parameter
-            if (request.Method.Method == "GET")
-            {
-                string pQuery = makeParameterString(param);
-                if (String.IsNullOrEmpty(query))
-                    query = pQuery;
-                else
-                    query += "&" + pQuery;
-            }
-
-            if (!String.IsNullOrEmpty(query))
-                url += "?" + query;
-            return url;
-        }
-
-        private string makeParameterString(Dictionary<string, object> paramList)
-        {
-            StringBuilder str = new StringBuilder();
-            int i = 0;
-            foreach(var element in paramList)
-            {
-                str.Append(element.Key);
-                str.Append("=");
-                str.Append(element.Value);
-                if (i < paramList.Count - 1)
-                    str.Append("&");
-                i++;
-            }
-            return str.ToString();
-        }
-
-        #endregion 
-
-    
         #region  IDisposable implementation
 
         public void Dispose()

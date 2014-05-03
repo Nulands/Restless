@@ -32,6 +32,19 @@ namespace Restless
             Response = null;
         }
 
+        public RestResponse(BaseRestRequest request)
+        {
+            Request = request;
+            IsStatusCodeMissmatch = false;
+            Exception = null;
+            Response = null;
+        }
+
+        /// <summary>
+        /// That BaseRestRequest this rest response comes from.
+        /// </summary>
+        public BaseRestRequest Request { get; private set; }
+
         /// <summary>
         /// The Exception that could be thrown during the request fetching.
         /// </summary>
