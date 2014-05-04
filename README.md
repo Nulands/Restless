@@ -6,7 +6,8 @@ One uses HttpWebRequest and HttpWebResponse internally, the other version uses H
 
 
 Uses Json and Xml (de)serializer from RestSharp (https://github.com/restsharp/RestSharp).
-See: https://github.com/Muraad/RestlessSerialization
+
+Get it from https://github.com/Muraad/RestlessSerialization
 
 More documentation will follow:
 
