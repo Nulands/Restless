@@ -12,7 +12,8 @@ Get it from https://github.com/Muraad/RestlessSerialization
 More documentation will follow:
 
 Published under GPLv3 license. 
-For a nice overview of the license visit http://choosealicense.com/licenses/gpl-v3/
+For a nice overview of the license visit 
+http://choosealicense.com/licenses/gpl-v3/
 
 ----------------------------------------------------
 
