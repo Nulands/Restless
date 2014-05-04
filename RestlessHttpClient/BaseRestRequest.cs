@@ -553,7 +553,7 @@ namespace Restless
         {
             // RestResponse<T> result = new RestResponse<T>();
             // TODO: Good or bad to have a reference from the response to the request?!
-            // TODO: the result.Response.RequestMessage already points to this.Request...
+            // TODO: the result.Response.RequestMessage already points to this.Request?! (underlying Http request).
             RestResponse<T> result = new RestResponse<T>(this);
             try
             {
@@ -563,6 +563,9 @@ namespace Restless
                 request.RequestUri = new Uri(url.CreateRequestUri(query_params, param, request.Method.Method));
 
                 // TODO: Maybe its better that cancellation is set from an external source/caller?
+                // TODO: At least is hould not be null here because it is created at definition.
+                // TODO: And if some external object is holding a reference to the cancellation token already
+                // TODO: then better dont create a new one.
                 //cancellation = new System.Threading.CancellationToken();
 
                 result.Response = await client.SendAsync(request, cancellation);
