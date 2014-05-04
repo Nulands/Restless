@@ -36,20 +36,22 @@ using System.Threading.Tasks;
 namespace Restless
 {
 
-    public enum Content
-    {
-        ByteArray,
-        FormUrlEncoded,
-        Multipart,
-        MultipartFormData,
-        Stream,
-        String
-    }
-
+    /// <summary>
+    /// Parameter type enum. Query, FormUrlEncoded or Url.
+    /// </summary>
     public enum ParameterType
     {
+        /// <summary>
+        /// Parameter is added to the URL as query parameter (?name=value).
+        /// </summary>
         Query,
+        /// <summary>
+        /// Parameter is added to a POST request with FormUrlEncoded Http content.
+        /// </summary>
         FormUrlEncoded,
+        /// <summary>
+        /// Parameter is used to format the URL string (replaces a {name}).
+        /// </summary>
         Url
     }
 
@@ -62,6 +64,9 @@ namespace Restless
     /// Otherwise the new class has a "clean" interface, and only higher level methods are exposed public.
     /// See RestRequest.
     /// </summary>
+    /// <remarks>Currently the BaseRestRequest does not verify that the underlying HttpRequestMessage.Content
+    /// is set correctly. The developer is responsible for setting a correct HttpContent.
+    /// For example a POST request should use FormUrlEncoded content when parameters are needed...</remarks>
     public abstract class BaseRestRequest : IDisposable
     {
         #region Variables 
@@ -162,42 +167,70 @@ namespace Restless
 
         #region Set request methods GET, HEAD, POST, PUT ...
 
+        /// <summary>
+        /// Set the HttpMethod to GET.
+        /// </summary>
+        /// <returns>this.</returns>
         protected BaseRestRequest Get()
         {
             request.Method = new HttpMethod("GET");
             return this;
         }
 
+        /// <summary>
+        /// Set the HttpMethod to HEAD.
+        /// </summary>
+        /// <returns>this.</returns>
         protected BaseRestRequest Head()
         {
             request.Method = new HttpMethod("HEAD");
             return this;
         }
 
+        /// <summary>
+        /// Set the HttpMethod to POST.
+        /// </summary>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Post()
         {
             request.Method = new HttpMethod("POST");
             return this;
         }
 
+        /// <summary>
+        /// Set the HttpMethod to PUT.
+        /// </summary>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Put()
         {
             request.Method = new HttpMethod("PUT");
             return this;
         }
 
+        /// <summary>
+        /// Set the HttpMethod to DELETE.
+        /// </summary>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Delete()
         {
             request.Method = new HttpMethod("DELETE");
             return this;
         }
 
+        /// <summary>
+        /// Set the HttpMethod to TRACE.
+        /// </summary>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Trace()
         {
             request.Method = new HttpMethod("TRACE");
             return this;
         }
 
+        /// <summary>
+        /// Set the HttpMethod to CONNECT.
+        /// </summary>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Connect()
         {
             request.Method = new HttpMethod("CONNECT");
@@ -208,6 +241,19 @@ namespace Restless
 
         #region Set and add HttpContent, Byte, form url encoded, multipart, multipart form, stream and string content.
 
+        /// <summary>
+        /// Adds a HttpContent to the Request.
+        /// Multiple contents can be set. 
+        /// For example first a MultipartContent can be added with AddMultipart(..).
+        /// Then a StreamContent can be added to this MultipartContent with AddStream(..).
+        /// If the underlying request.Content is a MultipartContent or MultipartFormDataContent
+        /// -> the content is added to this MultipartContent.
+        /// Otherwise the request.Content is simply set to the given content.
+        /// </summary>
+        /// <param name="content">The HttpContent.</param>
+        /// <param name="name">A name can be needed when content is a MultipartFormDataContent already.</param>
+        /// <param name="fileName">A file name can be needed when content is a MultipartFormDataContent already.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest AddContent(HttpContent content, string name = "", string fileName = "")
         {
             content.ThrowIfNull("content");
@@ -228,25 +274,45 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Sets the underlying HttpContent to null.
+        /// </summary>
+        /// <returns>this.</returns>
         protected  BaseRestRequest ClearContent()
         {
             request.Content = null;
             return this;
         }
 
+        /// <summary>
+        /// Adds a ByteArrayContent to the request.
+        /// </summary>
+        /// <param name="buffer">The buffer containing data.</param>
+        /// <param name="name">A name is needed if underlying HttpContent is MultipartFormDataContent. (for example multiple file uploads)</param>
+        /// <param name="fileName">A file name is needed if underlying HttpContent is MultipartFormDataContent.</param>
+        /// <returns>this</returns>
         protected  BaseRestRequest AddByteArray(byte[] buffer, string name = "", string fileName = "")
         {
             buffer.ThrowIfNullOrEmpty("buffer");
             return AddContent(new ByteArrayContent(buffer), name, fileName);
         }
 
+        /// <summary>
+        /// Adds a FormUrlEncodedContent to the request.
+        /// If kvPairs are given and kvPairs.Length % 2 is even and length is not zero
+        /// the kvPairs array is treated as a key value pair list. 
+        /// These key-value pairs are added to the FormUrlEncodedContent on construction.
+        /// If no kvPairs are given all parameters added with Param(..) are added to the new 
+        /// FromUrlEncodedContent.
+        /// </summary>
+        /// <param name="kvPairs">The list of key-value pairs. Must contain an even number of string objects if used.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest AddFormUrl(params string[] kvPairs)
         {
             List<KeyValuePair<string, string>> keyValues = new List<KeyValuePair<string, string>>();
 
             if (kvPairs == null || kvPairs.Length == 0)
             {
-                // use the parameters added with Param(..)
                 foreach (var element in param)
                     keyValues.Add(new KeyValuePair<string, string>(element.Key, (string)element.Value));
             }
@@ -254,23 +320,42 @@ namespace Restless
             {
                 kvPairs.ThrowIf(pairs => pairs.Length % 2 != 0, "kvPairs. No value for every name given.");
 
-                // use the given parameters.
                 for (int i = 0; i < kvPairs.Length; i += 2)
                     keyValues.Add(new KeyValuePair<string, string>(kvPairs[i], kvPairs[i + 1]));
             }
             return AddContent(new FormUrlEncodedContent(keyValues));
         }
 
+        /// <summary>
+        /// Adds a MultipartContent to the request.
+        /// </summary>
+        /// <param name="subtype">The sub type if needed.</param>
+        /// <param name="boundary">The boundary if needed.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest AddMultipart(string subtype = "", string boundary = "")
         {
             return AddContent(new MultipartContent(subtype, boundary));
         }
 
+        /// <summary>
+        /// Adds a MultipartFormDataContent to the request.
+        /// </summary>
+        /// <param name="boundary">The boundary if needed.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest AddMultipartForm(string boundary = "")
         {
             return AddContent(new MultipartFormDataContent(boundary));
         }
 
+        /// <summary>
+        /// Adds a StreamContent to the request.
+        /// </summary>
+        /// <param name="stream">The stream to be added.</param>
+        /// <param name="mediaType">The media type of the stream.</param>
+        /// <param name="buffersize">The buffer size used to process the stream. Default is 1024.</param>
+        /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+        /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest AddStream(Stream stream, string mediaType, int buffersize = 1024, string name = "", string fileName = "")
         {
             stream.ThrowIfNull("stream");
@@ -282,6 +367,15 @@ namespace Restless
             return AddContent(content, name, fileName);
         }
 
+        /// <summary>
+        /// Adds a StringContent to the request.
+        /// </summary>
+        /// <param name="content">The string content.</param>
+        /// <param name="encoding">The content encoding.</param>
+        /// <param name="mediaType">The content media type.</param>
+        /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+        /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest AddString(string content, Encoding encoding, string mediaType, string name = "", string fileName = "")
         {
             content.ThrowIfNullOrEmpty("content");
@@ -295,6 +389,11 @@ namespace Restless
 
         #region Url, CancellationToken, parameters and headers
 
+        /// <summary>
+        /// Set the CancellationToken for this request.
+        /// </summary>
+        /// <param name="token">The token.</param>
+        /// <returns>this.</returns>
         protected BaseRestRequest CancelToken(CancellationToken token)
         {
             token.ThrowIfNull("token");
@@ -302,6 +401,11 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Sets the URL string for this request.
+        /// </summary>
+        /// <param name="url">The URL string.</param>
+        /// <returns>this.</returns>
         protected BaseRestRequest Url(string url)
         {
             url.ThrowIfNull("url");            
@@ -309,6 +413,12 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Sets the URL format parameter for this request.
+        /// A test String.Format is done to verify the input objects.
+        /// </summary>
+        /// <param name="objects">The format parameter objects.</param>
+        /// <returns>this.</returns>
         protected BaseRestRequest UrlFormat(params object[] objects)
         {
             objects.ThrowIfNullOrEmpty("objects");
@@ -320,6 +430,13 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Map an action over the underlying HttpRequestMessage.
+        /// Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
+        /// Usage: request.RequestAction(r => r.Content = ...);
+        /// </summary>
+        /// <param name="action">An action that takes a HttpRequestMessage as argument.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest RequestAction(Action<HttpRequestMessage> action)
         {
             action.ThrowIfNull("action");
@@ -327,6 +444,13 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Map an action over the underlying HttpClient.
+        /// Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
+        /// Usage: request.ClientAction(c => c.Timeout = ...);
+        /// </summary>
+        /// <param name="action">An action that takes a HttpClient as argument.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest ClientAction(Action<HttpClient> action)
         {
             action.ThrowIfNull("action");
@@ -334,6 +458,13 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Adds a Http Basic authorization header to the request. 
+        /// The result string is Base64 encoded internally.
+        /// </summary>
+        /// <param name="username">The user name.</param>
+        /// <param name="password">The user password.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Basic(string username, string password)
         {
             username.ThrowIfNullOrEmpty("username");
@@ -344,6 +475,12 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Adds a Http Bearer authorization header to the request.
+        /// The given token string is Base64 encoded internally.
+        /// </summary>
+        /// <param name="token">The token string.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Bearer(string token)
         {
             token.ThrowIfNullOrEmpty("token");
@@ -352,6 +489,14 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Adds a parameter to the request. Can be a Query, FormUrlEncoded or Url parameter.
+        /// If a value for the given name is already set, the old parameter value is overwritten silently.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="value">The parameter value (should be convertible to string).</param>
+        /// <param name="type">The ParameterType.</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Param(string name, object value, ParameterType type)
         {
             name.ThrowIfNullOrEmpty("name");
@@ -372,10 +517,21 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Adds an url parameter to the request.
+        /// Url parameters are part of the set url string of the form {name}.
+        /// The {name} is replaced by the given value before the request is sent.
+        /// If an url parameter value for the given name already exists the
+        /// old value is overwritten silently.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="value">The parameter value (should be convertible to string).</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest UrlParam(string name, object value)
         {
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrToStrEmpty("value");
+            url.ThrowIfNullOrEmpty("url - cannot set UrlParameter. Url is null or empty.");
 
             if (url.Contains("{" + name + "}"))
                 url_params[name] = value;
@@ -385,6 +541,12 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Add a (FormUrlEncoded) parameter to the request.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="value">The parameter value (should be convertible to string).</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Param(string name, object value)
         {
             name.ThrowIfNullOrEmpty("name");
@@ -394,6 +556,13 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Adds a query parameter (?name=value) to the request.
+        /// The parameter-value pair is added to the URL before sending the request.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="value">The parameter value (should be convertible to string).</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest QParam(string name, object value)
         {
             name.ThrowIfNullOrEmpty("name");
@@ -404,6 +573,12 @@ namespace Restless
 
         }
 
+        /// <summary>
+        /// Adds a header with a single value to the request.
+        /// </summary>
+        /// <param name="name">The header name.</param>
+        /// <param name="value">The header value (should be convertible to string).</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Header(string name, string value)
         {
             name.ThrowIfNullOrEmpty("name");
@@ -413,6 +588,12 @@ namespace Restless
             return this;
         }
 
+        /// <summary>
+        /// Adds a header with multiple values to the request.
+        /// </summary>
+        /// <param name="name">The header name.</param>
+        /// <param name="values">The header values (should be convertible to string).</param>
+        /// <returns>this.</returns>
         protected  BaseRestRequest Header(string name, IEnumerable<string> values)
         {
             name.ThrowIfNullOrEmpty("name");
@@ -426,6 +607,10 @@ namespace Restless
 
         #region Get HttpWebResponse or RestResponse<IVoid> async 
 
+        /// <summary>
+        /// Sends the request and return the raw HttpResponseMessage.
+        /// </summary>
+        /// <returns>Task containing the HttpResponseMessage.</returns>
         protected async Task<HttpResponseMessage> GetResponseAsync()
         {
             if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
@@ -435,6 +620,13 @@ namespace Restless
             return await client.SendAsync(request);
         }
 
+        /// <summary>
+        /// Sends the request and returns a RestResponse<IVoid>.
+        /// </summary>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A Task containing the RestRespone. There will be no deserialized data, but the RestResponse.Response 
+        /// (HttpResponseMessage) will be set.</returns>
         protected async Task<RestResponse<IVoid>> GetRestResponseAsync(
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
@@ -449,6 +641,14 @@ namespace Restless
 
         #region Fetch RestResponse and deserialize directly
 
+        /// <summary>
+        /// Sends the request and returns the RestResponse containing deserialized data 
+        /// from the HttpResponseMessage.Content if T is not IVoid.
+        /// </summary>
+        /// <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         protected async Task<RestResponse<T>> Fetch<T>(
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
@@ -463,6 +663,16 @@ namespace Restless
     
         #region Upload file binary with StreamContent
 
+        /// <summary>
+        /// Uploads a binary file using StreamContent.
+        /// The file is opened by this function.
+        /// </summary>
+        /// <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+        /// <param name="localPath">The path to the file that will be uploaded.</param>
+        /// <param name="contentType">The file content type.</param>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         protected  async Task<RestResponse<T>> UploadFileBinary<T>(
             string localPath, string contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
@@ -478,11 +688,20 @@ namespace Restless
             return result;
         }
 
+        /// <summary>
+        /// Uploads a binary (file) stream using StreamContent.
+        /// </summary>
+        /// <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+        /// <param name="streamContent">The (file) stream that will be uploaded.</param>
+        /// <param name="contentType">The file content type.</param>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         protected  async Task<RestResponse<T>> UploadFileBinary<T>(
-            Stream fileStream, String contentType,
+            Stream streamContent, String contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
-            fileStream.ThrowIfNull("fileStream");
+            streamContent.ThrowIfNull("fileStream");
             contentType.ThrowIfNullOrEmpty("contentType");
 
             // TODO: clear complete request to be sure we have a fresh one?
@@ -490,7 +709,7 @@ namespace Restless
 
             // Clear _request.Content to be sure we are not in a multipart ?
             // ClearContent();
-            AddStream(fileStream, contentType);
+            AddStream(streamContent, contentType);
 
             return await buildAndSendRequest<T>(successAction, errorAction);
         }
@@ -499,6 +718,18 @@ namespace Restless
 
         #region Upload file via multipart form and stream content. Possible parameters are added via FormUrlEncoded content.
 
+        /// <summary>
+        /// Uploads a binary file using a MultipartFormDataContent and a (sub) StreamContent.
+        /// AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+        /// AddFormUrl() will add all parameter to the request that are added with Param(..).
+        /// The file is opened by this function.
+        /// </summary>
+        /// <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+        /// <param name="localPath">The path to the file that will be uploaded.</param>
+        /// <param name="contentType">The file content type.</param>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         protected  async Task<RestResponse<T>> UploadFileFormData<T>(
             string localPath, string contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
@@ -513,12 +744,24 @@ namespace Restless
             }
             return result;
         }
-        
+
+        /// <summary>
+        /// Uploads a binary (file) stream using a MultipartFormDataContent and a (sub) StreamContent.
+        /// AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+        /// AddFormUrl() will add all parameter to the request that are added with Param(..).
+        /// </summary>
+        /// <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+        /// <param name="streamContent">The (file) stream that will be uploaded.</param>
+        /// <param name="contentType">The file content type.</param>
+        /// <param name="localPath">The "path" of the (file) stream that will be uploaded.</param>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         protected  async Task<RestResponse<T>> UploadFileFormData<T>(
-            Stream fileStream, string contentType, string localPath, 
+            Stream streamContent, string contentType, string localPath, 
             Action<RestResponse<T>> successAction = null,Action<RestResponse<T>> errorAction = null)
         {
-            fileStream.ThrowIfNull("fileStream");
+            streamContent.ThrowIfNull("fileStream");
             contentType.ThrowIfNullOrEmpty("contentType");
 
             // Only check for null or empty, not for existing
@@ -539,7 +782,7 @@ namespace Restless
             if (param.Count > 0)
                 AddFormUrl();           // Add form url encoded parameter to request if needed    
 
-            AddStream(fileStream, contentType, 1024, Path.GetFileNameWithoutExtension(localPath), Path.GetFileName(localPath));
+            AddStream(streamContent, contentType, 1024, Path.GetFileNameWithoutExtension(localPath), Path.GetFileName(localPath));
 
             return await buildAndSendRequest<T>(successAction, errorAction);
         }
@@ -548,6 +791,17 @@ namespace Restless
 
         #region Helper functions
 
+        /// <summary>
+        /// A helper function that is doing all the "hard" work setting up the request and sending it.
+        /// 1) The Url is formated using String.Format if UrlParam´s where added.
+        /// 2) The query parameter are added to the URL with RestlessExtensions.CreateRequestUri
+        /// 3) The request is send.
+        /// 4) The RestResponse is set. 
+        /// </summary>
+        /// <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         private async Task<RestResponse<T>> buildAndSendRequest<T>(
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
@@ -595,6 +849,11 @@ namespace Restless
                 action(response);
         }
 
+        /// <summary>
+        /// Check if param contains a value for the given name already
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <returns>True if already containing value for given name, false otherwise.</returns>
         protected bool containsParam(string name)
         {
             return param.ContainsKey(name);
@@ -662,6 +921,9 @@ namespace Restless
 
         #region  IDisposable implementation
 
+        /// <summary>
+        /// Dispose the request.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -669,6 +931,11 @@ namespace Restless
         }
 
         // The bulk of the clean-up code is implemented in Dispose(bool)
+        /// <summary>
+        /// Underlying dispose method.
+        /// Calls HttpClient and HttpRequestMessage Dispose().
+        /// </summary>
+        /// <param name="disposing">True if should dispose.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

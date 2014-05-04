@@ -1,0 +1,828 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Restless</name>
+    </assembly>
+    <members>
+        <member name="T:Restless.ParameterType">
+            <summary>
+            Parameter type enum. Query, FormUrlEncoded or Url.
+            </summary>
+        </member>
+        <member name="F:Restless.ParameterType.Query">
+            <summary>
+            Parameter is added to the URL as query parameter (?name=value).
+            </summary>
+        </member>
+        <member name="F:Restless.ParameterType.FormUrlEncoded">
+            <summary>
+            Parameter is added to a POST request with FormUrlEncoded Http content.
+            </summary>
+        </member>
+        <member name="F:Restless.ParameterType.Url">
+            <summary>
+            Parameter is used to format the URL string (replaces a {name}).
+            </summary>
+        </member>
+        <member name="T:Restless.BaseRestRequest">
+            <summary>
+            Base class for a RestRequest based on HttpWebRequest.
+            Protected methods are commented in RestRequest.
+            If a custom RestRequest is needed, then subclass BaseRestRequest.
+            Make a public "new" method that delegates to the BaseRestRequest protected method if some
+            base methods are needed. 
+            Otherwise the new class has a "clean" interface, and only higher level methods are exposed public.
+            See RestRequest.
+            </summary>
+            <remarks>Currently the BaseRestRequest does not verify that the underlying HttpRequestMessage.Content
+            is set correctly. The developer is responsible for setting a correct HttpContent.
+            For example a POST request should use FormUrlEncoded content when parameters are needed...</remarks>
+        </member>
+        <member name="F:Restless.BaseRestRequest.content_handler">
+            <summary>
+            Content (de)serialization handler.
+            </summary>
+        </member>
+        <member name="F:Restless.BaseRestRequest.query_params">
+            <summary>
+            Url query parameters: ?name=value
+            </summary>
+        </member>
+        <member name="F:Restless.BaseRestRequest.param">
+            <summary>
+            When method is GET then added as query parameters too.
+            Otherwise added as FormUrlEncoded parameters: name=value
+            </summary>
+        </member>
+        <member name="F:Restless.BaseRestRequest.url_params">
+            <summary>
+            Url parameters ../{name}.
+            </summary>
+        </member>
+        <member name="F:Restless.BaseRestRequest.url">
+            <summary>
+            The url string. Can contain {name} and/or format strings {0}.
+            </summary>
+        </member>
+        <member name="F:Restless.BaseRestRequest.urlFormatParams">
+            <summary>
+            Last url format {} set with UrlFormat.
+            </summary>
+        </member>
+        <member name="F:Restless.BaseRestRequest.cancellation">
+            <summary>
+            A CancellationToken that is used in buildAndSendRequest (client.sendAsync(.., cancellation)).
+            </summary>
+        </member>
+        <member name="F:Restless.BaseRestRequest.client">
+            <summary>
+            HttpClient used to send the request message.
+            </summary>
+        </member>
+        <member name="F:Restless.BaseRestRequest.request">
+            <summary>
+            Internal request message.
+            </summary>
+        </member>
+        <member name="M:Restless.BaseRestRequest.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="defaultRequest">The initial request message, or null if not used.</param>
+            <param name="httpClient">The initial http client, or null if not used.</param>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Get">
+            <summary>
+            Set the HttpMethod to GET.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Head">
+            <summary>
+            Set the HttpMethod to HEAD.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Post">
+            <summary>
+            Set the HttpMethod to POST.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Put">
+            <summary>
+            Set the HttpMethod to PUT.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Delete">
+            <summary>
+            Set the HttpMethod to DELETE.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Trace">
+            <summary>
+            Set the HttpMethod to TRACE.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Connect">
+            <summary>
+            Set the HttpMethod to CONNECT.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.AddContent(System.Net.Http.HttpContent,System.String,System.String)">
+            <summary>
+            Adds a HttpContent to the Request.
+            Multiple contents can be set. 
+            For example first a MultipartContent can be added with AddMultipart(..).
+            Then a StreamContent can be added to this MultipartContent with AddStream(..).
+            If the underlying request.Content is a MultipartContent or MultipartFormDataContent
+            -> the content is added to this MultipartContent.
+            Otherwise the request.Content is simply set to the given content.
+            </summary>
+            <param name="content">The HttpContent.</param>
+            <param name="name">A name can be needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name can be needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.ClearContent">
+            <summary>
+            Sets the underlying HttpContent to null.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.AddByteArray(System.Byte[],System.String,System.String)">
+            <summary>
+            Adds a ByteArrayContent to the request.
+            </summary>
+            <param name="buffer">The buffer containing data.</param>
+            <param name="name">A name is needed if underlying HttpContent is MultipartFormDataContent. (for example multiple file uploads)</param>
+            <param name="fileName">A file name is needed if underlying HttpContent is MultipartFormDataContent.</param>
+            <returns>this</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.AddFormUrl(System.String[])">
+            <summary>
+            Adds a FormUrlEncodedContent to the request.
+            If kvPairs are given and kvPairs.Length % 2 is even and length is not zero
+            the kvPairs array is treated as a key value pair list. 
+            These key-value pairs are added to the FormUrlEncodedContent on construction.
+            If no kvPairs are given all parameters added with Param(..) are added to the new 
+            FromUrlEncodedContent.
+            </summary>
+            <param name="kvPairs">The list of key-value pairs. Must contain an even number of string objects if used.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.AddMultipart(System.String,System.String)">
+            <summary>
+            Adds a MultipartContent to the request.
+            </summary>
+            <param name="subtype">The sub type if needed.</param>
+            <param name="boundary">The boundary if needed.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.AddMultipartForm(System.String)">
+            <summary>
+            Adds a MultipartFormDataContent to the request.
+            </summary>
+            <param name="boundary">The boundary if needed.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.AddStream(System.IO.Stream,System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Adds a StreamContent to the request.
+            </summary>
+            <param name="stream">The stream to be added.</param>
+            <param name="mediaType">The media type of the stream.</param>
+            <param name="buffersize">The buffer size used to process the stream. Default is 1024.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.AddString(System.String,System.Text.Encoding,System.String,System.String,System.String)">
+            <summary>
+            Adds a StringContent to the request.
+            </summary>
+            <param name="content">The string content.</param>
+            <param name="encoding">The content encoding.</param>
+            <param name="mediaType">The content media type.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.CancelToken(System.Threading.CancellationToken)">
+            <summary>
+            Set the CancellationToken for this request.
+            </summary>
+            <param name="token">The token.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Url(System.String)">
+            <summary>
+            Sets the URL string for this request.
+            </summary>
+            <param name="url">The URL string.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.UrlFormat(System.Object[])">
+            <summary>
+            Sets the URL format parameter for this request.
+            A test String.Format is done to verify the input objects.
+            </summary>
+            <param name="objects">The format parameter objects.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.RequestAction(System.Action{System.Net.Http.HttpRequestMessage})">
+            <summary>
+            Map an action over the underlying HttpRequestMessage.
+            Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
+            Usage: request.RequestAction(r => r.Content = ...);
+            </summary>
+            <param name="action">An action that takes a HttpRequestMessage as argument.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.ClientAction(System.Action{System.Net.Http.HttpClient})">
+            <summary>
+            Map an action over the underlying HttpClient.
+            Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
+            Usage: request.ClientAction(c => c.Timeout = ...);
+            </summary>
+            <param name="action">An action that takes a HttpClient as argument.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Basic(System.String,System.String)">
+            <summary>
+            Adds a Http Basic authorization header to the request. 
+            The result string is Base64 encoded internally.
+            </summary>
+            <param name="username">The user name.</param>
+            <param name="password">The user password.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Bearer(System.String)">
+            <summary>
+            Adds a Http Bearer authorization header to the request.
+            The given token string is Base64 encoded internally.
+            </summary>
+            <param name="token">The token string.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Param(System.String,System.Object,Restless.ParameterType)">
+            <summary>
+            Adds a parameter to the request. Can be a Query, FormUrlEncoded or Url parameter.
+            If a value for the given name is already set, the old parameter value is overwritten silently.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <param name="type">The ParameterType.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.UrlParam(System.String,System.Object)">
+            <summary>
+            Adds an url parameter to the request.
+            Url parameters are part of the set url string of the form {name}.
+            The {name} is replaced by the given value before the request is sent.
+            If an url parameter value for the given name already exists the
+            old value is overwritten silently.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Param(System.String,System.Object)">
+            <summary>
+            Add a (FormUrlEncoded) parameter to the request.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.QParam(System.String,System.Object)">
+            <summary>
+            Adds a query parameter (?name=value) to the request.
+            The parameter-value pair is added to the URL before sending the request.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Header(System.String,System.String)">
+            <summary>
+            Adds a header with a single value to the request.
+            </summary>
+            <param name="name">The header name.</param>
+            <param name="value">The header value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Header(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Adds a header with multiple values to the request.
+            </summary>
+            <param name="name">The header name.</param>
+            <param name="values">The header values (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.GetResponseAsync">
+            <summary>
+            Sends the request and return the raw HttpResponseMessage.
+            </summary>
+            <returns>Task containing the HttpResponseMessage.</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Restless.BaseRestRequest.GetRestResponseAsync(System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})" -->
+        <member name="M:Restless.BaseRestRequest.Fetch``1(System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Sends the request and returns the RestResponse containing deserialized data 
+            from the HttpResponseMessage.Content if T is not IVoid.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.UploadFileBinary``1(System.String,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary file using StreamContent.
+            The file is opened by this function.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="localPath">The path to the file that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.UploadFileBinary``1(System.IO.Stream,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary (file) stream using StreamContent.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.UploadFileFormData``1(System.String,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary file using a MultipartFormDataContent and a (sub) StreamContent.
+            AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+            AddFormUrl() will add all parameter to the request that are added with Param(..).
+            The file is opened by this function.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="localPath">The path to the file that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.UploadFileFormData``1(System.IO.Stream,System.String,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary (file) stream using a MultipartFormDataContent and a (sub) StreamContent.
+            AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+            AddFormUrl() will add all parameter to the request that are added with Param(..).
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="localPath">The "path" of the (file) stream that will be uploaded.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.buildAndSendRequest``1(System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            A helper function that is doing all the "hard" work setting up the request and sending it.
+            1) The Url is formated using String.Format if UrlParam´s where added.
+            2) The query parameter are added to the URL with RestlessExtensions.CreateRequestUri
+            3) The request is send.
+            4) The RestResponse is set. 
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.containsParam(System.String)">
+            <summary>
+            Check if param contains a value for the given name already
+            </summary>
+            <param name="name">The parameter name.</param>
+            <returns>True if already containing value for given name, false otherwise.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.GetHandler(System.String)">
+            <summary>
+            Retrieve the handler for the specified MIME content type
+            </summary>
+            <param name="contentType">MIME content type to retrieve</param>
+            <returns>IDeserializer instance</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Dispose">
+            <summary>
+            Dispose the request.
+            </summary>
+        </member>
+        <member name="M:Restless.BaseRestRequest.Dispose(System.Boolean)">
+            <summary>
+            Underlying dispose method.
+            Calls HttpClient and HttpRequestMessage Dispose().
+            </summary>
+            <param name="disposing">True if should dispose.</param>
+        </member>
+        <member name="P:Restless.BaseRestRequest.CancellationToken">
+            <summary>
+            The CancellationToken for this request.
+            </summary>
+        </member>
+        <member name="P:Restless.BaseRestRequest.HttpClient">
+            <summary>
+            HttpClient property.
+            </summary>
+        </member>
+        <member name="P:Restless.BaseRestRequest.Request">
+            <summary>
+            HttpRequestMessage property.
+            </summary>
+        </member>
+        <member name="T:Restless.RestRequest">
+            <summary>
+            Wrapper for BaseRestRequest that makes all base methods public.
+            See BaseRestRequest.
+            </summary>
+            <remarks>See BaseRestRequest</remarks>
+        </member>
+        <member name="M:Restless.RestRequest.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="defaultRequest">The initial request message, or null if not used.</param>
+            <param name="httpClient">The initial http client, or null if not used.</param>
+        </member>
+        <member name="M:Restless.RestRequest.Get">
+            <summary>
+            Sets the method to GET.
+            </summary>
+            <returns>this</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Head">
+            <summary>
+            Sets the method to HEAD.
+            </summary>
+            <returns>this</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Post">
+            <summary>
+            Sets the method to POST.
+            </summary>
+            <returns>this</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Put">
+            <summary>
+            Sets the method to PUT.
+            </summary>
+            <returns>this</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Delete">
+            <summary>
+            Sets the method to DELETE.
+            </summary>
+            <returns>this</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Trace">
+            <summary>
+            Sets the method to TRACE.
+            </summary>
+            <returns>this</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Connect">
+            <summary>
+            Sets the method to CONNECT.
+            </summary>
+            <returns>this</returns>
+        </member>
+        <member name="M:Restless.RestRequest.AddContent(System.Net.Http.HttpContent,System.String,System.String)">
+            <summary>
+            Adds a HttpContent to the Request.
+            Multiple contents can be set. 
+            For example first a MultipartContent can be added with AddMultipart(..).
+            Then a StreamContent can be added to this MultipartContent with AddStream(..).
+            If the underlying request.Content is a MultipartContent or MultipartFormDataContent
+            -> the content is added to this MultipartContent.
+            Otherwise the request.Content is simply set to the given content.
+            </summary>
+            <param name="content">The HttpContent.</param>
+            <param name="name">A name can be needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name can be needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.ClearContent">
+            <summary>
+            Sets the underlying HttpContent to null.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.AddByteArray(System.Byte[],System.String,System.String)">
+            <summary>
+            Adds a ByteArrayContent to the request.
+            </summary>
+            <param name="buffer">The buffer containing data.</param>
+            <param name="name">A name is needed if underlying HttpContent is MultipartFormDataContent. (for example multiple file uploads)</param>
+            <param name="fileName">A file name is needed if underlying HttpContent is MultipartFormDataContent.</param>
+            <returns>this</returns>
+        </member>
+        <member name="M:Restless.RestRequest.AddFormUrl(System.String[])">
+            <summary>
+            Adds a FormUrlEncodedContent to the request.
+            If kvPairs are given and kvPairs.Length % 2 is even and length is not zero
+            the kvPairs array is treated as a key value pair list. 
+            These key-value pairs are added to the FormUrlEncodedContent on construction.
+            If no kvPairs are given all parameters added with Param(..) are added to the new 
+            FromUrlEncodedContent.
+            </summary>
+            <param name="kvPairs">The list of key-value pairs. Must contain an even number of string objects if used.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.AddMultipart(System.String,System.String)">
+            <summary>
+            Adds a MultipartContent to the request.
+            </summary>
+            <param name="subtype">The sub type if needed.</param>
+            <param name="boundary">The boundary if needed.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.AddMultipartForm(System.String)">
+            <summary>
+            Adds a MultipartFormDataContent to the request.
+            </summary>
+            <param name="boundary">The boundary if needed.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.AddStream(System.IO.Stream,System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Adds a StreamContent to the request.
+            </summary>
+            <param name="stream">The stream to be added.</param>
+            <param name="mediaType">The media type of the stream.</param>
+            <param name="buffersize">The buffer size used to process the stream. Default is 1024.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.AddString(System.String,System.Text.Encoding,System.String,System.String,System.String)">
+            <summary>
+            Adds a StringContent to the request.
+            </summary>
+            <param name="content">The string content.</param>
+            <param name="encoding">The content encoding.</param>
+            <param name="mediaType">The content media type.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.CancelToken(System.Threading.CancellationToken)">
+            <summary>
+            Set the CancellationToken for this request.
+            </summary>
+            <param name="token">The token.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Url(System.String)">
+            <summary>
+            Sets the URL string for this request.
+            </summary>
+            <param name="url">The URL string.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.UrlFormat(System.Object[])">
+            <summary>
+            Sets the URL format parameter for this request.
+            A test String.Format is done to verify the input objects.
+            </summary>
+            <param name="objects">The format parameter objects.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.RequestAction(System.Action{System.Net.Http.HttpRequestMessage})">
+            <summary>
+            Map an action over the underlying HttpRequestMessage.
+            Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
+            Usage: request.RequestAction(r => r.Content = ...);
+            </summary>
+            <param name="action">An action that takes a HttpRequestMessage as argument.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.ClientAction(System.Action{System.Net.Http.HttpClient})">
+            <summary>
+            Map an action over the underlying HttpClient.
+            Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
+            Usage: request.ClientAction(c => c.Timeout = ...);
+            </summary>
+            <param name="action">An action that takes a HttpClient as argument.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Basic(System.String,System.String)">
+            <summary>
+            Adds a Http Basic authorization header to the request. 
+            The result string is Base64 encoded internally.
+            </summary>
+            <param name="username">The user name.</param>
+            <param name="password">The user password.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Bearer(System.String)">
+            <summary>
+            Adds a Http Bearer authorization header to the request.
+            The given token string is Base64 encoded internally.
+            </summary>
+            <param name="token">The token string.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Param(System.String,System.Object,Restless.ParameterType)">
+            <summary>
+            Adds a parameter to the request. Can be a Query, FormUrlEncoded or Url parameter.
+            If a value for the given name is already set, the old parameter value is overwritten silently.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <param name="type">The ParameterType.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.UrlParam(System.String,System.Object)">
+            <summary>
+            Adds an url parameter to the request.
+            Url parameters are part of the set url string of the form {name}.
+            The {name} is replaced by the given value before the request is sent.
+            If an url parameter value for the given name already exists the
+            old value is overwritten silently.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Param(System.String,System.Object)">
+            <summary>
+            Add a (FormUrlEncoded) parameter to the request.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.QParam(System.String,System.Object)">
+            <summary>
+            Adds a query parameter (?name=value) to the request.
+            The parameter-value pair is added to the URL before sending the request.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Header(System.String,System.String)">
+            <summary>
+            Adds a header with a single value to the request.
+            </summary>
+            <param name="name">The header name.</param>
+            <param name="value">The header value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.Header(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Adds a header with multiple values to the request.
+            </summary>
+            <param name="name">The header name.</param>
+            <param name="values">The header values (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.GetResponseAsync">
+            <summary>
+            Sends the request and return the raw HttpResponseMessage.
+            </summary>
+            <returns>Task containing the HttpResponseMessage.</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Restless.RestRequest.GetRestResponseAsync(System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})" -->
+        <member name="M:Restless.RestRequest.Fetch``1(System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Sends the request and returns the RestResponse containing deserialized data 
+            from the HttpResponseMessage.Content if T is not IVoid.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.UploadFileBinary``1(System.String,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary (file) stream using StreamContent.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.UploadFileBinary``1(System.IO.Stream,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary (file) stream using StreamContent.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.UploadFileFormData``1(System.String,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary file using a MultipartFormDataContent and a (sub) StreamContent.
+            AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+            AddFormUrl() will add all parameter to the request that are added with Param(..).
+            The file is opened by this function.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="localPath">The path to the file that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.UploadFileFormData``1(System.IO.Stream,System.String,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary (file) stream using a MultipartFormDataContent and a (sub) StreamContent.
+            AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+            AddFormUrl() will add all parameter to the request that are added with Param(..).
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="localPath">The "path" of the (file) stream that will be uploaded.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="P:Restless.RestRequest.HttpClient">
+            <summary>
+            HttpClient property.
+            </summary>
+        </member>
+        <member name="P:Restless.RestRequest.Request">
+            <summary>
+            HttpRequestMessage property.
+            </summary>
+        </member>
+        <member name="P:Restless.RestRequest.CancellationToken">
+            <summary>
+            The CancellationToken for this request.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Restless.RestlessExtensions.CreateParamStr(System.Collections.Generic.Dictionary{System.String,System.Object})" -->
+        <member name="M:Restless.RestResponse`1.ThrowIfException">
+            <summary>
+            If an exception occurred during the request throw it again.
+            Usage:
+            var data = response.ThrowIfException().Data;
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="P:Restless.RestResponse`1.Request">
+            <summary>
+            That BaseRestRequest this rest response comes from.
+            </summary>
+        </member>
+        <member name="P:Restless.RestResponse`1.Exception">
+            <summary>
+            The Exception that could be thrown during the request fetching.
+            </summary>
+        </member>
+        <member name="P:Restless.RestResponse`1.Response">
+            <summary>
+            The "raw" HttpResponseMessage.
+            </summary>
+        </member>
+        <member name="P:Restless.RestResponse`1.Data">
+            <summary>
+            The deserialized data if T is not INothing.
+            </summary>
+        </member>
+        <member name="P:Restless.RestResponse`1.IsStatusCodeMissmatch">
+            <summary>
+            Check if the returned status code matches the wanted status code.
+            </summary>
+        </member>
+        <member name="P:Restless.RestResponse`1.IsException">
+            <summary>
+            Check if the request that was producing this response has encountered an exception.
+            </summary>
+        </member>
+        <member name="P:Restless.RestResponse`1.IsNothing">
+            <summary>
+            Check if T is IVoid
+            </summary>
+        </member>
+        <member name="P:Restless.RestResponse`1.HasData">
+            <summary>
+            Check if a deserialized object is available.
+            </summary>
+        </member>
+    </members>
+</doc>
