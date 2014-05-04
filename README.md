@@ -6,6 +6,7 @@ One uses HttpWebRequest and HttpWebResponse internally, the other version uses H
 
 
 Uses Json and Xml (de)serializer from RestSharp (https://github.com/restsharp/RestSharp).
+See: https://github.com/Muraad/RestlessSerialization
 
 More documentation will follow:
 
@@ -21,7 +22,7 @@ Usage:
     RestRequest request = new RestRequest();
     string url = "https://duckduckgo.com/";
 
-    var response = await request.Get().Url(url).QParam("q", "RestlessHttpClient").Fetch<INot>();
+    var response = await request.Get().Url(url).QParam("q", "RestlessHttpClient").Fetch<IVoid>();
 
     if (response.IsStatusCodeMissmatch)
     {
@@ -72,7 +73,7 @@ Usage:
     //createPerson.Post().Url(url).AddFormUrl("name", "NewUser", "age", 99.ToString());        
     
     // Default wanted status code for Fetch is OK, now Created is needed to indicate success.
-    RestResponse<INot> createResponse = await createPerson.Fetch<INot>(HttpStatusCode.Created);
+    RestResponse<IVoid> createResponse = await createPerson.Fetch<IVoid>(HttpStatusCode.Created);
 
     if(createResponse.IsStatusCodeMissmatch)
     {
@@ -156,10 +157,10 @@ For example the person requests:
             return Param("age", age) as PersonCreateRequest;
         }
     
-        public new async Task<RestResponse<INot>> Fetch(Action<RestResponse<INot>> successAction = null,
-                                                        Action<RestResponse<INot>> errorAction = null)
+        public new async Task<RestResponse<IVoid>> Fetch(Action<RestResponse<IVoid>> successAction = null,
+                                                        Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await base.Fetch<INot>(HttpStatusCode.Created, successAction, errorAction);
+            return await base.Fetch<IVoid>(HttpStatusCode.Created, successAction, errorAction);
         }    
     }
     
@@ -231,7 +232,7 @@ One can make a class with static methods that creates a custom request.
 
     var persCreateResponse = await Persons.Create().Name("testUser2").Age(42).Fetch();
 
-    // because PersonCreateRequest uses Fetch with INot,
+    // because PersonCreateRequest uses Fetch with IVoid,
     // there is no deserialized object in the Data property of the response.
     if(persCreateResponse.IsStatusCodeMissmatch)
     {
