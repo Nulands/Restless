@@ -93,6 +93,11 @@ namespace Restless
         private string url = "";
 
         /// <summary>
+        /// Last url format {} set with UrlFormat.
+        /// </summary>
+        private object[] urlFormatParams = null;
+
+        /// <summary>
         /// A CancellationToken that is used in buildAndSendRequest (client.sendAsync(.., cancellation)).
         /// </summary>
         protected CancellationToken cancellation = new CancellationToken();
@@ -307,7 +312,11 @@ namespace Restless
         protected BaseRestRequest UrlFormat(params object[] objects)
         {
             objects.ThrowIfNullOrEmpty("objects");
+            // Do a test format only to see if everything is ok otherwise it will throw an exception.
             String.Format(url, objects);
+            // Do not save the formated test url only the format parameter.
+            // Url will be build before sending the request.
+            urlFormatParams = objects;
             return this;
         }
 
@@ -458,6 +467,7 @@ namespace Restless
             string localPath, string contentType,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
+            // check if given file exists
             localPath.ThrowIfNotFound(true, "localPath");
 
             RestResponse<T> result = new RestResponse<T>();
@@ -547,6 +557,9 @@ namespace Restless
             RestResponse<T> result = new RestResponse<T>(this);
             try
             {
+                if(urlFormatParams != null && urlFormatParams.Length > 0)
+                    url = String.Format(url, urlFormatParams);  // format url if needed, this should work without exception.
+
                 request.RequestUri = new Uri(url.CreateRequestUri(query_params, param, request.Method.Method));
 
                 // TODO: Maybe its better that cancellation is set from an external source/caller?
