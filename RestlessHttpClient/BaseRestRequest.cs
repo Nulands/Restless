@@ -206,13 +206,17 @@ namespace Restless
         protected  BaseRestRequest AddContent(HttpContent content, string name = "", string fileName = "")
         {
             content.ThrowIfNull("content");
+
+            // If content is a multipart already then add it as sub content to the multipart.
+
             if (request.Content is MultipartContent)
                 (request.Content as MultipartContent).Add(content);
             else if (request.Content is MultipartFormDataContent)
             {
-                (request.Content as MultipartFormDataContent).Add(content, name, fileName);
+                // For MultipartFormDataContent name and fileName must be set, so chech them first.
                 name.ThrowIfNullOrEmpty("name");
                 fileName.ThrowIfNullOrEmpty("fileName");
+                (request.Content as MultipartFormDataContent).Add(content, name, fileName);
             }
             else
                 request.Content = content;
@@ -351,9 +355,9 @@ namespace Restless
             else // type == ParameterType.Url
             {
                 if (url.Contains("{" + name + "}"))
-                    url_params.Add(name, value);
+                    url_params[name] = value;
                 else
-                    throw new ArgumentException("Url does not contain a parameter : " + name);
+                    throw new ArgumentException("BaseRestRequest - ParameterType.Url - Url does not contain a parameter : " + name);
             }
 
             return this;
@@ -363,7 +367,12 @@ namespace Restless
         {
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrToStrEmpty("value");
-            url = url.Replace("{" + name + "}", value.ToString());
+
+            if (url.Contains("{" + name + "}"))
+                url_params[name] = value;
+            else
+                throw new ArgumentException("BaseRestRequest - UrlParam - Url does not contain a parameter : " + name);
+
             return this;
         }
 
