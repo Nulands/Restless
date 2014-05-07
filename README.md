@@ -7,15 +7,23 @@ One uses HttpWebRequest and HttpWebResponse internally, the other version uses H
 
 Uses Json and Xml (de)serializer from RestSharp (https://github.com/restsharp/RestSharp).
 
-https://github.com/Muraad/RestlessSerialization is added as submodule.
+It is refacored in a single project https://github.com/Muraad/RestlessSerialization 
+that is added as submodule.
+To see how to work with submodules a good source is  http://www.git-scm.com/book/en/Git-Tools-Submodules 
+In short:
 
-To see how to work with submodules see
-http://www.git-scm.com/book/en/Git-Tools-Submodules
+```
 
+$ git clone https://github.com/Muraad/Restless.git
+$ git submodule init
+$ git submodule update 
+
+    
+```
 More documentation will follow:
 
 Published under GPLv3 license. 
-For a nice overview of the license visit 
+For a overview of the license visit 
 http://choosealicense.com/licenses/gpl-v3/
 
 ----------------------------------------------------
