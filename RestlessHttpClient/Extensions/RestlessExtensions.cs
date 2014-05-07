@@ -24,22 +24,49 @@ using System.Runtime.CompilerServices;
 
 namespace Restless
 {
+    /// <summary>
+    /// Extensions needed for Restless.
+    /// </summary>
     public static class RestlessExtensions
     {
         #region ThrowIf... extensions
 
+        /// <summary>
+        /// Throws an ArgumentException if the given predicate returns true for the given object.
+        /// </summary>
+        /// <typeparam name="T">The type of the given object. Must not be set explicit.</typeparam>
+        /// <param name="obj">The object.</param>
+        /// <param name="predicate">the predicate that is called with the given object as argument.</param>
+        /// <param name="msg">The message added to the exception.</param>
+        /// <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         public static void ThrowIf<T>(this T obj, Func<T, bool> predicate, string msg, [CallerMemberName]string memberName = "")
         {
             if (predicate(obj))
                 throw new ArgumentException(memberName + " - " + (msg == null ? "" : msg));
         }
 
+        /// <summary>
+        /// Throws an ArgumentException if the given predicate returns false for the given object.
+        /// </summary>
+        /// <typeparam name="T">The type of the given object. Must not be set explicit.</typeparam>
+        /// <param name="obj">The object.</param>
+        /// <param name="predicate">the predicate that is called with the given object as argument.</param>
+        /// <param name="msg">The message that is added to the exception if it is thrown.</param>
+        /// <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         public static void ThrowIfNot<T>(this T obj, Func<T, bool> predicate, string msg, [CallerMemberName]string memberName = "")
         {
             if (!predicate(obj))
                 throw new ArgumentException(memberName + "-" + (msg == null ? "" : msg));
         }
 
+        /// <summary>
+        /// Throws an ArgumentNullException when the given IEnumerable is null, or an ArgumentException if it is empty.
+        /// Can be used for arrays too.
+        /// </summary>
+        /// <typeparam name="T">The type of the given objects inside the IEnumerable. Must not be set explicit.</typeparam>
+        /// <param name="enumerable">The enumerable.</param>
+        /// <param name="msg">The message that is added to the exception if it is thrown.</param>
+        /// <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         public static void ThrowIfNullOrEmpty<T>(this IEnumerable<T> enumerable, string msg = "", [CallerMemberName]string memberName = "")
         {
             if(enumerable == null)
@@ -48,6 +75,12 @@ namespace Restless
                 throw new ArgumentException("IEnumerable is empty.", memberName + "-" + (msg == null ? "" : msg));
         }
         
+        /// <summary>
+        /// Throws an ArgumentNullException when the given string is null, or an ArgumentException if it is empty.
+        /// </summary>
+        /// <param name="obj">The string.</param>
+        /// <param name="msg">The message that is added to the exception if it is thrown.</param>
+        /// <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         public static void ThrowIfNullOrEmpty(this string obj, string msg = "", [CallerMemberName]string memberName = "")
         {
             if (obj == null)
@@ -57,6 +90,13 @@ namespace Restless
                 throw new ArgumentException("String is empty", memberName + "-" + (msg == null ? "" : msg));
         }
 
+        /// <summary>
+        /// Treats a string as a file/folder path and throws an exceptin if the file/folder is not found.
+        /// </summary>
+        /// <param name="path">The path string.</param>
+        /// <param name="isFile">If true the given string is a path to a file, otherwise its a path to a folder.</param>
+        /// <param name="msg">The message that is added to the exception if it is thrown.</param>
+        /// <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         public static void ThrowIfNotFound(this string path, bool isFile = true, string msg = "", [CallerMemberName]string memberName = "")
         {
             path.ThrowIfNull("ThrowIfNotFound - path is null.");
@@ -71,6 +111,13 @@ namespace Restless
 
         }
 
+        /// <summary>
+        /// Throws an exception if the given object is null.
+        /// </summary>
+        /// <typeparam name="T">The type of the object. Must not be set explicit.</typeparam>
+        /// <param name="obj">The given object.</param>
+        /// <param name="msg">The message that is added to the exception if it is thrown.</param>
+        /// <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         public static void ThrowIfNull<T>(this T obj, string msg = "", [CallerMemberName]string memberName = "")
         {
             if (obj == null)
@@ -81,6 +128,13 @@ namespace Restless
             }
         }
 
+        /// <summary>
+        /// Throws an exception if the given object is null or if the obj.ToString() is null or empty.
+        /// </summary>
+        /// <typeparam name="T">The type of the object. Must not be set explicit.</typeparam>
+        /// <param name="obj">The given object.</param>
+        /// <param name="msg">The message that is added to the exception if it is thrown.</param>
+        /// <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         public static void ThrowIfNullOrToStrEmpty<T>(this T obj, string msg = "", [CallerMemberName]string memberName = "")
         {
             if (String.IsNullOrEmpty(msg))
@@ -98,8 +152,6 @@ namespace Restless
 
         /// <summary>
         /// Make a parameter string.
-        /// Example: 
-        ///     name1=value1&name2=value2...
         /// </summary>
         /// <param name="paramList"></param>
         /// <returns></returns>
@@ -110,6 +162,12 @@ namespace Restless
             return result;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url_params"></param>
+        /// <param name="url"></param>
+        /// <returns></returns>
         public static string FormatUrlWithParams(this Dictionary<string, object> url_params, string url)
         {
             System.Text.StringBuilder builder = new System.Text.StringBuilder(url);
@@ -125,6 +183,14 @@ namespace Restless
             return builder.ToString();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="query_params"></param>
+        /// <param name="param"></param>
+        /// <param name="method"></param>
+        /// <returns></returns>
         public static string CreateRequestUri(this string url,
             Dictionary<string, object> query_params,
             Dictionary<string, object> param,
@@ -152,6 +218,13 @@ namespace Restless
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="to"></param>
+        /// <param name="from"></param>
+        /// <param name="excludePropertys"></param>
         public static void SetFrom<T>(this T to, T from, params string[] excludePropertys)
         {
             var propertys = to.GetType().GetProperties();

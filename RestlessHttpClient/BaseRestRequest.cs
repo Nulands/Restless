@@ -621,7 +621,7 @@ namespace Restless
         }
 
         /// <summary>
-        /// Sends the request and returns a RestResponse<IVoid>.
+        /// Sends the request and returns a RestResponse with generic type IVoid.
         /// </summary>
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
@@ -674,8 +674,10 @@ namespace Restless
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         protected  async Task<RestResponse<T>> UploadFileBinary<T>(
-            string localPath, string contentType,
-            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
+            string localPath, 
+            string contentType,
+            Action<RestResponse<T>> successAction = null, 
+            Action<RestResponse<T>> errorAction = null)
         {
             // check if given file exists
             localPath.ThrowIfNotFound(true, "localPath");
@@ -731,8 +733,10 @@ namespace Restless
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         protected  async Task<RestResponse<T>> UploadFileFormData<T>(
-            string localPath, string contentType,
-            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
+            string localPath, 
+            string contentType,
+            Action<RestResponse<T>> successAction = null, 
+            Action<RestResponse<T>> errorAction = null)
         {
             localPath.ThrowIfNotFound(true, "localPath");
             // contenttype string is checked from call above
@@ -803,7 +807,8 @@ namespace Restless
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         private async Task<RestResponse<T>> buildAndSendRequest<T>(
-            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
+            Action<RestResponse<T>> successAction = null, 
+            Action<RestResponse<T>> errorAction = null)
         {
             // RestResponse<T> result = new RestResponse<T>();
             // TODO: Good or bad to have a reference from the response to the request?!
@@ -825,21 +830,21 @@ namespace Restless
                 result.Response = await client.SendAsync(request, cancellation);
 
                 if (result.Response.IsSuccessStatusCode)
-                {
                     result.Data = await tryDeserialization<T>(result.Response);
-                    ActionIfNotNull<T>(result, successAction);
-                }
                 else
-                {
                     result.IsStatusCodeMissmatch = true;
-                    ActionIfNotNull<T>(result, errorAction);
-                }
             }
             catch (Exception exc)
             {
                 result.Exception = exc;
-                ActionIfNotNull<T>(result, errorAction);
             }
+            
+            // call success or error action if necessary
+            if (result.Response.IsSuccessStatusCode || result.IsException)
+                ActionIfNotNull<T>(result, errorAction);
+            else
+                ActionIfNotNull<T>(result, successAction);
+
             return result;
         }
         
@@ -863,6 +868,7 @@ namespace Restless
         
         private void registerDefaultHandlers()
         {
+            // TODO: Why not reusing the deserializer?
             // register default handlers
             content_handler.Add("application/json", new JsonDeserializer());
             content_handler.Add("application/xml", new XmlDeserializer());

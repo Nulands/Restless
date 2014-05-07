@@ -23,15 +23,31 @@ using System.Net.Http;
 
 namespace Restless
 {
+
+    /// <summary>
+    /// A class representing a REST response message.
+    /// It contains the raw HttpResponseMessage returned from the request.
+    /// Further it contains the deserialized data if no exception occured, T != IVoid 
+    /// and the response status code matches.
+    /// </summary>
+    /// <typeparam name="T">The type of the data that will be deserialized.</typeparam>
     public sealed class RestResponse<T>
     {
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         public RestResponse()
         {
+
             IsStatusCodeMissmatch = false;
             Exception = null;
             Response = null;
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="request">Reference to a BaseRestRequest.</param>
         public RestResponse(BaseRestRequest request)
         {
             Request = request;

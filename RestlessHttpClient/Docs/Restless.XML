@@ -330,7 +330,15 @@
             </summary>
             <returns>Task containing the HttpResponseMessage.</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:Restless.BaseRestRequest.GetRestResponseAsync(System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})" -->
+        <member name="M:Restless.BaseRestRequest.GetRestResponseAsync(System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})">
+            <summary>
+            Sends the request and returns a RestResponse with generic type IVoid.
+            </summary>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A Task containing the RestRespone. There will be no deserialized data, but the RestResponse.Response 
+            (HttpResponseMessage) will be set.</returns>
+        </member>
         <member name="M:Restless.BaseRestRequest.Fetch``1(System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
             <summary>
             Sends the request and returns the RestResponse containing deserialized data 
@@ -444,6 +452,13 @@
         <member name="P:Restless.BaseRestRequest.Request">
             <summary>
             HttpRequestMessage property.
+            </summary>
+        </member>
+        <member name="T:Restless.IVoid">
+            <summary>
+            "Ghost" parameter can be used to indicate that a 
+            generic parameter will be unused/left blank.
+            Like setting it to "null".
             </summary>
         </member>
         <member name="T:Restless.RestRequest">
@@ -699,7 +714,15 @@
             </summary>
             <returns>Task containing the HttpResponseMessage.</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:Restless.RestRequest.GetRestResponseAsync(System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})" -->
+        <member name="M:Restless.RestRequest.GetRestResponseAsync(System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})">
+            <summary>
+            Sends the request and returns a RestResponse with generic type IVoid.
+            </summary>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A Task containing the RestRespone. There will be no deserialized data, but the RestResponse.Response 
+            (HttpResponseMessage) will be set.</returns>
+        </member>
         <member name="M:Restless.RestRequest.Fetch``1(System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
             <summary>
             Sends the request and returns the RestResponse containing deserialized data 
@@ -710,16 +733,34 @@
             <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
             <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         </member>
+        <member name="M:Restless.RestRequest.Fetch(System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})">
+            <summary>
+            Sends the request asynchronous and returns the RestResponse.
+            </summary>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse.</returns>
+        </member>
         <member name="M:Restless.RestRequest.UploadFileBinary``1(System.String,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
             <summary>
-            Uploads a binary (file) stream using StreamContent.
+            Uploads a binary file using StreamContent.
             </summary>
             <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
-            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="localPath">The path to a file that will be uploaded.</param>
             <param name="contentType">The file content type.</param>
             <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
             <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
             <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.UploadFileBinary(System.String,System.String,System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})">
+            <summary>
+            Uploads a binary file stream using StreamContent.
+            </summary>
+            <param name="localPath">The path to the file that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse.</returns>
         </member>
         <member name="M:Restless.RestRequest.UploadFileBinary``1(System.IO.Stream,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
             <summary>
@@ -731,6 +772,16 @@
             <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
             <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
             <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.UploadFileBinary(System.IO.Stream,System.String,System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})">
+            <summary>
+            Uploads a binary (file) stream using StreamContent.
+            </summary>
+            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse.</returns>
         </member>
         <member name="M:Restless.RestRequest.UploadFileFormData``1(System.String,System.String,System.Action{Restless.RestResponse{``0}},System.Action{Restless.RestResponse{``0}})">
             <summary>
@@ -760,6 +811,31 @@
             <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
             <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         </member>
+        <member name="M:Restless.RestRequest.UploadFileFormData(System.String,System.String,System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})">
+            <summary>
+            Uploads a binary file stream a MultipartFormDataContent and a (sub) StreamContent.
+            AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+            AddFormUrl() will add all parameter to the request that are added with Param(..).
+            </summary>
+            <param name="localPath">The file that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.UploadFileFormData(System.IO.Stream,System.String,System.String,System.Action{Restless.RestResponse{Restless.IVoid}},System.Action{Restless.RestResponse{Restless.IVoid}})">
+            <summary>
+            Uploads a binary (file) stream using a MultipartFormDataContent and a (sub) StreamContent.
+            AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+            AddFormUrl() will add all parameter to the request that are added with Param(..).
+            </summary>
+            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="localPath">The "path" of the (file) stream that will be uploaded.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse.</returns>
+        </member>
         <member name="P:Restless.RestRequest.HttpClient">
             <summary>
             HttpClient property.
@@ -775,7 +851,130 @@
             The CancellationToken for this request.
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:Restless.RestlessExtensions.CreateParamStr(System.Collections.Generic.Dictionary{System.String,System.Object})" -->
+        <member name="T:Restless.RestlessExtensions">
+            <summary>
+            Extensions needed for Restless.
+            </summary>
+        </member>
+        <member name="M:Restless.RestlessExtensions.ThrowIf``1(``0,System.Func{``0,System.Boolean},System.String,System.String)">
+            <summary>
+            Throws an ArgumentException if the given predicate returns true for the given object.
+            </summary>
+            <typeparam name="T">The type of the given object. Must not be set explicit.</typeparam>
+            <param name="obj">The object.</param>
+            <param name="predicate">the predicate that is called with the given object as argument.</param>
+            <param name="msg">The message added to the exception.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Restless.RestlessExtensions.ThrowIfNot``1(``0,System.Func{``0,System.Boolean},System.String,System.String)">
+            <summary>
+            Throws an ArgumentException if the given predicate returns false for the given object.
+            </summary>
+            <typeparam name="T">The type of the given object. Must not be set explicit.</typeparam>
+            <param name="obj">The object.</param>
+            <param name="predicate">the predicate that is called with the given object as argument.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Restless.RestlessExtensions.ThrowIfNullOrEmpty``1(System.Collections.Generic.IEnumerable{``0},System.String,System.String)">
+            <summary>
+            Throws an ArgumentNullException when the given IEnumerable is null, or an ArgumentException if it is empty.
+            Can be used for arrays too.
+            </summary>
+            <typeparam name="T">The type of the given objects inside the IEnumerable. Must not be set explicit.</typeparam>
+            <param name="enumerable">The enumerable.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Restless.RestlessExtensions.ThrowIfNullOrEmpty(System.String,System.String,System.String)">
+            <summary>
+            Throws an ArgumentNullException when the given string is null, or an ArgumentException if it is empty.
+            </summary>
+            <param name="obj">The string.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Restless.RestlessExtensions.ThrowIfNotFound(System.String,System.Boolean,System.String,System.String)">
+            <summary>
+            Treats a string as a file/folder path and throws an exceptin if the file/folder is not found.
+            </summary>
+            <param name="path">The path string.</param>
+            <param name="isFile">If true the given string is a path to a file, otherwise its a path to a folder.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Restless.RestlessExtensions.ThrowIfNull``1(``0,System.String,System.String)">
+            <summary>
+            Throws an exception if the given object is null.
+            </summary>
+            <typeparam name="T">The type of the object. Must not be set explicit.</typeparam>
+            <param name="obj">The given object.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Restless.RestlessExtensions.ThrowIfNullOrToStrEmpty``1(``0,System.String,System.String)">
+            <summary>
+            Throws an exception if the given object is null or if the obj.ToString() is null or empty.
+            </summary>
+            <typeparam name="T">The type of the object. Must not be set explicit.</typeparam>
+            <param name="obj">The given object.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Restless.RestlessExtensions.CreateParamStr(System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            Make a parameter string.
+            </summary>
+            <param name="paramList"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Restless.RestlessExtensions.FormatUrlWithParams(System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
+            <summary>
+            
+            </summary>
+            <param name="url_params"></param>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Restless.RestlessExtensions.CreateRequestUri(System.String,System.Collections.Generic.Dictionary{System.String,System.Object},System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
+            <summary>
+            
+            </summary>
+            <param name="url"></param>
+            <param name="query_params"></param>
+            <param name="param"></param>
+            <param name="method"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Restless.RestlessExtensions.SetFrom``1(``0,``0,System.String[])">
+            <summary>
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="to"></param>
+            <param name="from"></param>
+            <param name="excludePropertys"></param>
+        </member>
+        <member name="T:Restless.RestResponse`1">
+            <summary>
+            A class representing a REST response message.
+            It contains the raw HttpResponseMessage returned from the request.
+            Further it contains the deserialized data if no exception occured, T != IVoid 
+            and the response status code matches.
+            </summary>
+            <typeparam name="T">The type of the data that will be deserialized.</typeparam>
+        </member>
+        <member name="M:Restless.RestResponse`1.#ctor">
+            <summary>
+            Default constructor.
+            </summary>
+        </member>
+        <member name="M:Restless.RestResponse`1.#ctor(Restless.BaseRestRequest)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="request">Reference to a BaseRestRequest.</param>
+        </member>
         <member name="M:Restless.RestResponse`1.ThrowIfException">
             <summary>
             If an exception occurred during the request throw it again.

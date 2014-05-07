@@ -421,7 +421,7 @@ namespace Restless
         }
 
         /// <summary>
-        /// Sends the request and returns a RestResponse<IVoid>.
+        /// Sends the request and returns a RestResponse with generic type IVoid.
         /// </summary>
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
@@ -452,6 +452,12 @@ namespace Restless
             return await base.Fetch<T>(successAction, errorAction);
         }
 
+        /// <summary>
+        /// Sends the request asynchronous and returns the RestResponse.
+        /// </summary>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse.</returns>
         public async Task<RestResponse<IVoid>> Fetch(
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
@@ -464,10 +470,10 @@ namespace Restless
         #region Upload file binary with StreamContent
 
         /// <summary>
-        /// Uploads a binary (file) stream using StreamContent.
+        /// Uploads a binary file using StreamContent.
         /// </summary>
         /// <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
-        /// <param name="streamContent">The (file) stream that will be uploaded.</param>
+        /// <param name="localPath">The path to a file that will be uploaded.</param>
         /// <param name="contentType">The file content type.</param>
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
@@ -481,6 +487,14 @@ namespace Restless
         }
 
 
+        /// <summary>
+        /// Uploads a binary file stream using StreamContent.
+        /// </summary>
+        /// <param name="localPath">The path to the file that will be uploaded.</param>
+        /// <param name="contentType">The file content type.</param>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse.</returns>
         public async Task<RestResponse<IVoid>> UploadFileBinary(
             string localPath, string contentType,
             Action<RestResponse<IVoid>> successAction = null,
@@ -501,20 +515,28 @@ namespace Restless
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         public new async Task<RestResponse<T>> UploadFileBinary<T>(
-            Stream fileStream, string contentType,
+            Stream streamContent, string contentType,
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
-            return await base.UploadFileBinary<T>(fileStream, contentType, successAction, errorAction);
+            return await base.UploadFileBinary<T>(streamContent, contentType, successAction, errorAction);
         }
 
 
+        /// <summary>
+        /// Uploads a binary (file) stream using StreamContent.
+        /// </summary>
+        /// <param name="streamContent">The (file) stream that will be uploaded.</param>
+        /// <param name="contentType">The file content type.</param>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse.</returns>
         public async Task<RestResponse<IVoid>> UploadFileBinary(
-            Stream fileStream, string contentType,
+            Stream streamContent, string contentType,
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await base.UploadFileBinary(fileStream, contentType, successAction, errorAction);
+            return await base.UploadFileBinary(streamContent, contentType, successAction, errorAction);
         }
         #endregion 
 
@@ -553,12 +575,22 @@ namespace Restless
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         public new async Task<RestResponse<T>> UploadFileFormData<T>(
-            Stream fileStream, string contentType, string localPath,
+            Stream streamContent, string contentType, string localPath,
             Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
         {
-            return await base.UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction);
+            return await base.UploadFileFormData<T>(streamContent, contentType, localPath, successAction, errorAction);
         }
 
+        /// <summary>
+        /// Uploads a binary file stream a MultipartFormDataContent and a (sub) StreamContent.
+        /// AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+        /// AddFormUrl() will add all parameter to the request that are added with Param(..).
+        /// </summary>
+        /// <param name="localPath">The file that will be uploaded.</param>
+        /// <param name="contentType">The file content type.</param>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse.</returns>
         public async Task<RestResponse<IVoid>> UploadFileFormData(
             string localPath, string contentType,
             Action<RestResponse<IVoid>> successAction = null,
@@ -567,12 +599,23 @@ namespace Restless
             return await base.UploadFileFormData(localPath, contentType, successAction, errorAction);
         }
 
+        /// <summary>
+        /// Uploads a binary (file) stream using a MultipartFormDataContent and a (sub) StreamContent.
+        /// AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+        /// AddFormUrl() will add all parameter to the request that are added with Param(..).
+        /// </summary>
+        /// <param name="streamContent">The (file) stream that will be uploaded.</param>
+        /// <param name="contentType">The file content type.</param>
+        /// <param name="localPath">The "path" of the (file) stream that will be uploaded.</param>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse.</returns>
         public async Task<RestResponse<IVoid>> UploadFileFormData(
-            Stream fileStream, string contentType, string localPath,
+            Stream streamContent, string contentType, string localPath,
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await base.UploadFileFormData(fileStream, contentType, localPath, successAction, errorAction);
+            return await base.UploadFileFormData(streamContent, contentType, localPath, successAction, errorAction);
         }
 
         #endregion 
