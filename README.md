@@ -213,6 +213,7 @@ One can make a class with static methods that creates a custom request.
 
 ```c#
 
+
     public class Persons
     {
         public static PersonGetRequest GetByName()
