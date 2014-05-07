@@ -7,7 +7,7 @@ One uses HttpWebRequest and HttpWebResponse internally, the other version uses H
 
 Uses Json and Xml (de)serializer from RestSharp (https://github.com/restsharp/RestSharp).
 
-It is refacored in a single project https://github.com/Muraad/RestlessSerialization 
+It is refactored in a single project https://github.com/Muraad/RestlessSerialization 
 that is added as submodule.
 To see how to work with submodules a good source is  http://www.git-scm.com/book/en/Git-Tools-Submodules 
 In short:
