@@ -448,7 +448,7 @@
         </member>
         <member name="T:Restless.RestRequest">
             <summary>
-            Wrapper for BaseRestRequest that makes all base methods public.
+            Wrapper for BaseRestRequest that makes all base methods and propertys public.
             See BaseRestRequest.
             </summary>
             <remarks>See BaseRestRequest</remarks>

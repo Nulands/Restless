@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4195AB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestlessHttpClient", "RestlessHttpClient\RestlessHttpClient.csproj", "{3B53CD55-50E1-43B2-98DD-D46A000AC058}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestlessSerialization", "..\RestlessSerialization\RestlessSerialization\RestlessSerialization.csproj", "{857D83EA-0946-4DC0-A44E-D67A9726A493}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestlessSerialization", "RestlessSerialization\RestlessSerialization\RestlessSerialization.csproj", "{857D83EA-0946-4DC0-A44E-D67A9726A493}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

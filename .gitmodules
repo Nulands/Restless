@@ -1,0 +1,3 @@
+[submodule "RestlessSerialization"]
+	path = RestlessSerialization
+	url = https://github.com/Muraad/RestlessSerialization.git

@@ -34,6 +34,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -50,7 +51,7 @@
     <Compile Include="RestResponse.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\RestlessSerialization\RestlessSerialization\RestlessSerialization.csproj">
+    <ProjectReference Include="..\RestlessSerialization\RestlessSerialization\RestlessSerialization.csproj">
       <Project>{857d83ea-0946-4dc0-a44e-d67a9726a493}</Project>
       <Name>RestlessSerialization</Name>
     </ProjectReference>
