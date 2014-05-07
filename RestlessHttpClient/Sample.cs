@@ -51,8 +51,9 @@ namespace Restless
             // return this;
         }
 
-        public new async Task<RestResponse<Person>> Fetch(Action<RestResponse<Person>> successAction = null,
-                                                    Action<RestResponse<Person>> errorAction = null)
+        public new async Task<RestResponse<Person>> Fetch(
+            Action<RestResponse<Person>> successAction = null,
+            Action<RestResponse<Person>> errorAction = null)
         {
             return await base.Fetch<Person>(successAction, errorAction);
         }
@@ -78,8 +79,9 @@ namespace Restless
             return Param("age", age) as PersonCreateRequest;
         }
 
-        public new async Task<RestResponse<IVoid>> Fetch(Action<RestResponse<IVoid>> successAction = null,
-                                                        Action<RestResponse<IVoid>> errorAction = null)
+        public new async Task<RestResponse<IVoid>> Fetch(
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
         {
             return await base.Fetch<IVoid>(successAction, errorAction);
         }
@@ -106,7 +108,8 @@ namespace Restless
             RestRequest request = new RestRequest();
             string url = "https://duckduckgo.com/";
 
-            var response = await request.Get().Url(url).QParam("q", "RestlessHttpClient").Fetch<IVoid>();
+            var response = await request.Get().
+                Url(url).QParam("q", "RestlessHttpClient").Fetch<IVoid>();
 
             if (response.IsStatusCodeMissmatch)
             {
@@ -132,7 +135,9 @@ namespace Restless
             url = "http://www.example.com/Person";
 
             var getPerson = new RestRequest();
-            RestResponse<Person> personResponse = await getPerson.Get().Url(url).QParam("name", "TestUser").Fetch<Person>();
+            RestResponse<Person> personResponse = await getPerson.
+                Get().Url(url).QParam("name", "TestUser").Fetch<Person>();
+
             if (personResponse.HasData)
             {
                 Person person = personResponse.Data;
@@ -156,12 +161,10 @@ namespace Restless
             // or equivalent
             //createPerson.Post().Url(url).AddFormUrl("name", "NewUser", "age", 99.ToString());        
 
-            // Default wanted status code for Fetch is OK, no Created is needed to indicate success.
             RestResponse<IVoid> createResponse = await createPerson.Fetch<IVoid>();
 
             if (createResponse.IsStatusCodeMissmatch)
             {
-                // status code is not Created!
                 // do error handling
             }
 
@@ -175,7 +178,9 @@ namespace Restless
 
 
             // Do an action on the underlying HttpRequestMessage
-            request = new RestRequest().RequestAction((r) => r.Headers.Host = "http://www.test.com").RequestAction((r) => r.Method = new HttpMethod("GET"));
+            request = new RestRequest().
+                RequestAction(r => r.Headers.Host = "http://www.test.com").
+                RequestAction(r => r.Method = new HttpMethod("GET"));
 
             request.ClientAction((c) => c.Timeout = new TimeSpan(50000));
 
@@ -185,15 +190,11 @@ namespace Restless
                 (r) => Console.WriteLine(r.Exception.Message));
 
 
-            //You can subclass BaseRestRequest to make custom requests, that fits more to a given api.
-
-            //For example the person GET request:
-
-
             // Now the PersonRequest only exposes the Name() and Fetch(...) methods. 
             // All BaseRestRequest methods are protected and cannot be used.
             // Thats why the BaseRestRequest methods are mostly protected.
-            // RestRequest is basically just some kind of decorator for BaseRestRequest that makes all methods public.
+            // RestRequest is basically just some kind of decorator 
+            // for BaseRestRequest that makes all methods public.
 
             PersonGetRequest personGetRequest = new PersonGetRequest();
 
@@ -207,8 +208,9 @@ namespace Restless
 
 
             // or with actions
-            await personGetRequest.Name("testUser").Fetch((r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
-                                                         (r) => Console.WriteLine(r.Exception.Message));
+            await personGetRequest.Name("testUser").Fetch(
+                (r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
+                (r) => Console.WriteLine(r.Exception.Message));
 
 
             // One can make a class with static methods that creates a custom request:
@@ -224,12 +226,15 @@ namespace Restless
             else
             {
                 // Do error processing. 
-                // Check exception and HttpWebResponse in the RestResponse for example..
-
+                if (persGetResponse.IsException)
+                {
+                    //...
+                }
+                if (persGetResponse.IsStatusCodeMissmatch)
+                {
+                    // persGetResponse.Response.StatusCode;  
+                }
             }
-
-
-
 
             var persCreateResponse = await Persons.Create().Name("testUser2").Age(42).Fetch();
 
