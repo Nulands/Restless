@@ -31,7 +31,7 @@ namespace Restless
     /// and the response status code matches.
     /// </summary>
     /// <typeparam name="T">The type of the data that will be deserialized.</typeparam>
-    public sealed class RestResponse<T>
+    public sealed class RestResponse<T> : IDisposable
     {
         /// <summary>
         /// Default constructor.
@@ -120,5 +120,36 @@ namespace Restless
                 throw Exception;
             return this;
         }
+
+        #region  IDisposable implementation
+
+        /// <summary>
+        /// Dispose the request.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // The bulk of the clean-up code is implemented in Dispose(bool)
+        /// <summary>
+        /// Underlying dispose method.
+        /// Calls HttpClient and HttpRequestMessage Dispose().
+        /// </summary>
+        /// <param name="disposing">True if should dispose.</param>
+        protected void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                if(Request != null)
+                    Request.Dispose();
+                if (Response != null)
+                    Response.Dispose();
+            }
+        }
+
+        #endregion
     }
 }

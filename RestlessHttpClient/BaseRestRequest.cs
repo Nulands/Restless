@@ -27,11 +27,13 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Formatting;
-
 using System.Text;
 using System.IO;
-using Restless.Deserializers;
 using System.Threading.Tasks;
+
+using Restless.Deserializers;
+using Restless.Extensions;
+
 
 namespace Restless
 {
@@ -85,7 +87,7 @@ namespace Restless
         /// When method is GET then added as query parameters too.
         /// Otherwise added as FormUrlEncoded parameters: name=value
         /// </summary>
-        protected Dictionary<string, object> param = new Dictionary<string, object>();
+        protected Dictionary<string, List<object>> param = new Dictionary<string, List<object>>();
 
         /// <summary>
         /// Url parameters ../{name}.
@@ -313,8 +315,11 @@ namespace Restless
 
             if (kvPairs == null || kvPairs.Length == 0)
             {
-                foreach (var element in param)
-                    keyValues.Add(new KeyValuePair<string, string>(element.Key, (string)element.Value));
+                foreach (var element in param)  
+                {
+                    foreach(var value in element.Value) // we can have the parameter with element.Key set multiple times.
+                        keyValues.Add(new KeyValuePair<string, string>(element.Key, value.ToString()));
+                }
             }
             else
             {
@@ -383,6 +388,48 @@ namespace Restless
             mediaType.ThrowIfNullOrEmpty("mediaType");
 
             return AddContent(new StringContent(content, encoding, mediaType), name, fileName);
+        }
+
+        /// <summary>
+        /// Adds an object as serialized json string.
+        /// </summary>
+        /// <remarks>Throws exception if the given object is null, or if the
+        /// serialized json string is null or empty.</remarks>
+        /// <param name="obj">The object that will be serialized and added as json string content.</param>
+        /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+        /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+        /// <returns>this.</returns>
+        protected BaseRestRequest AddJson(object obj, string name = "", string fileName = "")
+        {
+            obj.ThrowIfNull("BaseRestRequest");
+            var serializer = new Serializers.JsonSerializer();
+            var jsonContent = serializer.Serialize(obj);
+            jsonContent.ThrowIfNullOrEmpty("BaseRestRequest", "jsonStr");
+            // .net default encoding is UTF-8
+            if (!String.IsNullOrEmpty(jsonContent))
+                AddContent(new StringContent(jsonContent, Encoding.Default, serializer.ContentType), name, fileName);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds an object as serialized xml string.
+        /// </summary>
+        /// <remarks>Throws exception if the given object is null, or if the
+        /// serialized xml string is null or empty.</remarks>
+        /// <param name="obj">The object that will be serialized and added as xml string content.</param>
+        /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+        /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+        /// <returns>this.</returns>
+        protected BaseRestRequest AddXml(object obj, string name = "", string fileName = "")
+        {
+            obj.ThrowIfNull("BaseRestRequest");
+            var serializer = new Serializers.DotNetXmlSerializer();
+            var xmlContent = serializer.Serialize(obj);
+            xmlContent.ThrowIfNullOrEmpty("BaseRestRequest", "xmlContent");
+            // .net default encoding is UTF-8
+            if (!String.IsNullOrEmpty(xmlContent))
+                AddContent(new StringContent(xmlContent, Encoding.Default, serializer.ContentType), name, fileName);
+            return this;
         }
 
         #endregion 
@@ -503,7 +550,8 @@ namespace Restless
             value.ThrowIfNullOrToStrEmpty("value");
 
             if (type == ParameterType.FormUrlEncoded)
-                param[name] = value;
+                Param(name, value);
+                //param[name] = value;
             else if (type == ParameterType.Query)
                 query_params[name] = value;
             else // type == ParameterType.Url
@@ -544,15 +592,35 @@ namespace Restless
         /// <summary>
         /// Add a (FormUrlEncoded) parameter to the request.
         /// </summary>
+        /// <remarks>
+        /// Should be used with POST/PUT.
+        /// If added multiple times the content will contain
+        /// ?name=value1&name=value2&name=value3...</remarks>
         /// <param name="name">The parameter name.</param>
         /// <param name="value">The parameter value (should be convertible to string).</param>
+        /// <param name="addAsMultiple">If true the parameter with this name can be set multiple times.</param>
         /// <returns>this.</returns>
-        protected  BaseRestRequest Param(string name, object value)
+        protected  BaseRestRequest Param(string name, object value, bool addAsMultiple = false)
         {
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrToStrEmpty("value");
 
-            param[name] = value;
+            List<object> paramValues = null;
+            if (param.TryGetValue(name, out paramValues))
+            {
+                if (addAsMultiple)
+                    paramValues.Add(value);
+                else
+                    paramValues[0] = value;     // overwrite the value if not addAsMultiple
+            }
+            else
+            {
+                // First time this parameter with given name is added.
+                paramValues = new List<object>();
+                paramValues.Add(value);
+                param[name] = paramValues;
+            }
+            //param[name] = value;
             return this;
         }
 
@@ -762,8 +830,11 @@ namespace Restless
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         protected  async Task<RestResponse<T>> UploadFileFormData<T>(
-            Stream streamContent, string contentType, string localPath, 
-            Action<RestResponse<T>> successAction = null,Action<RestResponse<T>> errorAction = null)
+            Stream streamContent, 
+            string contentType, 
+            string localPath, 
+            Action<RestResponse<T>> successAction = null,
+            Action<RestResponse<T>> errorAction = null)
         {
             streamContent.ThrowIfNull("fileStream");
             contentType.ThrowIfNullOrEmpty("contentType");

@@ -250,6 +250,34 @@ namespace Restless
             return base.AddString(content, encoding, mediaType, name, fileName) as RestRequest;
         }
 
+        /// <summary>
+        /// Adds an object as serialized json string.
+        /// </summary>
+        /// <remarks>Throws exception if the given object is null, or if the
+        /// serialized json string is null or empty.</remarks>
+        /// <param name="obj">The object that will be serialized and added as json string content.</param>
+        /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+        /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+        /// <returns>this.</returns>
+        protected RestRequest AddJson(object obj, string name = "", string fileName = "")
+        {
+            return base.AddJson(obj, name, fileName) as RestRequest;
+        }
+
+        /// <summary>
+        /// Adds an object as serialized xml string.
+        /// </summary>
+        /// <remarks>Throws exception if the given object is null, or if the
+        /// serialized xml string is null or empty.</remarks>
+        /// <param name="obj">The object that will be serialized and added as xml string content.</param>
+        /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+        /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+        /// <returns>this.</returns>
+        protected RestRequest AddXml(object obj, string name = "", string fileName = "")
+        {
+            return base.AddXml(obj, name, fileName) as RestRequest;
+        }
+
         #endregion     
 
         #region Url, CancellationToken, parameters and headers
@@ -363,12 +391,17 @@ namespace Restless
         /// <summary>
         /// Add a (FormUrlEncoded) parameter to the request.
         /// </summary>
+        /// <remarks>
+        /// Should be used with POST/PUT.
+        /// If added multiple times the content will contain
+        /// ?name=value1&name=value2&name=value3...</remarks>
         /// <param name="name">The parameter name.</param>
         /// <param name="value">The parameter value (should be convertible to string).</param>
+        /// <param name="addAsMultiple">If true the parameter with this name can be set multiple times.</param>
         /// <returns>this.</returns>
-        public new RestRequest Param(string name, object value)
+        public new RestRequest Param(string name, object value, bool addAsMultiple = false)
         {
-            return base.Param(name, value) as RestRequest;
+            return base.Param(name, value, addAsMultiple) as RestRequest;
         }
 
         /// <summary>
@@ -404,8 +437,6 @@ namespace Restless
         {
             return base.Header(name, values) as RestRequest;
         }
-
-        
 
         #endregion 
 

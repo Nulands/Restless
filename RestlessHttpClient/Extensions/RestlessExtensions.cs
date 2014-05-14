@@ -22,7 +22,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Restless
+namespace Restless.Extensions
 {
     /// <summary>
     /// Extensions needed for Restless.
@@ -162,6 +162,26 @@ namespace Restless
             return result;
         }
 
+        private static string AndStr(string str)
+        {
+            return str == "" ? "" : "&";
+        }
+
+        /// <summary>
+        /// Make a parameter string.
+        /// </summary>
+        /// <param name="paramList"></param>
+        /// <returns></returns>
+        public static string CreateParamStr(this Dictionary<string, List<object>> paramList)
+        {
+            //var query = from value in 
+            return paramList.Aggregate("", (s, curr) => s + AndStr(s) +
+                    (from value in curr.Value
+                     select curr.Key + "=" + value).
+                        Aggregate("", (seed, c) => seed + AndStr(seed) + c)
+                    );
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -194,6 +214,31 @@ namespace Restless
         public static string CreateRequestUri(this string url,
             Dictionary<string, object> query_params,
             Dictionary<string, object> param,
+            string method)
+        {
+            url = query_params.FormatUrlWithParams(url);
+
+            // Add query parameter to url
+            string query = query_params.CreateParamStr(); ;
+
+            // if method is GET treat all added parameters as query parameter
+            if (method == "GET")
+            {
+                // Add parameter that are added with Param(..) too, because this is a GET method.
+                string pQuery = param.CreateParamStr();
+                // set query to post param. query string if query is still emtpy (because no QParam(..) were added)
+                // only Param(..) was used even this is a GET method.
+                query = (string.IsNullOrEmpty(query) ? pQuery : query + "&" + pQuery);
+            }
+
+            if (!String.IsNullOrEmpty(query))
+                url += "?" + query;
+            return url;
+        }
+
+        public static string CreateRequestUri(this string url,
+            Dictionary<string, object> query_params,
+            Dictionary<string, List<object>> param,
             string method)
         {
             url = query_params.FormatUrlWithParams(url);

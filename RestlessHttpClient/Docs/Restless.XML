@@ -291,7 +291,7 @@
             <param name="value">The parameter value (should be convertible to string).</param>
             <returns>this.</returns>
         </member>
-        <member name="M:Restless.BaseRestRequest.Param(System.String,System.Object)">
+        <member name="M:Restless.BaseRestRequest.Param(System.String,System.Object,System.Boolean)">
             <summary>
             Add a (FormUrlEncoded) parameter to the request.
             </summary>
@@ -851,12 +851,12 @@
             The CancellationToken for this request.
             </summary>
         </member>
-        <member name="T:Restless.RestlessExtensions">
+        <member name="T:Restless.Extensions.RestlessExtensions">
             <summary>
             Extensions needed for Restless.
             </summary>
         </member>
-        <member name="M:Restless.RestlessExtensions.ThrowIf``1(``0,System.Func{``0,System.Boolean},System.String,System.String)">
+        <member name="M:Restless.Extensions.RestlessExtensions.ThrowIf``1(``0,System.Func{``0,System.Boolean},System.String,System.String)">
             <summary>
             Throws an ArgumentException if the given predicate returns true for the given object.
             </summary>
@@ -866,7 +866,7 @@
             <param name="msg">The message added to the exception.</param>
             <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         </member>
-        <member name="M:Restless.RestlessExtensions.ThrowIfNot``1(``0,System.Func{``0,System.Boolean},System.String,System.String)">
+        <member name="M:Restless.Extensions.RestlessExtensions.ThrowIfNot``1(``0,System.Func{``0,System.Boolean},System.String,System.String)">
             <summary>
             Throws an ArgumentException if the given predicate returns false for the given object.
             </summary>
@@ -876,7 +876,7 @@
             <param name="msg">The message that is added to the exception if it is thrown.</param>
             <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         </member>
-        <member name="M:Restless.RestlessExtensions.ThrowIfNullOrEmpty``1(System.Collections.Generic.IEnumerable{``0},System.String,System.String)">
+        <member name="M:Restless.Extensions.RestlessExtensions.ThrowIfNullOrEmpty``1(System.Collections.Generic.IEnumerable{``0},System.String,System.String)">
             <summary>
             Throws an ArgumentNullException when the given IEnumerable is null, or an ArgumentException if it is empty.
             Can be used for arrays too.
@@ -886,7 +886,7 @@
             <param name="msg">The message that is added to the exception if it is thrown.</param>
             <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         </member>
-        <member name="M:Restless.RestlessExtensions.ThrowIfNullOrEmpty(System.String,System.String,System.String)">
+        <member name="M:Restless.Extensions.RestlessExtensions.ThrowIfNullOrEmpty(System.String,System.String,System.String)">
             <summary>
             Throws an ArgumentNullException when the given string is null, or an ArgumentException if it is empty.
             </summary>
@@ -894,7 +894,7 @@
             <param name="msg">The message that is added to the exception if it is thrown.</param>
             <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         </member>
-        <member name="M:Restless.RestlessExtensions.ThrowIfNotFound(System.String,System.Boolean,System.String,System.String)">
+        <member name="M:Restless.Extensions.RestlessExtensions.ThrowIfNotFound(System.String,System.Boolean,System.String,System.String)">
             <summary>
             Treats a string as a file/folder path and throws an exceptin if the file/folder is not found.
             </summary>
@@ -903,7 +903,7 @@
             <param name="msg">The message that is added to the exception if it is thrown.</param>
             <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         </member>
-        <member name="M:Restless.RestlessExtensions.ThrowIfNull``1(``0,System.String,System.String)">
+        <member name="M:Restless.Extensions.RestlessExtensions.ThrowIfNull``1(``0,System.String,System.String)">
             <summary>
             Throws an exception if the given object is null.
             </summary>
@@ -912,7 +912,7 @@
             <param name="msg">The message that is added to the exception if it is thrown.</param>
             <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         </member>
-        <member name="M:Restless.RestlessExtensions.ThrowIfNullOrToStrEmpty``1(``0,System.String,System.String)">
+        <member name="M:Restless.Extensions.RestlessExtensions.ThrowIfNullOrToStrEmpty``1(``0,System.String,System.String)">
             <summary>
             Throws an exception if the given object is null or if the obj.ToString() is null or empty.
             </summary>
@@ -921,14 +921,21 @@
             <param name="msg">The message that is added to the exception if it is thrown.</param>
             <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
         </member>
-        <member name="M:Restless.RestlessExtensions.CreateParamStr(System.Collections.Generic.Dictionary{System.String,System.Object})">
+        <member name="M:Restless.Extensions.RestlessExtensions.CreateParamStr(System.Collections.Generic.Dictionary{System.String,System.Object})">
             <summary>
             Make a parameter string.
             </summary>
             <param name="paramList"></param>
             <returns></returns>
         </member>
-        <member name="M:Restless.RestlessExtensions.FormatUrlWithParams(System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
+        <member name="M:Restless.Extensions.RestlessExtensions.CreateParamStr(System.Collections.Generic.Dictionary{System.String,System.Collections.Generic.List{System.Object}})">
+            <summary>
+            Make a parameter string.
+            </summary>
+            <param name="paramList"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Restless.Extensions.RestlessExtensions.FormatUrlWithParams(System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
             <summary>
             
             </summary>
@@ -936,7 +943,7 @@
             <param name="url"></param>
             <returns></returns>
         </member>
-        <member name="M:Restless.RestlessExtensions.CreateRequestUri(System.String,System.Collections.Generic.Dictionary{System.String,System.Object},System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
+        <member name="M:Restless.Extensions.RestlessExtensions.CreateRequestUri(System.String,System.Collections.Generic.Dictionary{System.String,System.Object},System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
             <summary>
             
             </summary>
@@ -946,7 +953,7 @@
             <param name="method"></param>
             <returns></returns>
         </member>
-        <member name="M:Restless.RestlessExtensions.SetFrom``1(``0,``0,System.String[])">
+        <member name="M:Restless.Extensions.RestlessExtensions.SetFrom``1(``0,``0,System.String[])">
             <summary>
             
             </summary>
@@ -982,6 +989,18 @@
             var data = response.ThrowIfException().Data;
             </summary>
             <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestResponse`1.Dispose">
+            <summary>
+            Dispose the request.
+            </summary>
+        </member>
+        <member name="M:Restless.RestResponse`1.Dispose(System.Boolean)">
+            <summary>
+            Underlying dispose method.
+            Calls HttpClient and HttpRequestMessage Dispose().
+            </summary>
+            <param name="disposing">True if should dispose.</param>
         </member>
         <member name="P:Restless.RestResponse`1.Request">
             <summary>

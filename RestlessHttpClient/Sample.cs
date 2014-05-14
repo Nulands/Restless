@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
 
-namespace Restless
+namespace Restless.Sample
 {
     
     public class Person
@@ -52,7 +52,7 @@ namespace Restless
             // return this;
         }
 
-        public new async Task<RestResponse<Person>> Fetch(
+        public async Task<RestResponse<Person>> Fetch(
             Action<RestResponse<Person>> successAction = null,
             Action<RestResponse<Person>> errorAction = null)
         {
