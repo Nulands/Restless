@@ -58,7 +58,7 @@ Restless API
 Live interface
 ----
 
-NEW Live interface functionality like Refit API.
+NEW Live interface functionality like Refit API (https://github.com/paulcbetts/refit).
 No third party library is involved and byte code is created
 during runtime.
 
