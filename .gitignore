@@ -2,6 +2,9 @@
 [Bb]in/
 [Oo]bj/
 
+#Restless folder
+[Rr]estless/
+
 # mstest test results
 TestResults
 

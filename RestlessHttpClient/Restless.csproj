@@ -52,7 +52,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dynamic\Attribute.cs" />
     <Compile Include="BaseRestRequest.cs" />
+    <Compile Include="DynamicRest.cs" />
+    <Compile Include="Dynamic\DynamicRequest.cs" />
+    <Compile Include="Dynamic\RequestBuilder.cs" />
     <Compile Include="IVoid.cs" />
     <Compile Include="RestRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

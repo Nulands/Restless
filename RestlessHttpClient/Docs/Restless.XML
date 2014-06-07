@@ -212,6 +212,28 @@
             <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
             <returns>this.</returns>
         </member>
+        <member name="M:Restless.BaseRestRequest.AddJson(System.Object,System.String,System.String)">
+            <summary>
+            Adds an object as serialized json string.
+            </summary>
+            <remarks>Throws exception if the given object is null, or if the
+            serialized json string is null or empty.</remarks>
+            <param name="obj">The object that will be serialized and added as json string content.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.BaseRestRequest.AddXml(System.Object,System.String,System.String)">
+            <summary>
+            Adds an object as serialized xml string.
+            </summary>
+            <remarks>Throws exception if the given object is null, or if the
+            serialized xml string is null or empty.</remarks>
+            <param name="obj">The object that will be serialized and added as xml string content.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
         <member name="M:Restless.BaseRestRequest.CancelToken(System.Threading.CancellationToken)">
             <summary>
             Set the CancellationToken for this request.
@@ -291,14 +313,7 @@
             <param name="value">The parameter value (should be convertible to string).</param>
             <returns>this.</returns>
         </member>
-        <member name="M:Restless.BaseRestRequest.Param(System.String,System.Object,System.Boolean)">
-            <summary>
-            Add a (FormUrlEncoded) parameter to the request.
-            </summary>
-            <param name="name">The parameter name.</param>
-            <param name="value">The parameter value (should be convertible to string).</param>
-            <returns>this.</returns>
-        </member>
+        <!-- Badly formed XML comment ignored for member "M:Restless.BaseRestRequest.Param(System.String,System.Object,System.Boolean)" -->
         <member name="M:Restless.BaseRestRequest.QParam(System.String,System.Object)">
             <summary>
             Adds a query parameter (?name=value) to the request.
@@ -596,6 +611,28 @@
             <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
             <returns>this.</returns>
         </member>
+        <member name="M:Restless.RestRequest.AddJson(System.Object,System.String,System.String)">
+            <summary>
+            Adds an object as serialized json string.
+            </summary>
+            <remarks>Throws exception if the given object is null, or if the
+            serialized json string is null or empty.</remarks>
+            <param name="obj">The object that will be serialized and added as json string content.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Restless.RestRequest.AddXml(System.Object,System.String,System.String)">
+            <summary>
+            Adds an object as serialized xml string.
+            </summary>
+            <remarks>Throws exception if the given object is null, or if the
+            serialized xml string is null or empty.</remarks>
+            <param name="obj">The object that will be serialized and added as xml string content.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
         <member name="M:Restless.RestRequest.CancelToken(System.Threading.CancellationToken)">
             <summary>
             Set the CancellationToken for this request.
@@ -675,14 +712,7 @@
             <param name="value">The parameter value (should be convertible to string).</param>
             <returns>this.</returns>
         </member>
-        <member name="M:Restless.RestRequest.Param(System.String,System.Object)">
-            <summary>
-            Add a (FormUrlEncoded) parameter to the request.
-            </summary>
-            <param name="name">The parameter name.</param>
-            <param name="value">The parameter value (should be convertible to string).</param>
-            <returns>this.</returns>
-        </member>
+        <!-- Badly formed XML comment ignored for member "M:Restless.RestRequest.Param(System.String,System.Object,System.Boolean)" -->
         <member name="M:Restless.RestRequest.QParam(System.String,System.Object)">
             <summary>
             Adds a query parameter (?name=value) to the request.

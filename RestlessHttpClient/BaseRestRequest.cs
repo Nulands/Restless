@@ -43,6 +43,7 @@ namespace Restless
     /// </summary>
     public enum ParameterType
     {
+        NotSpecified,
         /// <summary>
         /// Parameter is added to the URL as query parameter (?name=value).
         /// </summary>
@@ -163,7 +164,6 @@ namespace Restless
                 request = defaultRequest;
             if (httpClient != null)
                 client = httpClient;
-
             registerDefaultHandlers();
         }
 
@@ -549,7 +549,7 @@ namespace Restless
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrToStrEmpty("value");
 
-            if (type == ParameterType.FormUrlEncoded)
+            if (type == ParameterType.FormUrlEncoded || type == ParameterType.NotSpecified)
                 Param(name, value);
                 //param[name] = value;
             else if (type == ParameterType.Query)
