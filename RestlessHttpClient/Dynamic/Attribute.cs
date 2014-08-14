@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 
-namespace Restless
+namespace Nulands.Restless
 {
     #region ContentType enum
 
@@ -12,11 +12,15 @@ namespace Restless
 
     #endregion
 
+    public abstract class RestlessAttribute : Attribute
+    {
+    }
+
     // For AttributeTargets.Interface only
 
     #region HttpMethod (and optional url) attributes for Targets.Interface
 
-    public abstract class HttpMethodAttribute : Attribute
+    public abstract class HttpMethodAttribute : RestlessAttribute
     {
         public abstract HttpMethod Method { get; }
 
@@ -117,7 +121,7 @@ namespace Restless
     #region Header(s) attribute for interface and method
 
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Method)]
-    public class HeadersAttribute : Attribute
+    public class HeadersAttribute : RestlessAttribute
     {
         public string[] Headers { get; private set; }
 
@@ -132,7 +136,7 @@ namespace Restless
     #region URL attribute for Targets.Interface and Targets.Method
 
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Method)]
-    public class UrlAttribute : Attribute
+    public class UrlAttribute : RestlessAttribute
     {
         public string Url { get; set; }
         public UrlAttribute(string url)
@@ -146,10 +150,10 @@ namespace Restless
     // For AttributeTargets.Method and Parameter
     #region Query and normal parameter attributes for Targets.Method and Targets.Parameter
 
-    public abstract class BaseParamAttribute : Attribute
+    public abstract class BaseParamAttribute : RestlessAttribute
     {
         public string Name { get; set; }
-        public BaseParamAttribute(string name = "")
+        public BaseParamAttribute(string name = "", object value = null)
         {
             Name = name;
         }
@@ -158,14 +162,14 @@ namespace Restless
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter)]
     public class QParamAttribute : BaseParamAttribute
     {
-        public QParamAttribute(string name = "") : base(name) { }
+        public QParamAttribute(string name = "", object value = null) : base(name) { }
     }
 
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter)]
     public class ParamAttribute : BaseParamAttribute
     {
         public ParameterType Type { get; set; }
-        public ParamAttribute(string name = "", ParameterType type = ParameterType.NotSpecified) : base(name)
+        public ParamAttribute(string name = "", ParameterType type = ParameterType.NotSpecified, object value = null) : base(name)
         {
             Type = type;
         }
@@ -174,7 +178,7 @@ namespace Restless
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter)]
     public class UrlParamAttribute : BaseParamAttribute
     {
-        public UrlParamAttribute(string name) : base(name) { }
+        public UrlParamAttribute(string name = "", object value = null) : base(name) { }
     }
 
     #endregion
@@ -183,7 +187,7 @@ namespace Restless
     #region Fetch, Upload... attributes for Targets.Method
 
     [AttributeUsage(AttributeTargets.Method)]
-    public class FetchAttribute : Attribute
+    public class FetchAttribute : RestlessAttribute
     {
         public FetchAttribute()
         {
@@ -191,7 +195,7 @@ namespace Restless
     }
 
     [AttributeUsage(AttributeTargets.Method)]
-    public class UploadFileBinaryAttribute : Attribute
+    public class UploadFileBinaryAttribute : RestlessAttribute
     {
         public string LocalPath { get; set; }
         public string ContentType { get; set; }
@@ -208,8 +212,13 @@ namespace Restless
     // For AttributeTargets.Parameter only
     #region ContentType attribute for Targets.Parameter
 
+    /// <summary>
+    /// If ContentTypeAttribute is set in front of a method parameter,
+    /// the parameter value is supposed to be added to the
+    /// request as serialzed content.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class ContentTypeAttribute : Attribute
+    public class ContentTypeAttribute : RestlessAttribute
     {
         public ContentType ContentType { get; protected set; }
 
@@ -221,24 +230,10 @@ namespace Restless
 
     #endregion
 
-    #region AliasAs attribute for Targets.Parameter
-
-    [AttributeUsage(AttributeTargets.Parameter)]
-    public class AliasAsAttribute : Attribute
-    {
-        public string Name { get; protected set; }
-        public AliasAsAttribute(string name)
-        {
-            this.Name = name;
-        }
-    }
-
-    #endregion
-
     #region Header Targets.Parameter attribute
 
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class HeaderAttribute : Attribute
+    public class HeaderAttribute : RestlessAttribute
     {
         public string Header { get; private set; }
 

@@ -5,19 +5,18 @@ using System.Linq.Expressions;
 
 using System.Reflection;
 using System.Dynamic;
+using Nulands.Restless.Extensions;
 
-namespace Restless.Dynamic
+namespace Nulands.Restless.Dynamic
 {
     internal class MethodAttributesInfo
     {
         public MethodInfo Method { get; set; }
-        public List<ParameterTuple> MethodParameter { get; set; }
-        public List<CustomAttributeData> Attributes { get; set; }
-        public List<ParameterAttributeInfo> ParameterAttributes { get; set; }
+        public IEnumerable<CustomAttributeData> Attributes { get; set; }
+        public IEnumerable<ParameterAttributeInfo> ParameterAttributes { get; set; }
 
         public MethodAttributesInfo()
         {
-            MethodParameter = new List<ParameterTuple>();
             Attributes = new List<CustomAttributeData>();
             ParameterAttributes = new List<ParameterAttributeInfo>();
         }
@@ -25,7 +24,7 @@ namespace Restless.Dynamic
     internal class ParameterAttributeInfo
     {
         public ParameterInfo Parameter { get; set; }
-        public List<CustomAttributeData> Attributes { get; set; }
+        public IEnumerable<CustomAttributeData> Attributes { get; set; }
 
         public ParameterAttributeInfo()
         {

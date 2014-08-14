@@ -24,67 +24,136 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
+using System.IO;
 
-namespace Restless.Sample
+using Nulands.Restless;
+using Nulands.Restless.Dynamic;
+using Nulands.Restless.Extensions;
+
+namespace Nulands.Restless.Sample
 {
-    
+    public class User
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+
+    //[Get("www.google.de")]
+    [Get]
+    [Url("www.google.de")]
+    [Headers("User-Agent: Awesome Octocat App")]
+    public interface ITestRest
+    {
+        [Param("user_name", Restless.ParameterType.Query)]
+        RestRequest Name(string name);
+
+        [QParam]
+        RestRequest Age(int age);
+
+        RestRequest Name2([QParam("user_name")] string name);
+
+        [Fetch]
+        RestResponse<User> Test();
+
+        [UploadFileBinary(ContentType = "application/octet-stream")]
+        RestResponse<IVoid> UploadFileBinary(string localPath);
+
+        [Url("www.duckduckgo.com")]
+        [UploadFileBinary("C:\\Log.txt", "application/octet-stream")]
+        RestResponse<IVoid> UploadConstantFileBinary();
+    }
+
+    class RestTest
+    {
+
+        static void Main()
+        {
+            DynamicRequest<ITestRest> request = DynamicRequest.Create<ITestRest>();
+            // t is an ITestRest, Do returns the DynamicRequest again.
+            RestResponse<Restless.IVoid> response =
+                request.
+                Do(t => t.Name("testRestName2")).
+                Request.
+                UploadFileBinary(new MemoryStream(), "").
+                Result;
+
+            // request.Dyn has all methods defined in ITestRest
+            // but no intelli sense support because its a dynamic method
+            request.Dyn.Name("testRestName2");
+
+            // t is an ITestRest, DoR returns the underlying RestRequest.
+            response =
+                request.
+                DoR(t => t.Name("testRestNAme")).
+                UploadFileBinary(new MemoryStream(), "").
+                Result;
+
+            // t is an ITestRest, all together
+            response =
+                request.
+                Do(t => t.Name("testRestNAme")).
+                Do(t => t.Age(42)).
+                DoR(t => t.Name("testRestName2")).
+                UploadFileBinary(new MemoryStream(), "").
+                Result;
+            object test = request;
+        }
+    }
+
     public class Person
     {
         public string Name { get; set; }
         public int Age { get; set; }
     }
 
-    public class PersonGetRequest : BaseRestRequest
+    public class PersonGetRequest : RestRequest
     {
         public PersonGetRequest()
             : base()
         {
-            Url("http://www.example.com/Person");
-            Get();
+            this.Url("http://www.example.com/Person").Get();
         }
 
         public PersonGetRequest Name(string name)
         {
-            return QParam("name", name) as PersonGetRequest;
+            return this.QParam("name", name);
 
             // or
-            // Param("name", name);
-            // return this;
+            // return this.Param("name", name);
         }
 
         public async Task<RestResponse<Person>> Fetch(
             Action<RestResponse<Person>> successAction = null,
             Action<RestResponse<Person>> errorAction = null)
         {
-            return await base.Fetch<Person>(successAction, errorAction);
+            return await this.Fetch(successAction, errorAction);
         }
 
     }
 
-    public class PersonCreateRequest : BaseRestRequest
+    public class PersonCreateRequest : RestRequest
     {
         public PersonCreateRequest()
             : base()
         {
-            Url("http://www.example.com/Person");
-            Post();
+            this.Url("http://www.example.com/Person").Post();
         }
 
         public PersonCreateRequest Name(string name)
         {
-            return Param("name", name) as PersonCreateRequest;
+            return this.Param("name", name);
         }
 
         public PersonCreateRequest Age(long age)
         {
-            return Param("age", age) as PersonCreateRequest;
+            return this.Param("age", age);
         }
 
-        public new async Task<RestResponse<IVoid>> Fetch(
+        public async Task<RestResponse<IVoid>> Fetch(
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await base.Fetch<IVoid>(successAction, errorAction);
+            return await this.Fetch(successAction, errorAction);
         }
     }
 
@@ -136,8 +205,7 @@ namespace Restless.Sample
             url = "http://www.example.com/Person";
 
             var getPerson = new RestRequest();
-            RestResponse<Person> personResponse = await getPerson.
-                Get().Url(url).QParam("name", "TestUser").Fetch<Person>();
+            RestResponse<Person> personResponse = await getPerson.Get().Url(url).QParam("name", "TestUser").Fetch<Person>();
 
             if (personResponse.HasData)
             {

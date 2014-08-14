@@ -7,7 +7,7 @@
     <ProjectGuid>{3B53CD55-50E1-43B2-98DD-D46A000AC058}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Restless</RootNamespace>
+    <RootNamespace>Nulands.Restless</RootNamespace>
     <AssemblyName>Restless</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -25,6 +25,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>Docs\Restless.XML</DocumentationFile>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -57,7 +58,9 @@
     <Compile Include="DynamicRest.cs" />
     <Compile Include="Dynamic\DynamicRequest.cs" />
     <Compile Include="Dynamic\RequestBuilder.cs" />
+    <Compile Include="Extensions\BaseRestRequestExtensions.cs" />
     <Compile Include="IVoid.cs" />
+    <Compile Include="RestlessContext.cs" />
     <Compile Include="RestRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extensions\RestlessExtensions.cs" />
@@ -68,8 +71,8 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RestlessSerialization\RestlessSerialization\RestlessSerialization.csproj">
-      <Project>{857d83ea-0946-4dc0-a44e-d67a9726a493}</Project>
+    <ProjectReference Include="..\..\RestlessSerialization\RestlessSerialization\RestlessSerialization.csproj">
+      <Project>{857D83EA-0946-4DC0-A44E-D67A9726A493}</Project>
       <Name>RestlessSerialization</Name>
     </ProjectReference>
   </ItemGroup>

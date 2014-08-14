@@ -23,12 +23,15 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.IO;
-using Restless.Deserializers;
+using Nulands.Restless.Deserializers;
 using System.Threading.Tasks;
 using System.Text;
 
-namespace Restless
+using Nulands.Restless.Extensions;
+
+namespace Nulands.Restless
 {
+    /*
     /// <summary>
     /// Wrapper for BaseRestRequest that makes all base methods and propertys public.
     /// See BaseRestRequest.
@@ -80,6 +83,10 @@ namespace Restless
 
         #region  Set request methods GET, HEAD, POST, PUT ...
 
+        public new RestRequest Method(string method)
+        {
+            return base.Method(method) as RestRequest;
+        }
         /// <summary>
         /// Sets the method to GET.
         /// </summary>
@@ -349,15 +356,20 @@ namespace Restless
             return base.Basic(username, password) as RestRequest;
         }
 
+        public new RestRequest Basic(string authentication)
+        {
+            return base.Basic(authentication) as RestRequest;
+        }
+
         /// <summary>
         /// Adds a Http Bearer authorization header to the request.
         /// The given token string is Base64 encoded internally.
         /// </summary>
         /// <param name="token">The token string.</param>
         /// <returns>this.</returns>
-        public new RestRequest Bearer(string token)
+        public new RestRequest Bearer(string token, string tokenType = "Bearer")
         {
-            return base.Bearer(token) as RestRequest;
+            return base.Bearer(token, tokenType) as RestRequest;
         }
 
         /// <summary>
@@ -651,5 +663,5 @@ namespace Restless
 
         #endregion 
 
-    }
+    }*/
 }

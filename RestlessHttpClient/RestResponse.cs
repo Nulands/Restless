@@ -21,7 +21,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 
-namespace Restless
+namespace Nulands.Restless
 {
 
     /// <summary>
@@ -48,7 +48,7 @@ namespace Restless
         /// Constructor.
         /// </summary>
         /// <param name="request">Reference to a BaseRestRequest.</param>
-        public RestResponse(BaseRestRequest request)
+        public RestResponse(RestRequest request)
         {
             Request = request;
             IsStatusCodeMissmatch = false;
@@ -59,7 +59,7 @@ namespace Restless
         /// <summary>
         /// That BaseRestRequest this rest response comes from.
         /// </summary>
-        public BaseRestRequest Request { get; private set; }
+        public RestRequest Request { get; private set; }
 
         /// <summary>
         /// The Exception that could be thrown during the request fetching.

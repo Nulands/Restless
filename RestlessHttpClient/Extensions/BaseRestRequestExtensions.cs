@@ -11,7 +11,7 @@ using System.IO;
 
 namespace Nulands.Restless.Extensions
 {
-    /*
+    
     public static class BaseRestRequestExtensions
     {
         #region Set request methods GET, HEAD, POST, PUT ...
@@ -21,8 +21,8 @@ namespace Nulands.Restless.Extensions
         /// </summary>
         /// <param name="method">The HttpMethod string. For example "GET".</param>
         /// <returns>this.</returns>
-        protected T Method<T>(this T request, string method)
-            where T : BaseRestRequest
+        public static T Method<T>(this T request, string method)
+            where T : RestRequest
         {
             request.Request.Method = new HttpMethod(method);
             return request;
@@ -32,8 +32,8 @@ namespace Nulands.Restless.Extensions
         /// Set the HttpMethod to GET.
         /// </summary>
         /// <returns>this.</returns>
-        protected BaseRestRequest Get<T>(this T request)
-            where T : BaseRestRequest
+        public static T Get<T>(this T request)
+            where T : RestRequest
         {
             request.Request.Method = HttpMethod.Get;
             return request;
@@ -43,8 +43,8 @@ namespace Nulands.Restless.Extensions
         /// Set the HttpMethod to HEAD.
         /// </summary>
         /// <returns>this.</returns>
-        protected BaseRestRequest Head<T>(this T request)
-            where T : BaseRestRequest
+        public static T Head<T>(this T request)
+            where T : RestRequest
         {
             request.Request.Method = new HttpMethod("HEAD");
             return request;
@@ -54,8 +54,8 @@ namespace Nulands.Restless.Extensions
         /// Set the HttpMethod to POST.
         /// </summary>
         /// <returns>this.</returns>
-        protected BaseRestRequest Post<T>(this T request)
-            where T : BaseRestRequest
+        public static T Post<T>(this T request)
+            where T : RestRequest
         {
             request.Request.Method = new HttpMethod("POST");
             return request;
@@ -65,8 +65,8 @@ namespace Nulands.Restless.Extensions
         /// Set the HttpMethod to PUT.
         /// </summary>
         /// <returns>this.</returns>
-        protected BaseRestRequest Put<T>(this T request)
-            where T : BaseRestRequest
+        public static T Put<T>(this T request)
+            where T : RestRequest
         {
             request.Request.Method = new HttpMethod("PUT");
             return request;
@@ -76,8 +76,8 @@ namespace Nulands.Restless.Extensions
         /// Set the HttpMethod to DELETE.
         /// </summary>
         /// <returns>this.</returns>
-        protected BaseRestRequest Delete<T>(this T request)
-            where T : BaseRestRequest
+        public static T Delete<T>(this T request)
+            where T : RestRequest
         {
             request.Request.Method = new HttpMethod("DELETE");
             return request;
@@ -87,8 +87,8 @@ namespace Nulands.Restless.Extensions
         /// Set the HttpMethod to TRACE.
         /// </summary>
         /// <returns>this.</returns>
-        protected BaseRestRequest Trace<T>(this T request)
-            where T : BaseRestRequest
+        public static T Trace<T>(this T request)
+            where T : RestRequest
         {
             request.Request.Method = new HttpMethod("TRACE");
             return request;
@@ -98,8 +98,8 @@ namespace Nulands.Restless.Extensions
         /// Set the HttpMethod to CONNECT.
         /// </summary>
         /// <returns>this.</returns>
-        protected BaseRestRequest Connect<T>(this T request)
-            where T : BaseRestRequest
+        public static T Connect<T>(this T request)
+            where T : RestRequest
         {
             request.Request.Method = new HttpMethod("CONNECT");
             return request;
@@ -122,8 +122,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">A name can be needed when content is a MultipartFormDataContent already.</param>
         /// <param name="fileName">A file name can be needed when content is a MultipartFormDataContent already.</param>
         /// <returns>this.</returns>
-        public T AddContent<T>(this T request, HttpContent content, string name = "", string fileName = "")
-            where T : BaseRestRequest
+        public static T AddContent<T>(this T request, HttpContent content, string name = "", string fileName = "")
+            where T : RestRequest
         {
             content.ThrowIfNull("content");
 
@@ -147,8 +147,8 @@ namespace Nulands.Restless.Extensions
         /// Sets the underlying HttpContent to null.
         /// </summary>
         /// <returns>this.</returns>
-        public T ClearContent<T>(this T request)
-            where T : BaseRestRequest
+        public static T ClearContent<T>(this T request)
+            where T : RestRequest
         {
             request.request.Content = null;
             return request;
@@ -161,8 +161,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">A name is needed if underlying HttpContent is MultipartFormDataContent. (for example multiple file uploads)</param>
         /// <param name="fileName">A file name is needed if underlying HttpContent is MultipartFormDataContent.</param>
         /// <returns>this</returns>
-        public T AddByteArray<T>(this T request, byte[] buffer, string name = "", string fileName = "")
-            where T : BaseRestRequest
+        public static T AddByteArray<T>(this T request, byte[] buffer, string name = "", string fileName = "")
+            where T : RestRequest
         {
             buffer.ThrowIfNullOrEmpty("buffer");
             return request.AddContent(new ByteArrayContent(buffer), name, fileName);
@@ -178,8 +178,8 @@ namespace Nulands.Restless.Extensions
         /// </summary>
         /// <param name="kvPairs">The list of key-value pairs. Must contain an even number of string objects if used.</param>
         /// <returns>this.</returns>
-        public T AddFormUrl<T>(this T request, params string[] kvPairs)
-            where T : BaseRestRequest
+        public static T AddFormUrl<T>(this T request, params string[] kvPairs)
+            where T : RestRequest
         {
             List<KeyValuePair<string, string>> keyValues = new List<KeyValuePair<string, string>>();
 
@@ -207,8 +207,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="subtype">The sub type if needed.</param>
         /// <param name="boundary">The boundary if needed.</param>
         /// <returns>this.</returns>
-        public T AddMultipart<T>(this T request, string subtype = "", string boundary = "")
-            where T : BaseRestRequest
+        public static T AddMultipart<T>(this T request, string subtype = "", string boundary = "")
+            where T : RestRequest
         {
             return request.AddContent(new MultipartContent(subtype, boundary));
         }
@@ -218,8 +218,8 @@ namespace Nulands.Restless.Extensions
         /// </summary>
         /// <param name="boundary">The boundary if needed.</param>
         /// <returns>this.</returns>
-        public T AddMultipartForm<T>(this T request, string boundary = "")
-            where T : BaseRestRequest
+        public static T AddMultipartForm<T>(this T request, string boundary = "")
+            where T : RestRequest
         {
             return request.AddContent(new MultipartFormDataContent(boundary));
         }
@@ -233,8 +233,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
         /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
         /// <returns>this.</returns>
-        public T AddStream<T>(this T request, Stream stream, string mediaType, int buffersize = 1024, string name = "", string fileName = "")
-            where T : BaseRestRequest
+        public static T AddStream<T>(this T request, Stream stream, string mediaType, int buffersize = 1024, string name = "", string fileName = "")
+            where T : RestRequest
         {
             stream.ThrowIfNull("stream");
             mediaType.ThrowIfNullOrEmpty("mediaType");
@@ -254,8 +254,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
         /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
         /// <returns>this.</returns>
-        public T AddString<T>(this T request, string content, Encoding encoding, string mediaType, string name = "", string fileName = "")
-            where T : BaseRestRequest
+        public static T AddString<T>(this T request, string content, Encoding encoding, string mediaType, string name = "", string fileName = "")
+            where T : RestRequest
         {
             content.ThrowIfNullOrEmpty("content");
             encoding.ThrowIfNull("encoding");
@@ -273,8 +273,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
         /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
         /// <returns>this.</returns>
-        public T AddJson<T>(this T request, object obj, string name = "", string fileName = "")
-            where T : BaseRestRequest
+        public static T AddJson<T>(this T request, object obj, string name = "", string fileName = "")
+            where T : RestRequest
         {
             obj.ThrowIfNull("BaseRestRequest");
             var serializer = new Serializers.JsonSerializer();
@@ -295,8 +295,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
         /// <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
         /// <returns>this.</returns>
-        protected T AddXml<T>(this T request, object obj, string name = "", string fileName = "")
-            where T : BaseRestRequest
+        public static T AddXml<T>(this T request, object obj, string name = "", string fileName = "")
+            where T : RestRequest
         {
             obj.ThrowIfNull("BaseRestRequest");
             var serializer = new Serializers.DotNetXmlSerializer();
@@ -317,8 +317,8 @@ namespace Nulands.Restless.Extensions
         /// </summary>
         /// <param name="token">The token.</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest CancelToken<T>(this T request, CancellationToken token)
-            where T: BaseRestRequest
+        public static T CancelToken<T>(this T request, CancellationToken token)
+            where T: RestRequest
         {
             token.ThrowIfNull("token");
             request.cancellation = token;
@@ -330,8 +330,8 @@ namespace Nulands.Restless.Extensions
         /// </summary>
         /// <param name="url">The URL string.</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest Url<T>(this T request, string url)
-            where T: BaseRestRequest
+        public static T Url<T>(this T request, string url)
+            where T: RestRequest
         {
             url.ThrowIfNull("url");
             request.url = url;
@@ -344,8 +344,8 @@ namespace Nulands.Restless.Extensions
         /// </summary>
         /// <param name="objects">The format parameter objects.</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest UrlFormat<T>(this T request, params object[] objects)
-            where T: BaseRestRequest
+        public static T UrlFormat<T>(this T request, params object[] objects)
+            where T: RestRequest
         {
             objects.ThrowIfNullOrEmpty("objects");
             // Do a test format only to see if everything is ok otherwise it will throw an exception.
@@ -363,8 +363,8 @@ namespace Nulands.Restless.Extensions
         /// </summary>
         /// <param name="action">An action that takes a HttpRequestMessage as argument.</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest RequestAction<T>(this T request, Action<HttpRequestMessage> action)
-            where T: BaseRestRequest
+        public static T RequestAction<T>(this T request, Action<HttpRequestMessage> action)
+            where T: RestRequest
         {
             action.ThrowIfNull("action");
             action(request.request);
@@ -378,11 +378,21 @@ namespace Nulands.Restless.Extensions
         /// </summary>
         /// <param name="action">An action that takes a HttpClient as argument.</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest ClientAction<T>(this T request, Action<HttpClient> action)
-            where T: BaseRestRequest
+        public static T ClientAction<T>(this T request, Action<HttpClient> action)
+            where T: RestRequest
         {
             action.ThrowIfNull("action");
             action(request.client);
+            return request;
+        }
+
+        public static T Basic<T>(this T request, string authentication)
+            where T : RestRequest
+        {
+            authentication.ThrowIfNullOrEmpty("authentication");
+
+            string base64authStr = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(authentication));
+            request.request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64authStr);
             return request;
         }
 
@@ -393,8 +403,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="username">The user name.</param>
         /// <param name="password">The user password.</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest Basic<T>(this T request, string username, string password)
-            where T : BaseRestRequest
+        public static T Basic<T>(this T request, string username, string password)
+            where T : RestRequest
         {
             username.ThrowIfNullOrEmpty("username");
             password.ThrowIfNullOrEmpty("password");
@@ -410,8 +420,8 @@ namespace Nulands.Restless.Extensions
         /// </summary>
         /// <param name="token">The token string.</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest Bearer<T>(this T request, string token)
-            where T : BaseRestRequest
+        public static T Bearer<T>(this T request, string token)
+            where T : RestRequest
         {
             token.ThrowIfNullOrEmpty("token");
             string base64AccessToken = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(token));
@@ -427,8 +437,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="value">The parameter value (should be convertible to string).</param>
         /// <param name="type">The ParameterType.</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest Param<T>(this T request, string name, object value, ParameterType type)
-            where T : BaseRestRequest
+        public static T Param<T>(this T request, string name, object value, ParameterType type)
+            where T : RestRequest
         {
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrToStrEmpty("value");
@@ -459,8 +469,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">The parameter name.</param>
         /// <param name="value">The parameter value (should be convertible to string).</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest UrlParam<T>(this T request, string name, object value)
-            where T : BaseRestRequest
+        public static T UrlParam<T>(this T request, string name, object value)
+            where T : RestRequest
         {
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrToStrEmpty("value");
@@ -485,8 +495,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="value">The parameter value (should be convertible to string).</param>
         /// <param name="addAsMultiple">If true the parameter with this name can be set multiple times.</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest Param<T>(this T request, string name, object value, bool addAsMultiple = false)
-            where T : BaseRestRequest
+        public static T Param<T>(this T request, string name, object value, bool addAsMultiple = false)
+            where T : RestRequest
         {
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrToStrEmpty("value");
@@ -507,7 +517,7 @@ namespace Nulands.Restless.Extensions
                 request.param[name] = paramValues;
             }
             //param[name] = value;
-            return this;
+            return request;
         }
 
         /// <summary>
@@ -517,15 +527,14 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">The parameter name.</param>
         /// <param name="value">The parameter value (should be convertible to string).</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest QParam<T>(this T request, string name, object value)
-            where T : BaseRestRequest
+        public static T QParam<T>(this T request, string name, object value)
+            where T : RestRequest
         {
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrToStrEmpty("value");
 
-            query_params[name] = value;
-            return this;
-
+            request.query_params[name] = value;
+            return request;
         }
 
         /// <summary>
@@ -534,14 +543,14 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">The header name.</param>
         /// <param name="value">The header value (should be convertible to string).</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest Header<T>(this T request, string name, string value)
-            where T : BaseRestRequest
+        public static T Header<T>(this T request, string name, string value)
+            where T : RestRequest
         {
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrEmpty("value");
 
-            request.Headers.Add(name, value);
-            return this;
+            request.request.Headers.Add(name, value);
+            return request;
         }
 
         /// <summary>
@@ -550,8 +559,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="name">The header name.</param>
         /// <param name="values">The header values (should be convertible to string).</param>
         /// <returns>this.</returns>
-        protected BaseRestRequest Header<T>(this T request, string name, IEnumerable<string> values)
-            where T : BaseRestRequest
+        public static T Header<T>(this T request, string name, IEnumerable<string> values)
+            where T : RestRequest
         {
             name.ThrowIfNullOrEmpty("name");
             values.ThrowIfNullOrEmpty("values");
@@ -568,13 +577,19 @@ namespace Nulands.Restless.Extensions
         /// Sends the request and return the raw HttpResponseMessage.
         /// </summary>
         /// <returns>Task containing the HttpResponseMessage.</returns>
-        protected async Task<HttpResponseMessage> GetResponseAsync()
+        public static async Task<HttpResponseMessage> GetResponseAsync<T>(this T request)
+            where T : RestRequest
         {
-            if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
-                AddFormUrl();           // Add form url encoded parameter to request if needed
+            if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
+                request.AddFormUrl();           // Add form url encoded parameter to request if needed
 
-            request.RequestUri = new Uri(url.CreateRequestUri(query_params, param, request.Method.Method));
-            return await client.SendAsync(request);
+            request.request.RequestUri = new Uri(
+                request.url.CreateRequestUri(
+                    request.query_params, 
+                    request.param, 
+                    request.request.Method.Method));
+
+            return await request.client.SendAsync(request.request);
         }
 
         /// <summary>
@@ -584,14 +599,16 @@ namespace Nulands.Restless.Extensions
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A Task containing the RestRespone. There will be no deserialized data, but the RestResponse.Response 
         /// (HttpResponseMessage) will be set.</returns>
-        protected async Task<RestResponse<IVoid>> GetRestResponseAsync(
+        public static async Task<RestResponse<IVoid>> GetRestResponseAsync<T>(
+            this T request,
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
+            where T: RestRequest
         {
-            if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
-                AddFormUrl();           // Add form url encoded parameter to request if needed
+            if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
+                request.AddFormUrl();           // Add form url encoded parameter to request if needed
 
-            return await buildAndSendRequest<IVoid>(successAction, errorAction);
+            return await request.buildAndSendRequest<IVoid>(successAction, errorAction);
         }
 
         #endregion
@@ -606,14 +623,15 @@ namespace Nulands.Restless.Extensions
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
-        protected async Task<RestResponse<IVoid>> Fetch(
+        public static async Task<RestResponse<IVoid>> Fetch(
+            this RestRequest request,
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
-                AddFormUrl();           // Add form url encoded parameter to request if needed
+            if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
+                request.AddFormUrl();           // Add form url encoded parameter to request if needed
 
-            return await buildAndSendRequest<IVoid>(successAction, errorAction);
+            return await request.buildAndSendRequest<IVoid>(successAction, errorAction);
         }
 
         /// <summary>
@@ -624,19 +642,40 @@ namespace Nulands.Restless.Extensions
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
-        protected async Task<RestResponse<T>> Fetch<T>(
+        public static async Task<RestResponse<T>> Fetch<T>(
+            this RestRequest request,
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
-            if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
-                AddFormUrl();           // Add form url encoded parameter to request if needed
+            if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
+                request.AddFormUrl();           // Add form url encoded parameter to request if needed
 
-            return await buildAndSendRequest<T>(successAction, errorAction);
+            return await request.buildAndSendRequest<T>(successAction, errorAction);
         }
 
         #endregion
 
         #region Upload file binary with StreamContent
+
+        public static async Task<RestResponse<IVoid>> UploadFileBinary(
+            this RestRequest request,
+            string localPath,
+            string contentType,
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
+        {
+            return await request.UploadFileBinary<IVoid>(localPath, contentType, successAction, errorAction);
+        }
+
+        public static async Task<RestResponse<IVoid>> UploadFileBinary(
+            this RestRequest request,
+            Stream streamContent,
+            String contentType,
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
+        {
+            return await request.UploadFileBinary<IVoid>(streamContent, contentType, successAction, errorAction);
+        }
 
         /// <summary>
         /// Uploads a binary file using StreamContent.
@@ -648,7 +687,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
-        protected async Task<RestResponse<T>> UploadFileBinary<T>(
+        public static async Task<RestResponse<T>> UploadFileBinary<T>(
+            this RestRequest request,
             string localPath,
             string contentType,
             Action<RestResponse<T>> successAction = null,
@@ -660,7 +700,7 @@ namespace Nulands.Restless.Extensions
             RestResponse<T> result = new RestResponse<T>();
             using (FileStream fileStream = File.OpenRead(localPath))
             {
-                result = await UploadFileBinary<T>(fileStream, contentType, successAction, errorAction);
+                result = await request.UploadFileBinary<T>(fileStream, contentType, successAction, errorAction);
             }
             return result;
         }
@@ -674,9 +714,12 @@ namespace Nulands.Restless.Extensions
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
-        protected async Task<RestResponse<T>> UploadFileBinary<T>(
-            Stream streamContent, String contentType,
-            Action<RestResponse<T>> successAction = null, Action<RestResponse<T>> errorAction = null)
+        public static async Task<RestResponse<T>> UploadFileBinary<T>(
+            this RestRequest request,
+            Stream streamContent, 
+            String contentType,
+            Action<RestResponse<T>> successAction = null,
+            Action<RestResponse<T>> errorAction = null)
         {
             streamContent.ThrowIfNull("fileStream");
             contentType.ThrowIfNullOrEmpty("contentType");
@@ -686,9 +729,9 @@ namespace Nulands.Restless.Extensions
 
             // Clear _request.Content to be sure we are not in a multipart ?
             // ClearContent();
-            AddStream(streamContent, contentType);
+            request.AddStream(streamContent, contentType);
 
-            return await buildAndSendRequest<T>(successAction, errorAction);
+            return await request.buildAndSendRequest<T>(successAction, errorAction);
         }
 
         #endregion
@@ -707,7 +750,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
-        protected async Task<RestResponse<T>> UploadFileFormData<T>(
+        public static async Task<RestResponse<T>> UploadFileFormData<T>(
+            this RestRequest request,
             string localPath,
             string contentType,
             Action<RestResponse<T>> successAction = null,
@@ -719,7 +763,7 @@ namespace Nulands.Restless.Extensions
             RestResponse<T> result = new RestResponse<T>();
             using (FileStream fileStream = File.OpenRead(localPath))
             {
-                result = await UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction);
+                result = await request.UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction);
             }
             return result;
         }
@@ -736,7 +780,8 @@ namespace Nulands.Restless.Extensions
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
-        protected async Task<RestResponse<T>> UploadFileFormData<T>(
+        public static async Task<RestResponse<T>> UploadFileFormData<T>(
+            this RestRequest request,
             Stream streamContent,
             string contentType,
             string localPath,
@@ -760,16 +805,16 @@ namespace Nulands.Restless.Extensions
             // ClearContent();
 
             // TODO: create and add (random?) boundary
-            AddMultipartForm();
-            if (param.Count > 0)
-                AddFormUrl();           // Add form url encoded parameter to request if needed    
+            request.AddMultipartForm();
+            if (request.param.Count > 0)
+                request.AddFormUrl();           // Add form url encoded parameter to request if needed    
 
-            AddStream(streamContent, contentType, 1024, Path.GetFileNameWithoutExtension(localPath), Path.GetFileName(localPath));
+            request.AddStream(streamContent, contentType, 1024, Path.GetFileNameWithoutExtension(localPath), Path.GetFileName(localPath));
 
-            return await buildAndSendRequest<T>(successAction, errorAction);
+            return await request.buildAndSendRequest<T>(successAction, errorAction);
         }
 
         #endregion 
-    }*/
+    }
 
 }

@@ -22,7 +22,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Restless.Extensions
+namespace Nulands.Restless.Extensions
 {
     /// <summary>
     /// Extensions needed for Restless.
