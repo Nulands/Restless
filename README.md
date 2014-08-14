@@ -138,7 +138,116 @@ during runtime.
 
 ```
 
-Extending BaseRestRequest
+Using the RestRequest class
+----
+
+
+```c#
+    public static async void RestRequestOnlySample()
+    {
+        ///
+        /// First a test using the "raw" RestRequest class.
+        ///
+        RestRequest request = new RestRequest();
+        string url = "https://duckduckgo.com/";
+
+        var response = await request.Get().     // Set HTTP method to "GET"
+            Url(url).                           // Set our url
+            QParam("q", "RestlessHttpClient").  // Set a request query parameter
+            Fetch<IVoid>();                     // Get response, without serialization
+
+        if (response.IsStatusCodeMissmatch)
+        {
+            HttpStatusCode status = response.Response.StatusCode;
+            //...
+        }
+        else if (response.IsException)
+            Console.WriteLine(response.Exception);
+        else
+        {
+            HttpContent content = response.Response.Content;
+            // ...
+        }
+
+
+        // Get http://www.example.com/Person?name=<PersonName> 
+        // Example Person class 
+        // class Person
+        // {
+        //    string Name{get;set;}
+        //    int    Age{get; set;}
+        // }
+        url = "http://www.example.com/Person";
+
+        var getPerson = new RestRequest();
+        RestResponse<Person> personResponse = await getPerson.
+            Get().                          // HTTP Method "GET"
+            Url(url).                       // Set url of Person get REST endpoint
+            QParam("name", "TestUser").     // The api wants the person name as query parameter
+            Fetch<Person>();                // Get response and deserialize to Person object.
+
+        if (personResponse.HasData)
+        {
+            Person person = personResponse.Data;
+            //...
+        }
+        else
+        {
+            // Error handling
+            // Check personResponse.isStatusCodeMissmatch and personResponse.isException
+        }
+
+        // POST http://www.example.com/Person
+        // name=<name>,age=<age>
+
+        var createPerson = new RestRequest();
+
+        // Add form url encoded content, all params that are added before the AddFormUrl call will be
+        // added automatically. 
+        createPerson.
+            Post().                             // Set HTTP method to "POST", we are creating a new Person
+            Url(url).                           // Set Url
+            Param("name", "NewUser").           // The new person name as parameter
+            Param("age", 99).                   // The new person age as parameter
+            AddFormUrl();                       // Add all currently added parameter as Form Url parameter
+
+        // or equivalent
+        //createPerson.Post().Url(url).AddFormUrl("name", "NewUser", "age", 99.ToString());        
+
+        // Now create the new person and get the response.
+        RestResponse<IVoid> createResponse = await createPerson.Fetch<IVoid>();
+
+        // createResponse.Response is the underlying HttpResponseMessage
+        if (createResponse.Response.StatusCode != HttpStatusCode.Created)
+        {
+            // do error handling
+        }
+
+        // or get the HttpResponseMessage directly if no deserialization is needed.
+        HttpResponseMessage httpResponse = await createPerson.GetResponseAsync();
+
+        if (httpResponse.StatusCode != HttpStatusCode.Created)
+        {
+            // Error handling
+        }
+
+
+        // Do an action on the underlying HttpRequestMessage
+        request = new RestRequest().
+            RequestAction(r => r.Headers.Host = "http://www.test.com").
+            RequestAction(r => r.Method = new HttpMethod("GET"));
+
+        request.ClientAction((c) => c.Timeout = new TimeSpan(50000));
+
+        // Fetch request with success and error actions.
+        await getPerson.Fetch<Person>(
+            (r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
+            (r) => Console.WriteLine(r.Exception.Message));
+    }
+    
+```
+
+Extending RestRequest class to get a custom api
 ----
 
 (Theoretical) example:
@@ -151,57 +260,51 @@ Extending BaseRestRequest
         public int Age { get; set; }
     }
 
-    public class PersonGetRequest : BaseRestRequest
+    public class PersonGetRequest : RestRequest
     {
         public PersonGetRequest()
             : base()
         {
-            Url("http://www.example.com/Person");
-            Get();
+            this.Url("http://www.example.com/Person").Get();
         }
 
         public PersonGetRequest Name(string name)
         {
-            return QParam("name", name) as PersonGetRequest;
-
-            // or
-            // Param("name", name);
-            // return this;
+            return this.QParam("name", name);
         }
 
-        public new async Task<RestResponse<Person>> Fetch(
+        public async Task<RestResponse<Person>> GetPerson(
             Action<RestResponse<Person>> successAction = null,
             Action<RestResponse<Person>> errorAction = null)
         {
-            return await base.Fetch<Person>(successAction, errorAction);
+            return await this.Fetch(successAction, errorAction);
         }
 
     }
 
-    public class PersonCreateRequest : BaseRestRequest
+    public class PersonCreateRequest : RestRequest
     {
         public PersonCreateRequest()
             : base()
         {
-            Url("http://www.example.com/Person");
-            Post();
+            this.Url("http://www.example.com/Person").Post();
         }
 
         public PersonCreateRequest Name(string name)
         {
-            return Param("name", name) as PersonCreateRequest;
+            return this.Param("name", name);
         }
 
         public PersonCreateRequest Age(long age)
         {
-            return Param("age", age) as PersonCreateRequest;
+            return this.Param("age", age);
         }
 
-        public new async Task<RestResponse<IVoid>> Fetch(
+        public async Task<RestResponse<IVoid>> Create(
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await base.Fetch<IVoid>(successAction, errorAction);
+            return await this.Fetch(successAction, errorAction);
         }
     }
 
@@ -223,91 +326,7 @@ Extending BaseRestRequest
     {
         public static async Task Test()
         {
-            RestRequest request = new RestRequest();
-            string url = "https://duckduckgo.com/";
-
-            var response = await request.Get().
-                Url(url).QParam("q", "RestlessHttpClient").Fetch<IVoid>();
-
-            if (response.IsStatusCodeMissmatch)
-            {
-                HttpStatusCode status = response.Response.StatusCode;
-                //...
-            }
-            else if (response.IsException)
-                Console.WriteLine(response.Exception);
-            else
-            {
-                HttpContent content = response.Response.Content;
-                // ...
-            }
-
-
-            // Get http://www.example.com/Person?name=<PersonName> 
-            // Example Person class 
-            // class Person
-            // {
-            //    string Name{get;set;}
-            //    int    Age{get; set;}
-            // }
-            url = "http://www.example.com/Person";
-
-            var getPerson = new RestRequest();
-            RestResponse<Person> personResponse = await getPerson.
-                Get().Url(url).QParam("name", "TestUser").Fetch<Person>();
-
-            if (personResponse.HasData)
-            {
-                Person person = personResponse.Data;
-                //...
-            }
-            else
-            {
-                // Error handling
-                // Check personResponse.isStatusCodeMissmatch and personResponse.isException
-            }
-
-            // POST http://www.example.com/Person
-            // name=<name>,age=<age>
-
-            var createPerson = new RestRequest();
-
-            // Add form url encoded content, all params that are added before the AddFormUrl call will be
-            // added automatically. 
-            createPerson.Post().Url(url).Param("name", "NewUser").Param("age", 99).AddFormUrl();
-
-            // or equivalent
-            //createPerson.Post().Url(url).AddFormUrl("name", "NewUser", "age", 99.ToString());        
-
-            RestResponse<IVoid> createResponse = await createPerson.Fetch<IVoid>();
-
-            if (createResponse.IsStatusCodeMissmatch)
-            {
-                // do error handling
-            }
-
-            // or get the HttpResponseMessage directly if no deserialization is needed.
-            HttpResponseMessage httpResponse = await createPerson.GetResponseAsync();
-
-            if (httpResponse.StatusCode != HttpStatusCode.Created)
-            {
-                // Error handling
-            }
-
-
-            // Do an action on the underlying HttpRequestMessage
-            request = new RestRequest().
-                RequestAction(r => r.Headers.Host = "http://www.test.com").
-                RequestAction(r => r.Method = new HttpMethod("GET"));
-
-            request.ClientAction((c) => c.Timeout = new TimeSpan(50000));
-
-            // Fetch request with success and error actions.
-            await getPerson.Fetch<Person>(
-                (r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
-                (r) => Console.WriteLine(r.Exception.Message));
-
-
+            
             // Now the PersonRequest only exposes the Name() and Fetch(...) methods. 
             // All BaseRestRequest methods are protected and cannot be used.
             // Thats why the BaseRestRequest methods are mostly protected.
@@ -316,7 +335,7 @@ Extending BaseRestRequest
 
             PersonGetRequest personGetRequest = new PersonGetRequest();
 
-            RestResponse<Person> persGetResponse = await personGetRequest.Name("testUser").Fetch();
+            RestResponse<Person> persGetResponse = await personGetRequest.Name("testUser").GetPerson();
 
             if (persGetResponse.HasData)
             {
@@ -324,9 +343,8 @@ Extending BaseRestRequest
                 //...
             }
 
-
             // or with actions
-            await personGetRequest.Name("testUser").Fetch(
+            await personGetRequest.Name("testUser").GetPerson(
                 (r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
                 (r) => Console.WriteLine(r.Exception.Message));
 
@@ -335,7 +353,7 @@ Extending BaseRestRequest
 
             // usage:
 
-            persGetResponse = await Persons.GetByName().Name("testUser").Fetch();
+            persGetResponse = await Persons.GetByName().Name("testUser").GetPerson();
             if (persGetResponse.HasData)
             {
                 var person = persGetResponse.Data;
@@ -354,7 +372,7 @@ Extending BaseRestRequest
                 }
             }
 
-            var persCreateResponse = await Persons.Create().Name("testUser2").Age(42).Fetch();
+            var persCreateResponse = await Persons.Create().Name("testUser2").Age(42).Create();
 
             // because PersonCreateRequest uses Fetch with IVoid,
             // there is no deserialized object in the Data property of the response.
