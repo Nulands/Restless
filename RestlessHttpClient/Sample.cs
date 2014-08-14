@@ -27,78 +27,10 @@ using System.Net.Http;
 using System.IO;
 
 using Nulands.Restless;
-using Nulands.Restless.Dynamic;
 using Nulands.Restless.Extensions;
 
 namespace Nulands.Restless.Sample
 {
-    public class User
-    {
-        public string Name { get; set; }
-        public int Age { get; set; }
-    }
-
-    //[Get("www.google.de")]
-    [Get]
-    [Url("www.google.de")]
-    [Headers("User-Agent: Awesome Octocat App")]
-    public interface ITestRest
-    {
-        [Param("user_name", Restless.ParameterType.Query)]
-        RestRequest Name(string name);
-
-        [QParam]
-        RestRequest Age(int age);
-
-        RestRequest Name2([QParam("user_name")] string name);
-
-        [Fetch]
-        RestResponse<User> Test();
-
-        [UploadFileBinary(ContentType = "application/octet-stream")]
-        RestResponse<IVoid> UploadFileBinary(string localPath);
-
-        [Url("www.duckduckgo.com")]
-        [UploadFileBinary("C:\\Log.txt", "application/octet-stream")]
-        RestResponse<IVoid> UploadConstantFileBinary();
-    }
-
-    class RestTest
-    {
-
-        static void Main()
-        {
-            DynamicRequest<ITestRest> request = DynamicRequest.Create<ITestRest>();
-            // t is an ITestRest, Do returns the DynamicRequest again.
-            RestResponse<Restless.IVoid> response =
-                request.
-                Do(t => t.Name("testRestName2")).
-                Request.
-                UploadFileBinary(new MemoryStream(), "").
-                Result;
-
-            // request.Dyn has all methods defined in ITestRest
-            // but no intelli sense support because its a dynamic method
-            request.Dyn.Name("testRestName2");
-
-            // t is an ITestRest, DoR returns the underlying RestRequest.
-            response =
-                request.
-                DoR(t => t.Name("testRestNAme")).
-                UploadFileBinary(new MemoryStream(), "").
-                Result;
-
-            // t is an ITestRest, all together
-            response =
-                request.
-                Do(t => t.Name("testRestNAme")).
-                Do(t => t.Age(42)).
-                DoR(t => t.Name("testRestName2")).
-                UploadFileBinary(new MemoryStream(), "").
-                Result;
-            object test = request;
-        }
-    }
 
     public class Person
     {
@@ -117,12 +49,9 @@ namespace Nulands.Restless.Sample
         public PersonGetRequest Name(string name)
         {
             return this.QParam("name", name);
-
-            // or
-            // return this.Param("name", name);
         }
 
-        public async Task<RestResponse<Person>> Fetch(
+        public async Task<RestResponse<Person>> GetPerson(
             Action<RestResponse<Person>> successAction = null,
             Action<RestResponse<Person>> errorAction = null)
         {
@@ -149,7 +78,7 @@ namespace Nulands.Restless.Sample
             return this.Param("age", age);
         }
 
-        public async Task<RestResponse<IVoid>> Fetch(
+        public async Task<RestResponse<IVoid>> Create(
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
@@ -173,13 +102,18 @@ namespace Nulands.Restless.Sample
 
     public class SampleTest
     {
-        public static async Task Test()
+        public static async void RestRequestOnlySample()
         {
+            ///
+            /// First a test using the "raw" RestRequest class.
+            ///
             RestRequest request = new RestRequest();
             string url = "https://duckduckgo.com/";
 
-            var response = await request.Get().
-                Url(url).QParam("q", "RestlessHttpClient").Fetch<IVoid>();
+            var response = await request.Get().     // Set HTTP method to "GET"
+                Url(url).                           // Set our url
+                QParam("q", "RestlessHttpClient").  // Set a request query parameter
+                Fetch<IVoid>();                     // Get response, without serialization
 
             if (response.IsStatusCodeMissmatch)
             {
@@ -205,7 +139,11 @@ namespace Nulands.Restless.Sample
             url = "http://www.example.com/Person";
 
             var getPerson = new RestRequest();
-            RestResponse<Person> personResponse = await getPerson.Get().Url(url).QParam("name", "TestUser").Fetch<Person>();
+            RestResponse<Person> personResponse = await getPerson.
+                Get().                          // HTTP Method "GET"
+                Url(url).                       // Set url of Person get REST endpoint
+                QParam("name", "TestUser").     // The api wants the person name as query parameter
+                Fetch<Person>();                // Get response and deserialize to Person object.
 
             if (personResponse.HasData)
             {
@@ -225,14 +163,21 @@ namespace Nulands.Restless.Sample
 
             // Add form url encoded content, all params that are added before the AddFormUrl call will be
             // added automatically. 
-            createPerson.Post().Url(url).Param("name", "NewUser").Param("age", 99).AddFormUrl();
+            createPerson.
+                Post().                             // Set HTTP method to "POST", we are creating a new Person
+                Url(url).                           // Set Url
+                Param("name", "NewUser").           // The new person name as parameter
+                Param("age", 99).                   // The new person age as parameter
+                AddFormUrl();                       // Add all currently added parameter as Form Url parameter
 
             // or equivalent
             //createPerson.Post().Url(url).AddFormUrl("name", "NewUser", "age", 99.ToString());        
 
+            // Now create the new person and get the response.
             RestResponse<IVoid> createResponse = await createPerson.Fetch<IVoid>();
 
-            if (createResponse.IsStatusCodeMissmatch)
+            // createResponse.Response is the underlying HttpResponseMessage
+            if (createResponse.Response.StatusCode != HttpStatusCode.Created)
             {
                 // do error handling
             }
@@ -257,8 +202,11 @@ namespace Nulands.Restless.Sample
             await getPerson.Fetch<Person>(
                 (r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
                 (r) => Console.WriteLine(r.Exception.Message));
+        }
 
-
+        public static async Task Test()
+        {
+            
             // Now the PersonRequest only exposes the Name() and Fetch(...) methods. 
             // All BaseRestRequest methods are protected and cannot be used.
             // Thats why the BaseRestRequest methods are mostly protected.
@@ -267,7 +215,7 @@ namespace Nulands.Restless.Sample
 
             PersonGetRequest personGetRequest = new PersonGetRequest();
 
-            RestResponse<Person> persGetResponse = await personGetRequest.Name("testUser").Fetch();
+            RestResponse<Person> persGetResponse = await personGetRequest.Name("testUser").GetPerson();
 
             if (persGetResponse.HasData)
             {
@@ -275,9 +223,8 @@ namespace Nulands.Restless.Sample
                 //...
             }
 
-
             // or with actions
-            await personGetRequest.Name("testUser").Fetch(
+            await personGetRequest.Name("testUser").GetPerson(
                 (r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
                 (r) => Console.WriteLine(r.Exception.Message));
 
@@ -286,7 +233,7 @@ namespace Nulands.Restless.Sample
 
             // usage:
 
-            persGetResponse = await Persons.GetByName().Name("testUser").Fetch();
+            persGetResponse = await Persons.GetByName().Name("testUser").GetPerson();
             if (persGetResponse.HasData)
             {
                 var person = persGetResponse.Data;
@@ -305,7 +252,7 @@ namespace Nulands.Restless.Sample
                 }
             }
 
-            var persCreateResponse = await Persons.Create().Name("testUser2").Age(42).Fetch();
+            var persCreateResponse = await Persons.Create().Name("testUser2").Age(42).Create();
 
             // because PersonCreateRequest uses Fetch with IVoid,
             // there is no deserialized object in the Data property of the response.

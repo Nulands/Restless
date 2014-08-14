@@ -55,10 +55,10 @@
   <ItemGroup>
     <Compile Include="Dynamic\Attribute.cs" />
     <Compile Include="BaseRestRequest.cs" />
-    <Compile Include="DynamicRest.cs" />
     <Compile Include="Dynamic\DynamicRequest.cs" />
     <Compile Include="Dynamic\RequestBuilder.cs" />
-    <Compile Include="Extensions\BaseRestRequestExtensions.cs" />
+    <Compile Include="Dynamic\Sample\Sample.cs" />
+    <Compile Include="Extensions\RestRequestExtensions.cs" />
     <Compile Include="IVoid.cs" />
     <Compile Include="RestlessContext.cs" />
     <Compile Include="RestRequest.cs" />

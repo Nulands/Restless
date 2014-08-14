@@ -12,7 +12,7 @@ using System.IO;
 namespace Nulands.Restless.Extensions
 {
     
-    public static class BaseRestRequestExtensions
+    public static class RestRequestExtensions
     {
         #region Set request methods GET, HEAD, POST, PUT ...
 
