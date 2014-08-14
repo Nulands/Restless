@@ -31,11 +31,11 @@ using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 
-using Restless.Deserializers;
-using Restless.Extensions;
+using Nulands.Restless.Deserializers;
+using Nulands.Restless.Extensions;
 
 
-namespace Restless
+namespace Nulands.Restless
 {
 
     /// <summary>
@@ -70,55 +70,55 @@ namespace Restless
     /// <remarks>Currently the BaseRestRequest does not verify that the underlying HttpRequestMessage.Content
     /// is set correctly. The developer is responsible for setting a correct HttpContent.
     /// For example a POST request should use FormUrlEncoded content when parameters are needed...</remarks>
-    public abstract class BaseRestRequest : IDisposable
+    public class RestRequest : IDisposable
     {
         #region Variables 
 
         /// <summary>
         /// Content (de)serialization handler.
         /// </summary>
-        private Dictionary<string, IDeserializer> content_handler = new Dictionary<string, IDeserializer>();
+        internal Dictionary<string, IDeserializer> content_handler = new Dictionary<string, IDeserializer>();
 
         /// <summary>
         /// Url query parameters: ?name=value
         /// </summary>
-        protected Dictionary<string, object> query_params = new Dictionary<string, object>(); 
+        internal Dictionary<string, object> query_params = new Dictionary<string, object>(); 
 
         /// <summary>
         /// When method is GET then added as query parameters too.
         /// Otherwise added as FormUrlEncoded parameters: name=value
         /// </summary>
-        protected Dictionary<string, List<object>> param = new Dictionary<string, List<object>>();
+        internal Dictionary<string, List<object>> param = new Dictionary<string, List<object>>();
 
         /// <summary>
         /// Url parameters ../{name}.
         /// </summary>
-        protected Dictionary<string, object> url_params = new Dictionary<string, object>();
+        internal Dictionary<string, object> url_params = new Dictionary<string, object>();
 
         /// <summary>
         /// The url string. Can contain {name} and/or format strings {0}.
         /// </summary>
-        private string url = "";
+        internal string url = "";
 
         /// <summary>
         /// Last url format {} set with UrlFormat.
         /// </summary>
-        private object[] urlFormatParams = null;
+        internal object[] urlFormatParams = null;
 
         /// <summary>
         /// A CancellationToken that is used in buildAndSendRequest (client.sendAsync(.., cancellation)).
         /// </summary>
-        protected CancellationToken cancellation = new CancellationToken();
+        internal CancellationToken cancellation = new CancellationToken();
         
         /// <summary>
         /// HttpClient used to send the request message.
         /// </summary>
-        protected HttpClient client = new HttpClient();
+        internal HttpClient client = new HttpClient();
 
         /// <summary>
         /// Internal request message.
         /// </summary>
-        protected HttpRequestMessage request = new HttpRequestMessage();
+        internal HttpRequestMessage request = new HttpRequestMessage();
         
         #endregion
 
@@ -127,7 +127,7 @@ namespace Restless
         /// <summary>
         /// The CancellationToken for this request.
         /// </summary>
-        protected  CancellationToken CancellationToken
+        internal CancellationToken CancellationToken
         {
             get { return cancellation; }
             set { cancellation = value; }
@@ -136,7 +136,7 @@ namespace Restless
         /// <summary>
         /// HttpClient property.
         /// </summary>
-        protected  HttpClient HttpClient
+        internal HttpClient HttpClient
         {
             get { return client; }
             set { client = value; }
@@ -145,7 +145,7 @@ namespace Restless
         /// <summary>
         /// HttpRequestMessage property.
         /// </summary>
-        protected  HttpRequestMessage Request
+        internal HttpRequestMessage Request
         {
             get { return request; }
             set { request = value; }
@@ -158,8 +158,9 @@ namespace Restless
         /// </summary>
         /// <param name="defaultRequest">The initial request message, or null if not used.</param>
         /// <param name="httpClient">The initial http client, or null if not used.</param>
-        protected BaseRestRequest(HttpRequestMessage defaultRequest = null, HttpClient httpClient = null)
+        public RestRequest(HttpRequestMessage defaultRequest = null, HttpClient httpClient = null)
         {
+            
             if (defaultRequest != null)
                 request = defaultRequest;
             if (httpClient != null)
@@ -167,7 +168,19 @@ namespace Restless
             registerDefaultHandlers();
         }
 
+        /*
         #region Set request methods GET, HEAD, POST, PUT ...
+
+        /// <summary>
+        /// Sets the HttpMethod given by string.
+        /// </summary>
+        /// <param name="method">The HttpMethod string. For example "GET".</param>
+        /// <returns>this.</returns>
+        protected BaseRestRequest Method(string method)
+        {
+            request.Method = new HttpMethod(method);
+            return this;
+        }
 
         /// <summary>
         /// Set the HttpMethod to GET.
@@ -175,7 +188,7 @@ namespace Restless
         /// <returns>this.</returns>
         protected BaseRestRequest Get()
         {
-            request.Method = new HttpMethod("GET");
+            request.Method = HttpMethod.Get;
             return this;
         }
 
@@ -505,6 +518,15 @@ namespace Restless
             return this;
         }
 
+        protected BaseRestRequest Basic(string authentication)
+        {
+            authentication.ThrowIfNullOrEmpty("authentication");
+
+            string base64authStr = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(authentication));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64authStr);
+            return this;
+        }
+
         /// <summary>
         /// Adds a Http Basic authorization header to the request. 
         /// The result string is Base64 encoded internally.
@@ -528,11 +550,11 @@ namespace Restless
         /// </summary>
         /// <param name="token">The token string.</param>
         /// <returns>this.</returns>
-        protected  BaseRestRequest Bearer(string token)
+        protected  BaseRestRequest Bearer(string token, string tokenType = "Bearer")
         {
             token.ThrowIfNullOrEmpty("token");
             string base64AccessToken = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(token));
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", base64AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue(tokenType, base64AccessToken);
             return this;
         }
 
@@ -717,6 +739,24 @@ namespace Restless
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        protected async Task<RestResponse<IVoid>> Fetch(
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
+        {
+            if (request.Method.Method != "GET" && request.Content == null && param.Count > 0)
+                AddFormUrl();           // Add form url encoded parameter to request if needed
+
+            return await buildAndSendRequest<IVoid>(successAction, errorAction);
+        }
+
+        /// <summary>
+        /// Sends the request and returns the RestResponse containing deserialized data 
+        /// from the HttpResponseMessage.Content if T is not IVoid.
+        /// </summary>
+        /// <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         protected async Task<RestResponse<T>> Fetch<T>(
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
@@ -863,7 +903,7 @@ namespace Restless
         }
 
         #endregion 
-
+        */
         #region Helper functions
 
         /// <summary>
@@ -877,7 +917,7 @@ namespace Restless
         /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
         /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
-        private async Task<RestResponse<T>> buildAndSendRequest<T>(
+        internal async Task<RestResponse<T>> buildAndSendRequest<T>(
             Action<RestResponse<T>> successAction = null, 
             Action<RestResponse<T>> errorAction = null)
         {
@@ -1032,6 +1072,6 @@ namespace Restless
         }
 
         #endregion
-
+        
     }
 }
