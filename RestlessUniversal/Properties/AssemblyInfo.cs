@@ -6,12 +6,12 @@ using System.Runtime.InteropServices;
 // Allgemeine Informationen über eine Assembly werden über folgende 
 // Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
 // die einer Assembly zugeordnet sind.
-[assembly: AssemblyTitle("Nulands Restless portable.")]
-[assembly: AssemblyDescription("Portable high level library for rapid implementing of REST API clients.")]
+[assembly: AssemblyTitle("RestlessUniversal")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Nulands - Muraad Nofal")]
-[assembly: AssemblyProduct("Restless")]
-[assembly: AssemblyCopyright("Copyright ©  2014 - Muraad Nofal")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("RestlessUniversal")]
+[assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("de")]

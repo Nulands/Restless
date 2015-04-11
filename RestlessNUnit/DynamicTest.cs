@@ -3,6 +3,8 @@ using System.IO;
 using NUnit.Framework;
 using Nulands.Restless.Dynamic;
 using Nulands.Restless;
+using System.Dynamic;
+using System.Threading.Tasks;
 
 namespace RestlessNUnit
 {
@@ -13,22 +15,29 @@ namespace RestlessNUnit
     }
 
     //[Get("www.google.de")]
-    [Get]
+    //[Get]
+    [Get("www.google.de")]
     [Url("www.google.de")]
     [Headers("User-Agent: Awesome Octocat App")]
     public interface ITestRest
     {
-        [Param("user_name", ParameterType.Query)]
-        RestRequest Name(string name);
 
-        [QParam("user_age")]
-        RestRequest Age(int age);
+        //[Get("www.test.de/users")]
+        Task<RestResponse<User>> GetUser([QParam("user_name")] string username);
+
+        RestRequest Name(
+            [Param("user_name", ParameterType.Query)]string name);
+
+
+        RestRequest Age(
+            [QParam("user_age")]int age);
 
         [Fetch]
         RestResponse<User> Test();
 
         [UploadFileBinary(ContentType="application/octet-stream")]
-        RestResponse<IVoid> UploadFileBinary(string localPath);
+        RestResponse<IVoid> UploadFileBinary(
+            [UploadFileBinary] string localPath);
 
         [Url("www.duckduckgo.com")]
         [UploadFileBinary("C:\\Log.txt", "application/octet-stream")]
@@ -41,6 +50,31 @@ namespace RestlessNUnit
         [Test]
         public void Test()
         {
+            DynamicRequest.InitHandler();
+            DynamicRequest<ITestRest> request = DynamicRequest.Create<ITestRest>();
+
+            /*request = request 
+                * (iTest => iTest.Age(42)) 
+                * (iTest => iTest.Name("name")) 
+                * (iTest => iTest.Name("name"));
+
+            dynamic dynReq = DynamicRequest.Create<ITestRest>();
+            dynReq.Age(42);
+            dynReq.Name("name");
+
+            request = request
+                | (iTest => iTest.Name("name"))
+                | (iTest => iTest.Age(42))
+                | (iTest => iTest.Age(42));*/
+            
+            request
+                .Do(iTest => iTest.Name("name"))
+                .Do(iTest => iTest.Age(42));
+
+            dynamic dynRequest = request;
+            dynRequest.Age(42);
+            dynRequest.Name("name");
+            /*
             DynamicRequest<ITestRest> request = DynamicRequest.Create<ITestRest>();
             // t is an ITestRest, Do returns the DynamicRequest again.
             RestResponse<IVoid> response =
@@ -69,7 +103,7 @@ namespace RestlessNUnit
                 DoR(t => t.Name("testRestName2")).
                 UploadFileBinary(new MemoryStream(), "").
                 Result;
-            object test = request; 
+            object test = request; */
         }
     }
 }

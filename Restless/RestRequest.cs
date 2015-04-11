@@ -18,252 +18,309 @@
  * */
 
 using System;
-using System.Net;
-using System.IO;
-using Restless.Deserializers;
-using Restless.Extensions;
-using System.Threading.Tasks;
+using System.Linq;
 
-namespace Restless
+using System.Threading;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+#if UNIVERSAL
+using Windows.Foundation;
+using Windows.Web.Http;
+using Windows.Web.Http.Headers;
+#else
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+#endif
+using System.Text;
+using System.IO;
+using System.Threading.Tasks;
+using System.Reflection;
+
+using Nulands.Restless.Deserializers;
+using Nulands.Restless.Extensions;
+
+
+namespace Nulands.Restless
 {
 
-    public sealed class RestRequest : BaseRestRequest
+    /// <summary>
+    /// Parameter type enum. Query, FormUrlEncoded or Url.
+    /// </summary>
+    public enum ParameterType
     {
-        public new HttpWebRequest HttpWebRequest
+        NotSpecified,
+        /// <summary>
+        /// Parameter is added to the URL as query parameter (?name=value).
+        /// </summary>
+        Query,
+        /// <summary>
+        /// Parameter is added to a POST request with FormUrlEncoded Http content.
+        /// </summary>
+        FormUrlEncoded,
+        /// <summary>
+        /// Parameter is used to format the URL string (replaces a {name}).
+        /// </summary>
+        Url
+    }
+
+    /// <summary>
+    /// RestRequest class.
+    /// </summary>
+    /// <remarks>Currently the RestRequest does not verify that the underlying HttpRequestMessage.Content
+    /// is set correctly. The developer is responsible for setting a correct HttpContent.
+    /// For example a POST request should use FormUrlEncoded content when parameters are needed.
+    /// By default (ctor) every RestRequest got his own underlying HttpRequestMessage and HttpClient
+    /// to send the constructed request.</remarks>
+    public class RestRequest : IDisposable
+    {
+        #region Variables 
+
+        /// <summary>
+        /// Content (de)serialization handler.
+        /// </summary>
+        internal Dictionary<string, IDeserializer> content_handler = new Dictionary<string, IDeserializer>();
+
+        /// <summary>
+        /// Url query parameters: ?name=value
+        /// </summary>
+        internal Dictionary<string, object> query_params = new Dictionary<string, object>(); 
+
+        /// <summary>
+        /// When method is GET then added as query parameters too.
+        /// Otherwise added as FormUrlEncoded parameters: name=value
+        /// </summary>
+        internal Dictionary<string, List<object>> param = new Dictionary<string, List<object>>();
+
+        /// <summary>
+        /// Url parameters ../{name}.
+        /// </summary>
+        internal Dictionary<string, object> url_params = new Dictionary<string, object>();
+
+        /// <summary>
+        /// The url string. Can contain {name} and/or format strings {0}.
+        /// </summary>
+        internal string url = "";
+
+        /// <summary>
+        /// Last url format {} set with UrlFormat.
+        /// </summary>
+        internal object[] urlFormatParams = null;
+
+        CancellationTokenSource internalTokenSource = new CancellationTokenSource();
+        CancellationToken internalToken;
+        internal CancellationToken externalToken;
+
+        /// <summary>
+        /// HttpClient used to send the request message.
+        /// </summary>
+        internal HttpClient client = new HttpClient();
+
+        /// <summary>
+        /// Internal request message.
+        /// </summary>
+        internal HttpRequestMessage request = new HttpRequestMessage();
+        
+        #endregion
+
+        #region CancellationToken, HttpClient and HttpRequestMessage propertys
+
+        /// <summary>
+        /// HttpClient property.
+        /// </summary>
+        internal HttpClient HttpClient
         {
-            get { return base.HttpWebRequest; }
-            private set { base.HttpWebRequest = value; }
+            get { return client; }
+            set { client = value; }
+        }
+
+        /// <summary>
+        /// HttpRequestMessage property.
+        /// </summary>
+        internal HttpRequestMessage HttpRequest
+        {
+            get { return request; }
+            set { request = value; }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="defaultRequest">The initial request message, or null if not used.</param>
+        /// <param name="httpClient">The initial http client, or null if not used.</param>
+        public RestRequest()
+        {
+            registerDefaultHandlers();
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="defaultRequest">The initial request message, or null if not used.</param>
+        /// <param name="httpClient">The initial http client, or null if not used.</param>
+        public RestRequest(HttpRequestMessage defaultRequest, HttpClient httpClient = null)
+        {
+            if (defaultRequest != null)
+                request = defaultRequest;
+            if (httpClient != null)
+                client = httpClient;
+            registerDefaultHandlers();
+        }
+
+        #region Helper functions
+
+        /// <summary>
+        /// A helper function that is doing all the "hard" work setting up the request and sending it.
+        /// 1) The Url is formated using String.Format if UrlParam´s where added.
+        /// 2) The query parameter are added to the URL with RestlessExtensions.CreateRequestUri
+        /// 3) The request is send.
+        /// 4) The RestResponse is set. 
+        /// </summary>
+        /// <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+        /// <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+        /// <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+        /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        internal async Task<RestResponse<T>> buildAndSendRequest<T>(
+            Action<RestResponse<T>> successAction = null, 
+            Action<RestResponse<T>> errorAction = null)
+        {
+            // RestResponse<T> result = new RestResponse<T>();
+            // TODO: Good or bad to have a reference from the response to the request?!
+            // TODO: the result.Response.RequestMessage already points to this.Request?! (underlying Http request).
+            RestResponse<T> result = new RestResponse<T>(this);
+            try
+            {
+                // First format the Url
+                if(urlFormatParams != null && urlFormatParams.Length > 0)
+                    url = String.Format(url, urlFormatParams);  
+
+                if(url_params != null && url_params.Count > 0)
+                {
+                    foreach (var item in url_params)
+                        url = url.Replace("{" + item.Key + "}", item.Value.ToString());
+                }
+
+                request.RequestUri = new Uri(url.CreateRequestUri(query_params, param, request.Method.Method));
+
+#if UNIVERSAL
+                var tmp = client.SendRequestAsync(request);
+                result.HttpResponse = await tmp.AsTask(CancellationTokenSource.CreateLinkedTokenSource(internalToken, externalToken).Token);
+#else
+                result.HttpResponse = await client.SendAsync(
+                    request, 
+                    CancellationTokenSource.CreateLinkedTokenSource(internalToken, externalToken).Token);
+#endif
+                if (result.HttpResponse.IsSuccessStatusCode)
+                    result.Data = await tryDeserialization<T>(result.HttpResponse);
+            }
+            catch (Exception exc)
+            {
+                result.Exception = exc;
+            }
+            
+            // call success or error action if necessary
+            if (result.IsException || !result.HttpResponse.IsSuccessStatusCode)
+                ActionIfNotNull<T>(result, errorAction);
+            else
+                ActionIfNotNull<T>(result, successAction);
+
+            return result;
         }
         
-        public RestRequest() : base()
+        private void ActionIfNotNull<T>(RestResponse<T> response, Action<RestResponse<T>> action)
         {
-        }
-
-        public RestRequest(HttpWebRequest defaultRequest) : base(defaultRequest)
-        {
-        }
-
-        /// <summary>
-        /// Set the URL for this request.
-        /// Can be a format string too.
-        /// </summary>
-        /// <param name="url">The URL string.</param>
-        /// <returns>this</returns>
-        public new RestRequest Url(string url)
-        {
-            return base.Url(url) as RestRequest;
+            if (action != null)
+                action(response);
         }
 
         /// <summary>
-        /// Formats the url format string.
-        /// </summary>
-        /// <param name="objects">Format objects.</param>
-        /// <returns>this</returns>
-        public new RestRequest UrlFormat(params object[] objects)
-        {
-            return base.UrlFormat(objects) as RestRequest;
-        }
-
-        /// <summary>
-        /// Sets the method to GET.
-        /// </summary>
-        /// <returns>this</returns>
-        public new RestRequest Get()
-        {
-            return base.Get() as RestRequest;
-        }
-
-        /// <summary>
-        /// Sets the method to HEAD.
-        /// </summary>
-        /// <returns>this</returns>
-        public new RestRequest Head()
-        {
-            return base.Head() as RestRequest;
-        }
-
-        /// <summary>
-        /// Sets the method to POST.
-        /// </summary>
-        /// <returns>this</returns>
-        public new RestRequest Post()
-        {
-            return base.Post() as RestRequest;
-        }
-
-        /// <summary>
-        /// Sets the method to PUT.
-        /// </summary>
-        /// <returns>this</returns>
-        public new RestRequest Put()
-        {
-            return base.Put() as RestRequest;
-        }
-
-        /// <summary>
-        /// Sets the method to DELETE.
-        /// </summary>
-        /// <returns>this</returns>
-        public new RestRequest Delete()
-        {
-            return base.Delete() as RestRequest;
-        }
-
-        /// <summary>
-        /// Sets the method to TRACE.
-        /// </summary>
-        /// <returns>this</returns>
-        public new RestRequest Trace()
-        {
-            return base.Trace() as RestRequest;
-        }
-
-        /// <summary>
-        /// Sets the method to CONNECT.
-        /// </summary>
-        /// <returns>this</returns>
-        public new RestRequest Connect()
-        {
-            return base.Connect() as RestRequest;
-        }
-
-        /// <summary>
-        /// Do an action on the underlying HttpWebRequest.
-        /// Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
-        /// </summary>
-        /// <param name="action">An action that takes a HttpWebRequest as argument.</param>
-        /// <returns>this</returns>
-        public new RestRequest RequestAction(Action<HttpWebRequest> action)
-        {
-            return base.RequestAction(action) as RestRequest;
-        }
-
-        /// <summary>
-        /// Adds client credentials to the HttpWebRequest.
-        /// </summary>
-        /// <param name="credentials">The credentials</param>
-        /// <returns>this.</returns>
-        public new RestRequest Credentials(ICredentials credentials)
-        {
-            return base.Credentials(credentials) as RestRequest;
-
-        }
-
-        /// <summary>
-        /// Adds a basic authorization header to the request.
-        /// </summary>
-        /// <param name="basicAuth">The basic auth value.</param>
-        /// <returns>this</returns>
-        public new RestRequest Basic(string username, string password)
-        {
-            return base.Basic(username, password) as RestRequest;
-        }
-
-        /// <summary>
-        /// Adds a bearer authorization token header to the request.
-        /// </summary>
-        /// <param name="token">The token. Is Base64 encoded internally.</param>
-        /// <returns>this</returns>
-        public new RestRequest Bearer(string token)
-        {
-            return base.Bearer(token) as RestRequest;
-        }
-
-        /// <summary>
-        /// Adds a parameter to the request.
-        /// If method is Get() the parameters will be added as query parameters.
-        /// Otherwise they are body parameters like specified with the POST request.
+        /// Check if param contains a value for the given name already
         /// </summary>
         /// <param name="name">The parameter name.</param>
-        /// <param name="value">The parameter value.</param>
-        /// <returns>this.</returns>
-        public new RestRequest Param(string name, string value)
+        /// <returns>True if already containing value for given name, false otherwise.</returns>
+        protected bool containsParam(string name)
         {
-            return base.Param(name, value) as RestRequest;
-        }
-
-        /// <summary>
-        /// Adds a header to the request.
-        /// </summary>
-        /// <param name="name">Header name.</param>
-        /// <param name="value">Header value.</param>
-        /// <returns>this</returns>
-        public new RestRequest Header(string name, string value)
-        {
-            return base.Header(name, value) as RestRequest;
-        }
-
-        /// <summary>
-        /// Call GetResponse() on the underlying HttpWebRequest.
-        /// </summary>
-        /// <returns>The response.</returns>
-        public new HttpWebResponse GetResponse()
-        {
-            return base.GetResponse();
-        }
-
-        public new async Task<HttpWebResponse> GetResponseAsync()
-        {
-            return await base.GetResponseAsync();
+            return param.ContainsKey(name);
         }
         
-        public new RestResponse<T> Fetch<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
-                                                   Action<RestResponse<T>> successAction = null,
-                                                   Action<RestResponse<T>> errorAction = null)
+        #region Serialization
+        
+        private void registerDefaultHandlers()
         {
-            return base.Fetch<T>(wantedStatusCode, successAction, errorAction);
+            // TODO: Why not reusing the deserializer?
+            // register default handlers
+            content_handler.Add("application/json", new JsonDeserializer());
+            content_handler.Add("application/xml", new XmlDeserializer());
+            content_handler.Add("text/json", new JsonDeserializer());
+            content_handler.Add("text/x-json", new JsonDeserializer());
+            content_handler.Add("text/javascript", new JsonDeserializer());
+            content_handler.Add("text/xml", new XmlDeserializer());
+            content_handler.Add("*", new XmlDeserializer());
         }
 
-        public new async Task<RestResponse<T>> FetchAsync<T>(HttpStatusCode wantedStatusCode = HttpStatusCode.OK,
-                                                                           Action<RestResponse<T>> successAction = null,
-                                                                           Action<RestResponse<T>> errorAction = null)
+        private async Task<T> tryDeserialization<T>(HttpResponseMessage response)
         {
-            return await base.FetchAsync<T>(wantedStatusCode, successAction, errorAction);
-        }
+            T result = default(T);
+            if (!(typeof(T).GetTypeInfo().IsAssignableFrom(typeof(IVoid).GetTypeInfo())))
+            {
+                // TODO: Check media type for json and xml?
+                IDeserializer deserializer = GetHandler(response.Content.Headers.ContentType.MediaType);
+                result = deserializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+            }
+            return result;
 
-        /// <summary>
-        /// Uses a WebClient for file uploading because POST query parameter are not 
-        /// allowed with HttpWebRequest. But that is needed for some rest apis.
-        /// </summary>
-        /// <typeparam name="T">The type of the object that is deserialized from the response content.
-        /// Use INot if no deserialization is needed.</typeparam>
-        /// <param name="localPath">The local path to the upload file.</param>
-        /// <param name="successAction">This action is called if there are no exceptions during the upload.
-        /// Then the RestResponse HttpResponse property will be null. Data is not null if 
-        /// deserialization was wanted and possible.</param>
-        /// <param name="errorAction">This is the on exception action. If this happens, the rest response 
-        /// Exception property will contain the exception that was thrown.
-        /// If the exception is a WebException, the RestResponse HttpResponse property will contain the HttpWebResponse
-        /// from the WebException directly.</param>
-        /// <returns>The result RestResponse.</returns>
-        public new RestResponse<T> UploadFile<T>(string localPath,
-                                            Action<RestResponse<T>> successAction = null,
-                                            Action<RestResponse<T>> errorAction = null)
-        {
-            return base.UploadFile<T>(localPath, successAction, errorAction);
         }
 
         /// <summary>
-        /// Uses a WebClient for file uploading because POST query parameter are not 
-        /// allowed with HttpWebRequest. But that is needed for some rest apis.
+        /// Retrieve the handler for the specified MIME content type
         /// </summary>
-        /// <typeparam name="T">The type of the object that is deserialized from the response content.
-        /// Use INot if no deserialization is needed.</typeparam>
-        /// <param name="localPath">The local path to the upload file.</param>
-        /// <param name="successAction">This action is called if there are no exceptions during the upload.
-        /// Then the RestResponse HttpResponse property will be null. Data is not null if 
-        /// deserialization was wanted and possible.</param>
-        /// <param name="errorAction">This is the on exception action. If this happens, the rest response 
-        /// Exception property will contain the exception that was thrown.
-        /// If the exception is a WebException, the RestResponse HttpResponse property will contain the HttpWebResponse
-        /// from the WebException directly.</param>
-        /// <returns>The result RestResponse.</returns>
-        public new async Task<RestResponse<T>> UploadFileAsync<T>(string localPath,
-                                                            Action<RestResponse<T>> successAction = null,
-                                                            Action<RestResponse<T>> errorAction = null)
+        /// <param name="contentType">MIME content type to retrieve</param>
+        /// <returns>IDeserializer instance</returns>
+        protected IDeserializer GetHandler(string contentType)
         {
-            return await base.UploadFileAsync<T>(localPath, successAction, errorAction);
+            if (string.IsNullOrEmpty(contentType) && content_handler.ContainsKey("*"))
+            {
+                return content_handler["*"];
+            }
+
+            var semicolonIndex = contentType.IndexOf(';');
+            if (semicolonIndex > -1) contentType = contentType.Substring(0, semicolonIndex);
+            IDeserializer handler = null;
+            if (content_handler.ContainsKey(contentType))
+            {
+                handler = content_handler[contentType];
+            }
+            else if (content_handler.ContainsKey("*"))
+            {
+                handler = content_handler["*"];
+            }
+
+            return handler;
         }
 
+        #endregion 
+
+        #endregion
+
+        /// <summary>
+        /// Dispose the request.
+        /// </summary>
+        public void Dispose()
+        {
+            if (client != null)
+            {
+                client.Dispose();
+                client = null;
+            }
+            if (request != null)
+            {
+                request.Dispose();
+                request = null;
+            }
+            GC.SuppressFinalize(this);
+        }
+        
     }
 }

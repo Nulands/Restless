@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7FCBAF11-91AD-4325-B3B0-BBA107C53F90}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RestlessUniversal</RootNamespace>
+    <AssemblyName>RestlessUniversal</AssemblyName>
+    <DefaultLanguage>de-DE</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkProfile>Profile32</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;SIMPLE_JSON_TYPEINFO; WINDOWS_PHONE;UNIVERSAL</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- A reference to the entire .NET Framework is automatically included -->
+    <TargetPlatform Include="Windows, Version=8.1" />
+    <TargetPlatform Include="WindowsPhoneApp, Version=8.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Restless\Extensions\RestlessExtensions.cs">
+      <Link>Extensions\RestlessExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Extensions\RestRequestExtensions.cs">
+      <Link>Extensions\RestRequestExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Extensions\RestResponseExtensions.cs">
+      <Link>Extensions\RestResponseExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\IVoid.cs">
+      <Link>IVoid.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\OAuth\AuthParameter.cs">
+      <Link>OAuth\AuthParameter.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\OAuth\OAuth2.cs">
+      <Link>OAuth\OAuth2.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\OAuth\OAuthProvider.cs">
+      <Link>OAuth\OAuthProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\OAuth\OAuthToken.cs">
+      <Link>OAuth\OAuthToken.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\OAuth\OAuthTokenError.cs">
+      <Link>OAuth\OAuthTokenError.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\OAuth\TokenItem.cs">
+      <Link>OAuth\TokenItem.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\OAuth\TokenManager.cs">
+      <Link>OAuth\TokenManager.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Rest.cs">
+      <Link>Rest.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\RestRequest.cs">
+      <Link>RestRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\RestResponse.cs">
+      <Link>RestResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Sample.cs">
+      <Link>Sample.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Deserializers\DeserializeAsAttribute.cs">
+      <Link>Serialization\Deserializers\DeserializeAsAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Deserializers\DeserializerExtensions.cs">
+      <Link>Serialization\Deserializers\DeserializerExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Deserializers\DotNetXmlDeserializer.cs">
+      <Link>Serialization\Deserializers\DotNetXmlDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Deserializers\IDeserializer.cs">
+      <Link>Serialization\Deserializers\IDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Deserializers\JsonDeserializer.cs">
+      <Link>Serialization\Deserializers\JsonDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Deserializers\XmlAttributeDeserializer.cs">
+      <Link>Serialization\Deserializers\XmlAttributeDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Deserializers\XmlDeserializer.cs">
+      <Link>Serialization\Deserializers\XmlDeserializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Extensions\Helpers.cs">
+      <Link>Serialization\Extensions\Helpers.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Extensions\MiscExtensions.cs">
+      <Link>Serialization\Extensions\MiscExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Extensions\ReflectionExtensions.cs">
+      <Link>Serialization\Extensions\ReflectionExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Extensions\StringExtensions.cs">
+      <Link>Serialization\Extensions\StringExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Extensions\XmlExtensions.cs">
+      <Link>Serialization\Extensions\XmlExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Serializers\DotNetXmlSerializer.cs">
+      <Link>Serialization\Serializers\DotNetXmlSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Serializers\ISerializer.cs">
+      <Link>Serialization\Serializers\ISerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Serializers\JsonSerializer.cs">
+      <Link>Serialization\Serializers\JsonSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Serializers\SerializeAsAttribute.cs">
+      <Link>Serialization\Serializers\SerializeAsAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\Serializers\XmlSerializer.cs">
+      <Link>Serialization\Serializers\XmlSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Serialization\SimpleJson.cs">
+      <Link>Serialization\SimpleJson.cs</Link>
+    </Compile>
+    <Compile Include="..\Restless\Util.cs">
+      <Link>Util.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
