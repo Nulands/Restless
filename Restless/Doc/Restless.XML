@@ -1,0 +1,1387 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Restless</name>
+    </assembly>
+    <members>
+        <member name="T:Nulands.Restless.ContentTypeAttribute">
+            <summary>
+            If ContentTypeAttribute is set in front of a method parameter,
+            the parameter value is supposed to be added to the
+            request as serialzed content.
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Dynamic.DynamicRequest.parseMethodAttributes(System.Reflection.MethodInfo)">
+            <summary>
+            Get all method and parameter attributes for a given MethodInfo.
+            </summary>
+            <param name="method">The given MethodInfo.</param>
+            <returns>The MethodAttributesInfo containing all method and parameter attributes.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Dynamic.DynamicRequest.createParamAttrFunction(Nulands.Restless.Dynamic.ParameterAttributeInfo)">
+            <summary>
+            Creates a function thats does an action on a RestRequest, 
+            depending on the given ParameterAttributeInfo.
+            </summary>
+            <param name="paramInfo">The parameter attribute info.</param>
+            <returns>The function.</returns>
+        </member>
+        <member name="T:Nulands.Restless.RestlessExtensions">
+            <summary>
+            Extensions needed for Restless.
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.ThrowIf``1(``0,System.Func{``0,System.Boolean},System.String,System.String)">
+            <summary>
+            Throws an ArgumentException if the given predicate returns true for the given object.
+            </summary>
+            <typeparam name="T">The type of the given object. Must not be set explicit.</typeparam>
+            <param name="obj">The object.</param>
+            <param name="predicate">the predicate that is called with the given object as argument.</param>
+            <param name="msg">The message added to the exception.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.ThrowIfNot``1(``0,System.Func{``0,System.Boolean},System.String,System.String)">
+            <summary>
+            Throws an ArgumentException if the given predicate returns false for the given object.
+            </summary>
+            <typeparam name="T">The type of the given object. Must not be set explicit.</typeparam>
+            <param name="obj">The object.</param>
+            <param name="predicate">the predicate that is called with the given object as argument.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.ThrowIfNullOrEmpty``1(System.Collections.Generic.IEnumerable{``0},System.String,System.String)">
+            <summary>
+            Throws an ArgumentNullException when the given IEnumerable is null, or an ArgumentException if it is empty.
+            Can be used for arrays too.
+            </summary>
+            <typeparam name="T">The type of the given objects inside the IEnumerable. Must not be set explicit.</typeparam>
+            <param name="enumerable">The enumerable.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.ThrowIfNullOrEmpty(System.String,System.String,System.String)">
+            <summary>
+            Throws an ArgumentNullException when the given string is null, or an ArgumentException if it is empty.
+            </summary>
+            <param name="obj">The string.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.ThrowIfNotFound(System.String,System.Boolean,System.String,System.String)">
+            <summary>
+            Treats a string as a file/folder path and throws an exceptin if the file/folder is not found.
+            </summary>
+            <param name="path">The path string.</param>
+            <param name="isFile">If true the given string is a path to a file, otherwise its a path to a folder.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.ThrowIfNull``1(``0,System.String,System.String)">
+            <summary>
+            Throws an exception if the given object is null.
+            </summary>
+            <typeparam name="T">The type of the object. Must not be set explicit.</typeparam>
+            <param name="obj">The given object.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.ThrowIfNullOrToStrEmpty``1(``0,System.String,System.String)">
+            <summary>
+            Throws an exception if the given object is null or if the obj.ToString() is null or empty.
+            </summary>
+            <typeparam name="T">The type of the object. Must not be set explicit.</typeparam>
+            <param name="obj">The given object.</param>
+            <param name="msg">The message that is added to the exception if it is thrown.</param>
+            <param name="memberName">The name of the method that called ThrowIf (CallerMemberName).</param>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.CreateParamStr(System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            Make a parameter string.
+            </summary>
+            <param name="paramList"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.CreateParamStr(System.Collections.Generic.Dictionary{System.String,System.Collections.Generic.List{System.Object}})">
+            <summary>
+            Make a parameter string.
+            </summary>
+            <param name="paramList"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.FormatUrlWithParams(System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
+            <summary>
+            
+            </summary>
+            <param name="url_params"></param>
+            <param name="url"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.CreateRequestUri(System.String,System.Collections.Generic.Dictionary{System.String,System.Object},System.Collections.Generic.Dictionary{System.String,System.Object},System.String)">
+            <summary>
+            
+            </summary>
+            <param name="url"></param>
+            <param name="query_params"></param>
+            <param name="param"></param>
+            <param name="method"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.RestlessExtensions.SetFrom``1(``0,``0,System.String[])">
+            <summary>
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="to"></param>
+            <param name="from"></param>
+            <param name="excludePropertys"></param>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Method``1(``0,System.String)">
+            <summary>
+            Sets the HttpMethod given by string.
+            </summary>
+            <param name="method">The HttpMethod string. For example "GET".</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Get``1(``0)">
+            <summary>
+            Set the HttpMethod to GET.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Head``1(``0)">
+            <summary>
+            Set the HttpMethod to HEAD.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Post``1(``0)">
+            <summary>
+            Set the HttpMethod to POST.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Put``1(``0)">
+            <summary>
+            Set the HttpMethod to PUT.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Delete``1(``0)">
+            <summary>
+            Set the HttpMethod to DELETE.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Trace``1(``0)">
+            <summary>
+            Set the HttpMethod to TRACE.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Connect``1(``0)">
+            <summary>
+            Set the HttpMethod to CONNECT.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Patch``1(``0)">
+            <summary>
+            Set the HttpMethod to PATCH.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.AddContent``1(``0,System.Net.Http.HttpContent,System.String,System.String)">
+            <summary>
+            Adds a HttpContent to the Request.
+            Multiple contents can be set. 
+            For example first a MultipartContent can be added with AddMultipart(..).
+            Then a StreamContent can be added to this MultipartContent with AddStream(..).
+            If the underlying request.Content is a MultipartContent or MultipartFormDataContent
+            -> the content is added to this MultipartContent.
+            Otherwise the request.Content is simply set to the given content.
+            </summary>
+            <param name="content">The HttpContent.</param>
+            <param name="name">A name can be needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name can be needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.ClearContent``1(``0)">
+            <summary>
+            Sets the underlying HttpContent to null.
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.AddByteArray``1(``0,System.Byte[],System.String,System.String)">
+            <summary>
+            Adds a ByteArrayContent to the request.
+            </summary>
+            <param name="buffer">The buffer containing data.</param>
+            <param name="name">A name is needed if underlying HttpContent is MultipartFormDataContent. (for example multiple file uploads)</param>
+            <param name="fileName">A file name is needed if underlying HttpContent is MultipartFormDataContent.</param>
+            <returns>this</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.AddFormUrl``1(``0,System.String[])">
+            <summary>
+            Adds a FormUrlEncodedContent to the request.
+            If kvPairs are given and kvPairs.Length % 2 is even and length is not zero
+            the kvPairs array is treated as a key value pair list. 
+            These key-value pairs are added to the FormUrlEncodedContent on construction.
+            If no kvPairs are given all parameters added with Param(..) are added to the new 
+            FromUrlEncodedContent.
+            </summary>
+            <param name="kvPairs">The list of key-value pairs. Must contain an even number of string objects if used.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.AddMultipart``1(``0,System.String,System.String)">
+            <summary>
+            Adds a MultipartContent to the request.
+            </summary>
+            <param name="subtype">The sub type if needed.</param>
+            <param name="boundary">The boundary if needed.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.AddMultipartForm``1(``0,System.String)">
+            <summary>
+            Adds a MultipartFormDataContent to the request.
+            </summary>
+            <param name="boundary">The boundary if needed.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.AddStream``1(``0,System.IO.Stream,System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Adds a StreamContent to the request.
+            </summary>
+            <param name="stream">The stream to be added.</param>
+            <param name="mediaType">The media type of the stream.</param>
+            <param name="buffersize">The buffer size used to process the stream. Default is 1024.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.AddString``1(``0,System.String,System.Text.Encoding,System.String,System.String,System.String)">
+            <summary>
+            Adds a StringContent to the request.
+            </summary>
+            <param name="content">The string content.</param>
+            <param name="encoding">The content encoding.</param>
+            <param name="mediaType">The content media type.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.AddJson``1(``0,System.Object,System.Boolean,System.String,System.String)">
+            <summary>
+            Adds an object as serialized json string.
+            </summary>
+            <remarks>Throws exception if the given object is null, or if the
+            serialized json string is null or empty.</remarks>
+            <param name="obj">The object that will be serialized and added as json string content.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.AddXml``1(``0,System.Object,System.String,System.String)">
+            <summary>
+            Adds an object as serialized xml string.
+            </summary>
+            <remarks>Throws exception if the given object is null, or if the
+            serialized xml string is null or empty.</remarks>
+            <param name="obj">The object that will be serialized and added as xml string content.</param>
+            <param name="name">A name needed when content is a MultipartFormDataContent already.</param>
+            <param name="fileName">A file name needed when content is a MultipartFormDataContent already.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.CancelToken``1(``0,System.Threading.CancellationToken)">
+            <summary>
+            Set the CancellationToken for this request.
+            </summary>
+            <param name="token">The token.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Url``1(``0,System.String)">
+            <summary>
+            Sets the URL string for this request.
+            </summary>
+            <param name="url">The URL string.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.UrlFormat``1(``0,System.Object[])">
+            <summary>
+            Sets the URL format parameter for this request.
+            A test String.Format is done to verify the input objects.
+            </summary>
+            <param name="objects">The format parameter objects.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.RequestAction``1(``0,System.Action{System.Net.Http.HttpRequestMessage})">
+            <summary>
+            Map an action over the underlying HttpRequestMessage.
+            Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
+            Usage: request.RequestAction(r => r.Content = ...);
+            </summary>
+            <param name="action">An action that takes a HttpRequestMessage as argument.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.ClientAction``1(``0,System.Action{System.Net.Http.HttpClient})">
+            <summary>
+            Map an action over the underlying HttpClient.
+            Can be used to set "exotic" things, that are not exposed by the BaseRestRequest.
+            Usage: request.ClientAction(c => c.Timeout = ...);
+            </summary>
+            <param name="action">An action that takes a HttpClient as argument.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Basic``1(``0,System.String,System.String)">
+            <summary>
+            Adds a Http Basic authorization header to the request. 
+            The result string is Base64 encoded internally.
+            </summary>
+            <param name="username">The user name.</param>
+            <param name="password">The user password.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Bearer``1(``0,System.String,System.String,System.Boolean)">
+            <summary>
+            Adds a Http Bearer authorization header to the request.
+            The given token string is Base64 encoded internally.
+            </summary>
+            <param name="token">The token string.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Param``1(``0,System.String,System.Object,Nulands.Restless.ParameterType)">
+            <summary>
+            Adds a parameter to the request. Can be a Query, FormUrlEncoded or Url parameter.
+            If a value for the given name is already set, the old parameter value is overwritten silently.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <param name="type">The ParameterType.</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.UrlParam``1(``0,System.String,System.Object)">
+            <summary>
+            Adds an url parameter to the request.
+            Url parameters are part of the set url string of the form {name}.
+            The {name} is replaced by the given value before the request is sent.
+            If an url parameter value for the given name already exists the
+            old value is overwritten silently.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <!-- Ungültiger XML-Kommentar wurde für den Member "M:Nulands.Restless.Extensions.RestRequestExtensions.Param``1(``0,System.String,System.Object,System.Boolean)" ignoriert -->
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.QParam``1(``0,System.String,System.Object)">
+            <summary>
+            Adds a query parameter (?name=value) to the request.
+            The parameter-value pair is added to the URL before sending the request.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Header``1(``0,System.String,System.String)">
+            <summary>
+            Adds a header with a single value to the request.
+            </summary>
+            <param name="name">The header name.</param>
+            <param name="value">The header value (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Header``1(``0,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Adds a header with multiple values to the request.
+            </summary>
+            <param name="name">The header name.</param>
+            <param name="values">The header values (should be convertible to string).</param>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.GetResponseAsync``1(``0)">
+            <summary>
+            Sends the request and return the raw HttpResponseMessage.
+            </summary>
+            <returns>Task containing the HttpResponseMessage.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.GetRestResponseAsync``1(``0,System.Action{Nulands.Restless.RestResponse{Nulands.Restless.IVoid}},System.Action{Nulands.Restless.RestResponse{Nulands.Restless.IVoid}})">
+            <summary>
+            Sends the request and returns a RestResponse with generic type IVoid.
+            </summary>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A Task containing the RestRespone. There will be no deserialized data, but the RestResponse.Response 
+            (HttpResponseMessage) will be set.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Fetch(Nulands.Restless.RestRequest,System.Action{Nulands.Restless.RestResponse{Nulands.Restless.IVoid}},System.Action{Nulands.Restless.RestResponse{Nulands.Restless.IVoid}})">
+            <summary>
+            Sends the request and returns the RestResponse containing deserialized data 
+            from the HttpResponseMessage.Content if T is not IVoid.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Fetch``1(Nulands.Restless.RestRequest,System.Action{Nulands.Restless.RestResponse{``0}},System.Action{Nulands.Restless.RestResponse{``0}})">
+            <summary>
+            Sends the request and returns the RestResponse containing deserialized data 
+            from the HttpResponseMessage.Content if T is not IVoid.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.UploadFileBinary``1(Nulands.Restless.RestRequest,System.String,System.String,System.Action{Nulands.Restless.RestResponse{``0}},System.Action{Nulands.Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary file using StreamContent.
+            The file is opened by this function.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="localPath">The path to the file that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.UploadFileBinary``1(Nulands.Restless.RestRequest,System.IO.Stream,System.String,System.Action{Nulands.Restless.RestResponse{``0}},System.Action{Nulands.Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary (file) stream using StreamContent.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.UploadFileFormData``1(Nulands.Restless.RestRequest,System.String,System.String,System.Action{Nulands.Restless.RestResponse{``0}},System.Action{Nulands.Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary file using a MultipartFormDataContent and a (sub) StreamContent.
+            AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+            AddFormUrl() will add all parameter to the request that are added with Param(..).
+            The file is opened by this function.
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="localPath">The path to the file that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.UploadFileFormData``1(Nulands.Restless.RestRequest,System.IO.Stream,System.String,System.String,System.Action{Nulands.Restless.RestResponse{``0}},System.Action{Nulands.Restless.RestResponse{``0}})">
+            <summary>
+            Uploads a binary (file) stream using a MultipartFormDataContent and a (sub) StreamContent.
+            AddFormUrl() is called before the StreamContent is added to the MultipartFormDataContent.
+            AddFormUrl() will add all parameter to the request that are added with Param(..).
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="streamContent">The (file) stream that will be uploaded.</param>
+            <param name="contentType">The file content type.</param>
+            <param name="localPath">The "path" of the (file) stream that will be uploaded.</param>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="T:Nulands.Restless.IVoid">
+            <summary>
+            "Ghost" parameter can be used to indicate that a 
+            generic parameter will be unused/left blank.
+            Like setting it to "null".
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.OAuth.ClientType.Confidential">
+            <summary>
+            Clients capable of maintaining the confidentiality of their
+            credentials (e.g., client implemented on a secure server with
+            restricted access to the client credentials), or capable of secure
+            client authentication using other means.
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.OAuth.ClientType.Public">
+            <summary>
+            Clients incapable of maintaining the confidentiality of their
+            credentials (e.g., clients executing on the device used by the
+            resource owner, such as an installed native application or a web
+            browser-based application), and incapable of secure client
+            authentication via any other means.
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.OAuth.OAuthToken">
+            <summary>
+            RFC 6749 5.1 Successful Response
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.OAuth.OAuthToken.AccessToken">
+            <summary>
+            The access token string.
+            </summary>
+            <remarks>
+            Required.
+            </remarks>
+        </member>
+        <member name="P:Nulands.Restless.OAuth.OAuthToken.TokenType">
+            <summary>
+            The token type string.
+            </summary>
+            <remarks>
+            Required.
+            </remarks>
+        </member>
+        <member name="P:Nulands.Restless.OAuth.OAuthToken.ExpiresIn">
+            <summary>
+            The lifetime in seconds of the access token.
+            </summary>
+            <remarks>
+            Recommended
+            </remarks>
+        </member>
+        <member name="T:Nulands.Restless.OAuth.OAuthTokenError">
+            <summary>
+            RFC 6749 5.2 Error Response
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.OAuth.TokenManager">
+            <summary>
+            OAuth2 token life time manager class.
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.OAuth.TokenManager.Load(Nulands.Restless.OAuth.TokenItem[])">
+            <summary>
+            Add all given token items to the manager.
+            </summary>
+            <param name="tokens">The token items to be added.</param>
+        </member>
+        <member name="M:Nulands.Restless.OAuth.TokenManager.Add(System.String,System.String,System.String,Nulands.Restless.OAuth.OAuthToken)">
+            <summary>
+            Add a token to the token manager.
+            </summary>
+            <remarks>
+            For each added token a <see cref="T:Nulands.Restless.OAuth.TokenItem"/> is created.
+            The token item CreatedTicks is set to DateTime.Now.Ticks and is used
+            in the Get functions to check if a tokens needs a refresh before it is returned.
+            Client id and secret are needed to refresh the access token.
+            </remarks>
+            <param name="clientId">The client id this token referes to.</param>
+            <param name="clientSecret">The client secret this token referes to.</param>
+            <param name="tokenEndpoint">The token endpoint where to refresh the access token.</param>
+            <param name="token">The token that is added to the manager.</param>
+        </member>
+        <member name="M:Nulands.Restless.OAuth.TokenManager.Get(System.String)">
+            <summary>
+            Retreive a token for a given client id.
+            </summary>
+            <remarks>
+            If the OAuth access token is already expired it is refreshed before returned.
+            </remarks>
+            <param name="clientId">The client id of the token that will be returned.</param>
+            <returns>The OAuthToken or null if not found.</returns>
+        </member>
+        <member name="M:Nulands.Restless.OAuth.TokenManager.Get``1(System.String)">
+            <summary>
+            Retreive a token for a given client id.
+            </summary>
+            <remarks>
+            If the OAuth access token is already expired it is refreshed before returned.
+            </remarks>
+            <param name="clientId">The client id of the token that will be returned.</param>
+            <returns>The OAuthToken or null if not found.</returns>
+        </member>
+        <member name="M:Nulands.Restless.Rest.OAuth.GetAuthorizationUrl(System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            RFC 6749 4.1.3. Access Token Request
+            </summary>
+            <param name="authParameter"></param>
+            <param name="authEndpoint"></param>
+        </member>
+        <member name="M:Nulands.Restless.Rest.OAuth.RefreshAccessToken(System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            RFC 6749 6. Refreshing an Access Token
+            </summary>
+            <param name="refreshToken"></param>
+            <param name="clientId"></param>
+            
+            <param name="clientSecret"></param>
+            <param name="scope"></param>
+            <param name="tokenEndpoint"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Nulands.Restless.ParameterType">
+            <summary>
+            Parameter type enum. Query, FormUrlEncoded or Url.
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.ParameterType.Query">
+            <summary>
+            Parameter is added to the URL as query parameter (?name=value).
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.ParameterType.FormUrlEncoded">
+            <summary>
+            Parameter is added to a POST request with FormUrlEncoded Http content.
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.ParameterType.Url">
+            <summary>
+            Parameter is used to format the URL string (replaces a {name}).
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.RestRequest">
+            <summary>
+            RestRequest class.
+            </summary>
+            <remarks>Currently the RestRequest does not verify that the underlying HttpRequestMessage.Content
+            is set correctly. The developer is responsible for setting a correct HttpContent.
+            For example a POST request should use FormUrlEncoded content when parameters are needed.
+            By default (ctor) every RestRequest got his own underlying HttpRequestMessage and HttpClient
+            to send the constructed request.</remarks>
+        </member>
+        <member name="F:Nulands.Restless.RestRequest.content_handler">
+            <summary>
+            Content (de)serialization handler.
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.RestRequest.query_params">
+            <summary>
+            Url query parameters: ?name=value
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.RestRequest.param">
+            <summary>
+            When method is GET then added as query parameters too.
+            Otherwise added as FormUrlEncoded parameters: name=value
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.RestRequest.url_params">
+            <summary>
+            Url parameters ../{name}.
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.RestRequest.url">
+            <summary>
+            The url string. Can contain {name} and/or format strings {0}.
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.RestRequest.urlFormatParams">
+            <summary>
+            Last url format {} set with UrlFormat.
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.RestRequest.client">
+            <summary>
+            HttpClient used to send the request message.
+            </summary>
+        </member>
+        <member name="F:Nulands.Restless.RestRequest.request">
+            <summary>
+            Internal request message.
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.RestRequest.#ctor">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="defaultRequest">The initial request message, or null if not used.</param>
+            <param name="httpClient">The initial http client, or null if not used.</param>
+        </member>
+        <member name="M:Nulands.Restless.RestRequest.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="defaultRequest">The initial request message, or null if not used.</param>
+            <param name="httpClient">The initial http client, or null if not used.</param>
+        </member>
+        <member name="M:Nulands.Restless.RestRequest.buildAndSendRequest``1(System.Action{Nulands.Restless.RestResponse{``0}},System.Action{Nulands.Restless.RestResponse{``0}})">
+            <summary>
+            A helper function that is doing all the "hard" work setting up the request and sending it.
+            1) The Url is formated using String.Format if UrlParam´s where added.
+            2) The query parameter are added to the URL with RestlessExtensions.CreateRequestUri
+            3) The request is send.
+            4) The RestResponse is set. 
+            </summary>
+            <typeparam name="T">The type of the deserialized data. Set to IVoid if no deserialization is wanted.</typeparam>
+            <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
+            <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
+            <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="M:Nulands.Restless.RestRequest.containsParam(System.String)">
+            <summary>
+            Check if param contains a value for the given name already
+            </summary>
+            <param name="name">The parameter name.</param>
+            <returns>True if already containing value for given name, false otherwise.</returns>
+        </member>
+        <member name="M:Nulands.Restless.RestRequest.GetHandler(System.String)">
+            <summary>
+            Retrieve the handler for the specified MIME content type
+            </summary>
+            <param name="contentType">MIME content type to retrieve</param>
+            <returns>IDeserializer instance</returns>
+        </member>
+        <member name="M:Nulands.Restless.RestRequest.Dispose">
+            <summary>
+            Dispose the request.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestRequest.HttpClient">
+            <summary>
+            HttpClient property.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestRequest.HttpRequest">
+            <summary>
+            HttpRequestMessage property.
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.RestResponse`1">
+            <summary>
+            A class representing a REST response message.
+            It contains the raw HttpResponseMessage returned from the request.
+            Further it contains the deserialized data if no exception occured, T != IVoid 
+            and the response status code matches.
+            </summary>
+            <typeparam name="T">The type of the data that will be deserialized.</typeparam>
+        </member>
+        <member name="M:Nulands.Restless.RestResponse`1.#ctor">
+            <summary>
+            Default constructor.
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.RestResponse`1.#ctor(Nulands.Restless.RestRequest)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="request">Reference to a BaseRestRequest.</param>
+        </member>
+        <member name="M:Nulands.Restless.RestResponse`1.ThrowIfException">
+            <summary>
+            If an exception occurred during the request throw it again.
+            Usage:
+            var data = response.ThrowIfException().Data;
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.RestResponse`1.Dispose">
+            <summary>
+            Dispose the request.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestResponse`1.Request">
+            <summary>
+            That BaseRestRequest this rest response comes from.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestResponse`1.Exception">
+            <summary>
+            The Exception that could be thrown during the request fetching.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestResponse`1.HttpResponse">
+            <summary>
+            The "raw" HttpResponseMessage.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestResponse`1.Data">
+            <summary>
+            The deserialized data if T is not INothing.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestResponse`1.IsSuccessStatusCode">
+            <summary>
+            Check if the returned status code matches the wanted status code.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestResponse`1.IsException">
+            <summary>
+            Check if the request that was producing this response has encountered an exception.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestResponse`1.IsNothing">
+            <summary>
+            Check if T is IVoid
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.RestResponse`1.HasData">
+            <summary>
+            Check if a deserialized object is available.
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.Deserializers.DeserializeAsAttribute">
+            <summary>
+            Allows control how class and property names and values are deserialized by XmlAttributeDeserializer
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Deserializers.DeserializeAsAttribute.Name">
+            <summary>
+            The name to use for the serialized element
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Deserializers.DeserializeAsAttribute.Attribute">
+            <summary>
+            Sets if the property to Deserialize is an Attribute or Element (Default: false)
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.Deserializers.DotNetXmlDeserializer">
+            <summary>
+            Wrapper for System.Xml.Serialization.XmlSerializer.
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.Extensions.ReflectionExtensions">
+            <summary>
+            Reflection extensions
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.GetAttribute``1(System.Reflection.MemberInfo)">
+            <summary>
+            Retrieve an attribute from a member (property)
+            </summary>
+            <typeparam name="T">Type of attribute to retrieve</typeparam>
+            <param name="prop">Member to retrieve attribute from</param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.GetAttribute``1(System.Type)">
+            <summary>
+            Retrieve an attribute from a type
+            </summary>
+            <typeparam name="T">Type of attribute to retrieve</typeparam>
+            <param name="type">Type to retrieve attribute from</param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.IsSubclassOfRawGeneric(System.Type,System.Type)">
+            <summary>
+            Checks a type to see if it derives from a raw generic (e.g. List[[]])
+            </summary>
+            <param name="toCheck"></param>
+            <param name="generic"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.FindEnumValue(System.Type,System.String,System.Globalization.CultureInfo)">
+            <summary>
+            Find a value from a System.Enum by trying several possible variants
+            of the string value of the enum.
+            </summary>
+            <param name="type">Type of enum</param>
+            <param name="value">Value for which to search</param>
+            <param name="culture">The culture used to calculate the name variants</param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.UrlEncode(System.String)">
+            <summary>
+            Uses Uri.EscapeDataString() based on recommendations on MSDN
+            http://blogs.msdn.com/b/yangxind/archive/2006/11/09/don-t-use-net-system-uri-unescapedatastring-in-url-decoding.aspx
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.HasValue(System.String)">
+            <summary>
+            Check that a string is not null or empty
+            </summary>
+            <param name="input">String to check</param>
+            <returns>bool</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.RemoveUnderscoresAndDashes(System.String)">
+            <summary>
+            Remove underscores from a string
+            </summary>
+            <param name="input">String to process</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.ParseJsonDate(System.String,System.Globalization.CultureInfo)">
+            <summary>
+            Parses most common JSON date formats
+            </summary>
+            <param name="input">JSON value to parse</param>
+            <returns>DateTime</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.RemoveSurroundingQuotes(System.String)">
+            <summary>
+            Remove leading and trailing " from a string
+            </summary>
+            <param name="input">String to parse</param>
+            <returns>String</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.Matches(System.String,System.String)">
+            <summary>
+            Checks a string to see if it matches a regex
+            </summary>
+            <param name="input">String to check</param>
+            <param name="pattern">Pattern to match</param>
+            <returns>bool</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.ToPascalCase(System.String,System.Globalization.CultureInfo)">
+            <summary>
+            Converts a string to pascal case
+            </summary>
+            <param name="lowercaseAndUnderscoredWord">String to convert</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.ToPascalCase(System.String,System.Boolean,System.Globalization.CultureInfo)">
+            <summary>
+            Converts a string to pascal case with the option to remove underscores
+            </summary>
+            <param name="text">String to convert</param>
+            <param name="removeUnderscores">Option to remove underscores</param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.ToCamelCase(System.String,System.Globalization.CultureInfo)">
+            <summary>
+            Converts a string to camel case
+            </summary>
+            <param name="lowercaseAndUnderscoredWord">String to convert</param>
+            <returns>String</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.MakeInitialLowerCase(System.String)">
+            <summary>
+            Convert the first letter of a string to lower case
+            </summary>
+            <param name="word">String to convert</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.IsUpperCase(System.String)">
+            <summary>
+            Checks to see if a string is all uppper case
+            </summary>
+            <param name="inputString">String to check</param>
+            <returns>bool</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.AddUnderscores(System.String)">
+            <summary>
+            Add underscores to a pascal-cased string
+            </summary>
+            <param name="pascalCasedWord">String to convert</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.AddDashes(System.String)">
+            <summary>
+            Add dashes to a pascal-cased string
+            </summary>
+            <param name="pascalCasedWord">String to convert</param>
+            <returns>string</returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.AddUnderscorePrefix(System.String)">
+            <summary>
+            Add an undescore prefix to a pascasl-cased string
+            </summary>
+            <param name="pascalCasedWord"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.StringExtensions.GetNameVariants(System.String,System.Globalization.CultureInfo)">
+            <summary>
+            Return possible variants of a name for name matching.
+            </summary>
+            <param name="name">String to convert</param>
+            <param name="culture">The culture to use for conversion</param>
+            <returns>IEnumerable&lt;string&gt;</returns>
+        </member>
+        <member name="T:Nulands.Restless.XmlExtensions">
+            <summary>
+            XML Extension Methods
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.XmlExtensions.AsNamespaced(System.String,System.String)">
+            <summary>
+            Returns the name of an element with the namespace if specified
+            </summary>
+            <param name="name">Element name</param>
+            <param name="namespace">XML Namespace</param>
+            <returns></returns>
+        </member>
+        <member name="T:Nulands.Restless.Serializers.DotNetXmlSerializer">
+            <summary>
+            Wrapper for System.Xml.Serialization.XmlSerializer.
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.DotNetXmlSerializer.#ctor">
+            <summary>
+            Default constructor, does not specify namespace
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.DotNetXmlSerializer.#ctor(System.String)">
+            <summary>
+            Specify the namespaced to be used when serializing
+            </summary>
+            <param name="namespace">XML namespace</param>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.DotNetXmlSerializer.Serialize(System.Object,System.Boolean)">
+            <summary>
+            Serialize the object as XML
+            </summary>
+            <param name="obj">Object to serialize</param>
+            <returns>XML as string</returns>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.DotNetXmlSerializer.RootElement">
+            <summary>
+            Name of the root element to use when serializing
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.DotNetXmlSerializer.Namespace">
+            <summary>
+            XML namespace to use when serializing
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.DotNetXmlSerializer.DateFormat">
+            <summary>
+            Format string to use when serializing dates
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.DotNetXmlSerializer.ContentType">
+            <summary>
+            Content type for serialized content
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.DotNetXmlSerializer.Encoding">
+            <summary>
+            Encoding for serialized content
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.Serializers.DotNetXmlSerializer.EncodingStringWriter">
+            <summary>
+            Need to subclass StringWriter in order to override Encoding
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.Serializers.JsonSerializer">
+            <summary>
+            Default JSON serializer for request bodies
+            Doesn't currently use the SerializeAs attribute, defers to Newtonsoft's attributes
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.JsonSerializer.#ctor">
+            <summary>
+            Default serializer
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.JsonSerializer.Serialize(System.Object,System.Boolean)">
+            <summary>
+            Serialize the object as JSON
+            </summary>
+            <param name="obj">Object to serialize</param>
+            <returns>JSON as String</returns>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.JsonSerializer.DateFormat">
+            <summary>
+            Unused for JSON Serialization
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.JsonSerializer.RootElement">
+            <summary>
+            Unused for JSON Serialization
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.JsonSerializer.Namespace">
+            <summary>
+            Unused for JSON Serialization
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.JsonSerializer.ContentType">
+            <summary>
+            Content type for serialized content
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.Serializers.SerializeAsAttribute">
+            <summary>
+            Allows control how class and property names and values are serialized by XmlSerializer
+            Currently not supported with the JsonSerializer
+            When specified at the property level the class-level specification is overridden
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.SerializeAsAttribute.TransformName(System.String)">
+            <summary>
+            Called by the attribute when NameStyle is speficied
+            </summary>
+            <param name="input">The string to transform</param>
+            <returns>String</returns>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.SerializeAsAttribute.Name">
+            <summary>
+            The name to use for the serialized element
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.SerializeAsAttribute.Attribute">
+            <summary>
+            Sets the value to be serialized as an Attribute instead of an Element
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.SerializeAsAttribute.Culture">
+            <summary>
+            The culture to use when serializing
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.SerializeAsAttribute.NameStyle">
+            <summary>
+            Transforms the casing of the name based on the selected value.
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.SerializeAsAttribute.Index">
+            <summary>
+            The order to serialize the element. Default is int.MaxValue.
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.Serializers.NameStyle">
+            <summary>
+            Options for transforming casing of element names
+            </summary>
+        </member>
+        <member name="T:Nulands.Restless.Serializers.XmlSerializer">
+            <summary>
+            Default XML Serializer
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.XmlSerializer.#ctor">
+            <summary>
+            Default constructor, does not specify namespace
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.XmlSerializer.#ctor(System.String)">
+            <summary>
+            Specify the namespaced to be used when serializing
+            </summary>
+            <param name="namespace">XML namespace</param>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.XmlSerializer.Serialize(System.Object,System.Boolean)">
+            <summary>
+            Serialize the object as XML
+            </summary>
+            <param name="obj">Object to serialize</param>
+            <returns>XML as string</returns>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.XmlSerializer.IsNumeric(System.Object)">
+            <summary>
+            Determines if a given object is numeric in any way
+            (can be integer, double, null, etc).
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.XmlSerializer.RootElement">
+            <summary>
+            Name of the root element to use when serializing
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.XmlSerializer.Namespace">
+            <summary>
+            XML namespace to use when serializing
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.XmlSerializer.DateFormat">
+            <summary>
+            Format string to use when serializing dates
+            </summary>
+        </member>
+        <member name="P:Nulands.Restless.Serializers.XmlSerializer.ContentType">
+            <summary>
+            Content type for serialized content
+            </summary>
+        </member>
+        <member name="T:SimpleJson.JsonArray">
+            <summary>
+            Represents the json array.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonArray.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:SimpleJson.JsonArray"/> class. 
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonArray.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:SimpleJson.JsonArray"/> class. 
+            </summary>
+            <param name="capacity">The capacity of the json array.</param>
+        </member>
+        <member name="M:SimpleJson.JsonArray.ToString">
+            <summary>
+            The json representation of the array.
+            </summary>
+            <returns>The json representation of the array.</returns>
+        </member>
+        <member name="T:SimpleJson.JsonObject">
+            <summary>
+            Represents the json object.
+            </summary>
+        </member>
+        <member name="F:SimpleJson.JsonObject._members">
+            <summary>
+            The internal member dictionary.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonObject.#ctor">
+            <summary>
+            Initializes a new instance of <see cref="T:SimpleJson.JsonObject"/>.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonObject.#ctor(System.Collections.Generic.IEqualityComparer{System.String})">
+            <summary>
+            Initializes a new instance of <see cref="T:SimpleJson.JsonObject"/>.
+            </summary>
+            <param name="comparer">The <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> implementation to use when comparing keys, or null to use the default <see cref="T:System.Collections.Generic.EqualityComparer`1"/> for the type of the key.</param>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Add(System.String,System.Object)">
+            <summary>
+            Adds the specified key.
+            </summary>
+            <param name="key">The key.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="M:SimpleJson.JsonObject.ContainsKey(System.String)">
+            <summary>
+            Determines whether the specified key contains key.
+            </summary>
+            <param name="key">The key.</param>
+            <returns>
+                <c>true</c> if the specified key contains key; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Remove(System.String)">
+            <summary>
+            Removes the specified key.
+            </summary>
+            <param name="key">The key.</param>
+            <returns></returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.TryGetValue(System.String,System.Object@)">
+            <summary>
+            Tries the get value.
+            </summary>
+            <param name="key">The key.</param>
+            <param name="value">The value.</param>
+            <returns></returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Add(System.Collections.Generic.KeyValuePair{System.String,System.Object})">
+            <summary>
+            Adds the specified item.
+            </summary>
+            <param name="item">The item.</param>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Clear">
+            <summary>
+            Clears this instance.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Contains(System.Collections.Generic.KeyValuePair{System.String,System.Object})">
+            <summary>
+            Determines whether [contains] [the specified item].
+            </summary>
+            <param name="item">The item.</param>
+            <returns>
+            	<c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.CopyTo(System.Collections.Generic.KeyValuePair{System.String,System.Object}[],System.Int32)">
+            <summary>
+            Copies to.
+            </summary>
+            <param name="array">The array.</param>
+            <param name="arrayIndex">Index of the array.</param>
+        </member>
+        <member name="M:SimpleJson.JsonObject.Remove(System.Collections.Generic.KeyValuePair{System.String,System.Object})">
+            <summary>
+            Removes the specified item.
+            </summary>
+            <param name="item">The item.</param>
+            <returns></returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.GetEnumerator">
+            <summary>
+            Gets the enumerator.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+            Returns an enumerator that iterates through a collection.
+            </summary>
+            <returns>
+            An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
+            </returns>
+        </member>
+        <member name="M:SimpleJson.JsonObject.ToString">
+            <summary>
+            Returns a json <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
+            </summary>
+            <returns>
+            A json <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
+            </returns>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Item(System.Int32)">
+            <summary>
+            Gets the <see cref="T:System.Object"/> at the specified index.
+            </summary>
+            <value></value>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Keys">
+            <summary>
+            Gets the keys.
+            </summary>
+            <value>The keys.</value>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Values">
+            <summary>
+            Gets the values.
+            </summary>
+            <value>The values.</value>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Item(System.String)">
+            <summary>
+            Gets or sets the <see cref="T:System.Object"/> with the specified key.
+            </summary>
+            <value></value>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Count">
+            <summary>
+            Gets the count.
+            </summary>
+            <value>The count.</value>
+        </member>
+        <member name="P:SimpleJson.JsonObject.IsReadOnly">
+            <summary>
+            Gets a value indicating whether this instance is read only.
+            </summary>
+            <value>
+            	<c>true</c> if this instance is read only; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="T:SimpleJson.SimpleJson">
+            <summary>
+            This class encodes and decodes JSON strings.
+            Spec. details, see http://www.json.org/
+            
+            JSON uses Arrays and Objects. These correspond here to the datatypes JsonArray(IList&lt;object>) and JsonObject(IDictionary&lt;string,object>).
+            All numbers are parsed to doubles.
+            </summary>
+        </member>
+        <member name="M:SimpleJson.SimpleJson.DeserializeObject(System.String)">
+            <summary>
+            Parses the string json into a value
+            </summary>
+            <param name="json">A JSON string.</param>
+            <returns>An IList&lt;object>, a IDictionary&lt;string,object>, a double, a string, null, true, or false</returns>
+        </member>
+        <member name="M:SimpleJson.SimpleJson.TryDeserializeObject(System.String,System.Object@)">
+            <summary>
+            Try parsing the json string into a value.
+            </summary>
+            <param name="json">
+            A JSON string.
+            </param>
+            <param name="obj">
+            The object.
+            </param>
+            <returns>
+            Returns true if successfull otherwise false.
+            </returns>
+        </member>
+        <member name="M:SimpleJson.SimpleJson.SerializeObject(System.Object,SimpleJson.IJsonSerializerStrategy)">
+            <summary>
+            Converts a IDictionary&lt;string,object> / IList&lt;object> object into a JSON string
+            </summary>
+            <param name="json">A IDictionary&lt;string,object> / IList&lt;object></param>
+            <param name="jsonSerializerStrategy">Serializer strategy to use</param>
+            <returns>A JSON encoded string, or null if object 'json' is not serializable</returns>
+        </member>
+        <member name="M:SimpleJson.SimpleJson.IsNumeric(System.Object)">
+            <summary>
+            Determines if a given object is numeric in any way
+            (can be integer, double, null, etc).
+            </summary>
+        </member>
+        <!-- Ungültiger XML-Kommentar wurde für den Member "M:Nulands.Restless.Util.Util.EvalExpression(System.Linq.Expressions.Expression)" ignoriert -->
+    </members>
+</doc>

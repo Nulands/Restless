@@ -77,6 +77,21 @@ namespace Nulands.Restless
         public static string ClientId { get; set; }
 
 
+        public static RestRequest Get(string url)
+        {
+            return new RestRequest().Get().Url(url);
+        }
+
+        public static RestRequest Post(string url)
+        {
+            return new RestRequest().Post().Url(url);
+        }
+
+        public static RestRequest Put(string url)
+        {
+            return new RestRequest().Put().Url(url);
+        }
+
         #region Get a RestRequest, and set access tokens if needed
 
         public static T Request<T>(bool setDefaultAccessToken = true, string accessToken = "", bool toBase64 = true, string tokenType = "Bearer")

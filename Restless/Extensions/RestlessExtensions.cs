@@ -93,6 +93,7 @@ namespace Nulands.Restless
                 throw new ArgumentException("String is empty", memberName + "-" + (msg == null ? "" : msg));
         }
 
+
         /// <summary>
         /// Treats a string as a file/folder path and throws an exceptin if the file/folder is not found.
         /// </summary>
@@ -128,6 +129,14 @@ namespace Nulands.Restless
                 if (String.IsNullOrEmpty(msg))
                     msg = obj.GetType().Name;
                 throw new ArgumentNullException(memberName + "-" + (msg == null ? "" : msg));
+            }
+        }
+
+        public static void ThrowIfEmpty(this string obj, string msg = "", [CallerMemberName]string memberName = "")
+        {
+            if (obj == "")
+            {
+                throw new ArgumentException(memberName + "-" + " is empty");
             }
         }
 

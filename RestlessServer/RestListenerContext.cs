@@ -8,6 +8,7 @@ namespace Nulands.Restless
         {
             return new RestListenerContext() { Request = request, Response = response };
         }
+        public Session Session { get; set; }
         public RestListenerRequest Request { get; private set; }
         public RestListenerResponse Response { get; private set; }
     }

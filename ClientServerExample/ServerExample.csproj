@@ -4,15 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DF604A94-7AEC-45F2-8F6C-6851D32BE5C4}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{949238C9-8A17-4CF6-8AD5-428419AB4380}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Nulands.Restless</RootNamespace>
-    <AssemblyName>RestlessServer</AssemblyName>
+    <RootNamespace>ClientServerExample</RootNamespace>
+    <AssemblyName>ClientServerExample</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -30,12 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Proactive">
-      <HintPath>..\..\Proactive\Proactive.NonPortable\bin\Debug\Proactive.dll</HintPath>
-    </Reference>
-    <Reference Include="Proactive.NonPortable">
-      <HintPath>..\..\Proactive\Proactive.NonPortable\bin\Debug\Proactive.NonPortable.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net" />
@@ -47,22 +43,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FProperty.cs" />
-    <Compile Include="NameValueList.cs" />
-    <Compile Include="RestHandler.cs" />
-    <Compile Include="RestListenerContext.cs" />
-    <Compile Include="RestListenerRequest.cs" />
-    <Compile Include="RestListenerResponse.cs" />
-    <Compile Include="RestServer.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RestServerUtil.cs" />
-    <Compile Include="Ringbuffer\CoalescingRingBuffer.cs" />
-    <Compile Include="Ringbuffer\ICoalescingBuffer.cs" />
-    <Compile Include="Route.cs" />
-    <Compile Include="RouteGroup.cs" />
-    <Compile Include="Session.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RestlessServer\RestlessServer.csproj">
+      <Project>{df604a94-7aec-45f2-8f6c-6851d32be5c4}</Project>
+      <Name>RestlessServer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Restless\Restless.csproj">
       <Project>{83c44a0c-bb9d-46ff-8f23-5b6684c53ec1}</Project>
       <Name>Restless</Name>

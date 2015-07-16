@@ -2,7 +2,31 @@
 
 namespace Nulands.Restless
 {
-    public sealed class RouteGroup
+    public class RouteGroupModule
+    {
+        public static RouteGroupModule New(Action<RouteGroup> apply)
+        {
+            return new RouteGroupModule() { Apply = apply };
+        }
+        public Action<RouteGroup> Apply { get; set; }
+
+        public void Add(Action<RouteGroup> apply)
+        {
+            if (Apply == null)
+                Apply = apply;
+            else
+            {
+                Action<RouteGroup> tmp = Apply;
+                // compose apply actions
+                Apply = rg => {
+                    apply(rg);
+                    tmp(rg);
+                };
+            }
+        }
+    }
+
+    public class RouteGroup
     {
         Route get = null;
         Route post = null;
@@ -13,12 +37,6 @@ namespace Nulands.Restless
 
         public static RouteGroup Create(string basePath = "", params Action<RouteGroup>[] routeAdder)
         {
-            var group = RouteGroup.Create("/Persons");
-            group.Get["/ById", writeAsLine: true] = _ => "Hello World";
-            group.Post["", writeAsLine: true] = context => "Get parameter (Query, Form, ..) from context.Request and send result via context.Response";
-            group.Get["", writeAsLine: true] = _ => "Hello World";
-            group.Get["", serializeAs: SerializationType.Xml] = _ => "Add a function that returns an object depending on the context.Reques";
-            group.Get[""] = context => context.Request.Header["HeaderName"] = "";
             var routeGroup = new RouteGroup(basePath);
             foreach (var rAdder in routeAdder)
                 rAdder(routeGroup);
@@ -36,6 +54,11 @@ namespace Nulands.Restless
                 delete = new Route("DELETE", basePath);
                 update = new Route("UPDATE", basePath);
             }
+        }
+
+        public void ApplyModule(RouteGroupModule module)
+        {
+            module.Apply(this);
         }
 
         public Route Get { get { return get == null ? (get = new Route("GET", basePath)) : get; } }

@@ -5,6 +5,8 @@
 #Restless folder
 #[Rr]estless/
 
+RestlessNUnit/
+
 # mstest test results
 TestResults
 

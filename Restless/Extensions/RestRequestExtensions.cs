@@ -557,6 +557,14 @@ namespace Nulands.Restless.Extensions
             return request;
         }
 
+        public static T Cookie<T>(this T request, string name, string value)
+            where T : RestRequest
+        {
+            name.ThrowIfNullOrEmpty("name");
+            name.ThrowIfNullOrEmpty("cookie value");
+            return request.Header("Cookie", name + "=" + value);
+        }
+        
         public static T ParamIfNotEmpty<T>(this T request, string name, object value, ParameterType type = ParameterType.FormUrlEncoded)
             where T : RestRequest
         {
