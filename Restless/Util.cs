@@ -54,6 +54,99 @@ namespace Nulands.Restless.Util
             return GetFuncStatic<U, V, W>(typeof(T), methodName);
         }
 
+        private static Tuple<MethodCallExpression, ParameterExpression[]> CreateFuncLambda(object x, Type type, string methodName, params Type[] funcTypes)
+        {
+            var result = Tuple.Create<MethodCallExpression, ParameterExpression[]>(null, null);
+            MethodInfo methodInfo = null;
+            if (x == null) // type must be set
+                methodInfo = type.GetRuntimeMethod(methodName, funcTypes.Take(funcTypes.Length - 1).ToArray());
+            else   // get type from the given object instance
+                methodInfo = x.GetType().GetTypeInfo().GetDeclaredMethod(methodName);
+
+            if (methodInfo != null
+                && funcTypes.Last().GetTypeInfo().IsAssignableFrom(methodInfo.ReturnType.GetTypeInfo())
+                && methodInfo.GetParameters().Length == funcTypes.Length - 1)
+            {
+                bool typesMatch = true;
+                int idx = 0;
+                foreach (var param in methodInfo.GetParameters())
+                {
+                    if (param.ParameterType != funcTypes[idx++])
+                    {
+                        typesMatch = false;
+                        break;
+                    }
+                }
+
+                if (typesMatch)
+                {
+                    var parameters = new List<ParameterExpression>();
+                    foreach (var t in funcTypes.Take(funcTypes.Length - 1))
+                        parameters.Add(Expression.Parameter(t));
+
+                    ConstantExpression xRef = null;
+                    TypeInfo typeInfo = null;
+
+                    if (x != null)
+                        typeInfo = x.GetType().GetTypeInfo();
+                    else
+                        typeInfo = type.GetTypeInfo();
+
+                    if (!typeInfo.IsAbstract || !typeInfo.IsSealed)   // both together says this is a static class!
+                        xRef = Expression.Constant(x);
+
+                    // Creating an expression for the method call and specifying its parameter.
+                    MethodCallExpression methodCall = Expression.Call(
+                        xRef, methodInfo, parameters.ToArray());
+
+                    result = Tuple.Create(methodCall, parameters.ToArray());
+                }
+            }
+            return result;
+        }
+
+        private static Tuple<MethodCallExpression, ParameterExpression[]> CreateFuncLambda(object x, string methodName, params Type[] funcTypes)
+        {
+            var result = Tuple.Create<MethodCallExpression, ParameterExpression[]>(null, null);
+            MethodInfo methodInfo = methodInfo = x.GetType().GetTypeInfo().GetDeclaredMethod(methodName);
+
+            if (methodInfo != null
+                && methodInfo.ReturnType == funcTypes.Last()
+                && methodInfo.GetParameters().Length == funcTypes.Length - 1)
+            {
+                bool typesMatch = true;
+                int idx = 0;
+                foreach (var param in methodInfo.GetParameters())
+                {
+                    if (param.ParameterType != funcTypes[idx++])
+                    {
+                        typesMatch = false;
+                        break;
+                    }
+                }
+
+                if (typesMatch)
+                {
+                    var parameters = new List<ParameterExpression>();
+                    foreach (var type in funcTypes.Take(funcTypes.Length - 1))
+                        parameters.Add(Expression.Parameter(type));
+
+                    ConstantExpression xRef = null;
+                    var typeInfo = x.GetType().GetTypeInfo();
+                    if (!typeInfo.IsAbstract || !typeInfo.IsSealed)   // both together says this is a static class!
+                        xRef = Expression.Constant(x);
+
+                    // Creating an expression for the method call and specifying its parameter.
+                    MethodCallExpression methodCall = Expression.Call(
+                        xRef, methodInfo, parameters.ToArray());
+
+                    result = Tuple.Create(methodCall, parameters.ToArray());
+                }
+            }
+            return result;
+        }
+
+        /*
         #region Get generic Func<> from object and method name
 
         public static Func<T> GetFunc<T>(object x, string methodName)
@@ -148,97 +241,6 @@ namespace Nulands.Restless.Util
             return result;
         }
 
-        private static Tuple<MethodCallExpression, ParameterExpression[]> CreateFuncLambda(object x, Type type, string methodName, params Type[] funcTypes)
-        {
-            var result = Tuple.Create<MethodCallExpression, ParameterExpression[]>(null, null);
-            MethodInfo methodInfo = null;
-            if (x == null) // type must be set
-                methodInfo = type.GetRuntimeMethod(methodName, funcTypes.Take(funcTypes.Length - 1).ToArray());
-            else   // get type from the given object instance
-                methodInfo = x.GetType().GetTypeInfo().GetDeclaredMethod(methodName);
-
-            if (methodInfo != null
-                && funcTypes.Last().GetTypeInfo().IsAssignableFrom(methodInfo.ReturnType.GetTypeInfo())
-                && methodInfo.GetParameters().Length == funcTypes.Length - 1)
-            {
-                bool typesMatch = true;
-                int idx = 0;
-                foreach (var param in methodInfo.GetParameters())
-                {
-                    if (param.ParameterType != funcTypes[idx++])
-                    {
-                        typesMatch = false;
-                        break;
-                    }
-                }
-
-                if (typesMatch)
-                {
-                    var parameters = new List<ParameterExpression>();
-                    foreach (var t in funcTypes.Take(funcTypes.Length - 1))
-                        parameters.Add(Expression.Parameter(t));
-
-                    ConstantExpression xRef = null;
-                    TypeInfo typeInfo = null;
-
-                    if (x != null)
-                        typeInfo = x.GetType().GetTypeInfo();
-                    else
-                        typeInfo = type.GetTypeInfo();
-
-                    if (!typeInfo.IsAbstract || !typeInfo.IsSealed)   // both together says this is a static class!
-                        xRef = Expression.Constant(x);
-
-                    // Creating an expression for the method call and specifying its parameter.
-                    MethodCallExpression methodCall = Expression.Call(
-                        xRef, methodInfo, parameters.ToArray());
-
-                    result = Tuple.Create(methodCall, parameters.ToArray());
-                }
-            }
-            return result;
-        }
-
-        private static Tuple<MethodCallExpression, ParameterExpression[]> CreateFuncLambda(object x, string methodName, params Type[] funcTypes)
-        {
-            var result = Tuple.Create<MethodCallExpression, ParameterExpression[]>(null, null);
-            MethodInfo methodInfo = methodInfo = x.GetType().GetTypeInfo().GetDeclaredMethod(methodName);
-
-            if (methodInfo != null
-                && methodInfo.ReturnType == funcTypes.Last()
-                && methodInfo.GetParameters().Length == funcTypes.Length - 1)
-            {
-                bool typesMatch = true;
-                int idx = 0;
-                foreach(var param in methodInfo.GetParameters())
-                {
-                    if(param.ParameterType != funcTypes[idx++])
-                    {
-                        typesMatch = false;
-                        break;
-                    }
-                }
-
-                if (typesMatch)
-                {
-                    var parameters = new List<ParameterExpression>();
-                    foreach(var type in funcTypes.Take(funcTypes.Length -1))
-                        parameters.Add(Expression.Parameter(type));
-
-                    ConstantExpression xRef = null;
-                    var typeInfo = x.GetType().GetTypeInfo();
-                    if(!typeInfo.IsAbstract || !typeInfo.IsSealed)   // both together says this is a static class!
-                        xRef = Expression.Constant(x);
-
-                    // Creating an expression for the method call and specifying its parameter.
-                    MethodCallExpression methodCall = Expression.Call(
-                        xRef, methodInfo, parameters.ToArray());
-
-                    result = Tuple.Create(methodCall, parameters.ToArray());
-                }
-            }
-            return result;
-        }
 
         #endregion
 
@@ -469,6 +471,6 @@ namespace Nulands.Restless.Util
             foreach (var outExpr in propExpressions)
                 props.Add(outExpr.PropInfoFromExpr());
             return props;
-        }
+        }*/
     }
 }

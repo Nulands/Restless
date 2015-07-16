@@ -252,7 +252,8 @@ namespace Nulands.Restless
         public static string CreateRequestUri(this string url,
             Dictionary<string, object> query_params,
             Dictionary<string, List<object>> param,
-            string method)
+            string method, 
+            bool allowFormUrlWithGET)
         {
             url = query_params.FormatUrlWithParams(url);
 
@@ -260,13 +261,21 @@ namespace Nulands.Restless
             string query = query_params.CreateParamStr(); ;
 
             // if method is GET treat all added parameters as query parameter
-            if (method == "GET")
+            if (method == "GET" && !allowFormUrlWithGET)
             {
                 // Add parameter that are added with Param(..) too, because this is a GET method.
                 string pQuery = param.CreateParamStr();
+
+                if (String.IsNullOrEmpty(query))
+                    query = pQuery;
+                else
+                {
+                    if (!String.IsNullOrEmpty(pQuery))
+                        query += "&" + pQuery;
+                }
                 // set query to post param. query string if query is still emtpy (because no QParam(..) were added)
                 // only Param(..) was used even this is a GET method.
-                query = (string.IsNullOrEmpty(query) ? pQuery : query + "&" + pQuery);
+                //query = (string.IsNullOrEmpty(query) ? pQuery : query + "&" + pQuery);
             }
 
             if (!String.IsNullOrEmpty(query))

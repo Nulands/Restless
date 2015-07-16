@@ -105,7 +105,7 @@ namespace Nulands.Restless
         {
             get
             {
-                return !IsNothing && !Data.Equals(default(T));
+                return !IsNothing && Data != null; //  !Data.Equals(default(T));
             }
         }
 

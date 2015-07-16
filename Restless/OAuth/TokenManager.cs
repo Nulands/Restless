@@ -23,26 +23,17 @@ namespace Nulands.Restless.OAuth
         /// <param name="tokens">The token items to be added.</param>
         public void Load(params TokenItem[] tokens)
         {
-            Write(() =>
-                {
-                    tokens.ForEach(t => this.tokens[t.ClientId] = t);
-                });
+            Write(() => tokens.ForEach(t => this.tokens[t.ClientId] = t));
         }
 
         public void Save(Action<IEnumerable<TokenItem>> saveAction)
         {
-            Read(() =>
-                {
-                    saveAction(tokens.Values);
-                });
+            Read(() =>saveAction(tokens.Values));
         }
 
         public void Save(Action<TokenItem> saveAction)
         {
-            Read(() =>
-            {
-                tokens.Values.ForEach(t => saveAction(t));
-            });
+            Read(() => tokens.Values.ForEach(t => saveAction(t)));
         }
 
         /// <summary>

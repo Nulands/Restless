@@ -143,6 +143,8 @@ namespace Nulands.Restless
             set { request = value; }
         }
 
+        public bool AllowFormUrlWithGET { get; set; }
+
         #endregion
 
         /// <summary>
@@ -152,6 +154,7 @@ namespace Nulands.Restless
         /// <param name="httpClient">The initial http client, or null if not used.</param>
         public RestRequest()
         {
+            AllowFormUrlWithGET = false;
             registerDefaultHandlers();
         }
 
@@ -202,7 +205,7 @@ namespace Nulands.Restless
                         url = url.Replace("{" + item.Key + "}", item.Value.ToString());
                 }
 
-                request.RequestUri = new Uri(url.CreateRequestUri(query_params, param, request.Method.Method));
+                request.RequestUri = new Uri(url.CreateRequestUri(query_params, param, request.Method.Method, AllowFormUrlWithGET));
 
 #if UNIVERSAL
                 var tmp = client.SendRequestAsync(request);

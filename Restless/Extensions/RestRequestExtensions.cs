@@ -575,6 +575,13 @@ namespace Nulands.Restless.Extensions
             return request;
         }
 
+        public static T SetAllowFormUrlWithGET<T>(this T request, bool allowFormUrlWithGET)
+            where T : RestRequest
+        {
+            request.AllowFormUrlWithGET = allowFormUrlWithGET;
+            return request;
+        }
+
         /// <summary>
         /// Adds a parameter to the request. Can be a Query, FormUrlEncoded or Url parameter.
         /// If a value for the given name is already set, the old parameter value is overwritten silently.
@@ -730,14 +737,16 @@ namespace Nulands.Restless.Extensions
         public static async Task<HttpResponseMessage> GetResponseAsync<T>(this T request)
             where T : RestRequest
         {
-            if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
-                request.AddFormUrl();           // Add form url encoded parameter to request if needed
+            //if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
+            //    request.AddFormUrl();           // Add form url encoded parameter to request if needed
+            request.HandleFormUrlParameter();
 
             request.request.RequestUri = new Uri(
                 request.url.CreateRequestUri(
                     request.query_params, 
                     request.param, 
-                    request.request.Method.Method));
+                    request.request.Method.Method, 
+                    request.AllowFormUrlWithGET));
 #if UNIVERSAL
             return await request.client.SendRequestAsync(request.request);
 #else
@@ -758,9 +767,9 @@ namespace Nulands.Restless.Extensions
             Action<RestResponse<IVoid>> errorAction = null)
             where T: RestRequest
         {
-            if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
-                request.AddFormUrl();           // Add form url encoded parameter to request if needed
-
+            //if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
+            //    request.AddFormUrl();           // Add form url encoded parameter to request if needed
+            request.HandleFormUrlParameter();
             return await request.buildAndSendRequest<IVoid>(successAction, errorAction);
         }
 
@@ -781,9 +790,9 @@ namespace Nulands.Restless.Extensions
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
-                request.AddFormUrl();           // Add form url encoded parameter to request if needed
-
+            //if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
+            //    request.AddFormUrl();           // Add form url encoded parameter to request if needed
+            request.HandleFormUrlParameter();
             return await request.buildAndSendRequest<IVoid>(successAction, errorAction);
         }
 
@@ -800,12 +809,20 @@ namespace Nulands.Restless.Extensions
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
-            if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
-                request.AddFormUrl();           // Add form url encoded parameter to request if needed
-
+            //if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
+            //    request.AddFormUrl();           // Add form url encoded parameter to request if needed
+            request.HandleFormUrlParameter();
             return await request.buildAndSendRequest<T>(successAction, errorAction);
         }
 
+        static RestRequest HandleFormUrlParameter(this RestRequest request)
+        {
+            bool canAddFormUrl = request.request.Method.Method != "GET" || request.AllowFormUrlWithGET;
+
+            if (canAddFormUrl && request.request.Content == null && request.param.Count > 0)
+                request.AddFormUrl();           // Add form url encoded parameter to request if needed
+            return request;
+        }
         #endregion
 
         #region Upload file binary with StreamContent

@@ -4,28 +4,6 @@
         <name>Restless</name>
     </assembly>
     <members>
-        <member name="T:Nulands.Restless.ContentTypeAttribute">
-            <summary>
-            If ContentTypeAttribute is set in front of a method parameter,
-            the parameter value is supposed to be added to the
-            request as serialzed content.
-            </summary>
-        </member>
-        <member name="M:Nulands.Restless.Dynamic.DynamicRequest.parseMethodAttributes(System.Reflection.MethodInfo)">
-            <summary>
-            Get all method and parameter attributes for a given MethodInfo.
-            </summary>
-            <param name="method">The given MethodInfo.</param>
-            <returns>The MethodAttributesInfo containing all method and parameter attributes.</returns>
-        </member>
-        <member name="M:Nulands.Restless.Dynamic.DynamicRequest.createParamAttrFunction(Nulands.Restless.Dynamic.ParameterAttributeInfo)">
-            <summary>
-            Creates a function thats does an action on a RestRequest, 
-            depending on the given ParameterAttributeInfo.
-            </summary>
-            <param name="paramInfo">The parameter attribute info.</param>
-            <returns>The function.</returns>
-        </member>
         <member name="T:Nulands.Restless.RestlessExtensions">
             <summary>
             Extensions needed for Restless.

@@ -30,7 +30,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;SIMPLE_JSON_TYPEINFO; WINDOWS_PHONE</DefineConstants>
+    <DefineConstants>SIMPLE_JSON_TYPEINFO; WINDOWS_PHONE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -38,10 +38,6 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dynamic\Attribute.cs" />
-    <Compile Include="Dynamic\DynamicRequest.cs" />
-    <Compile Include="Dynamic\RequestBuilder.cs" />
-    <Compile Include="Dynamic\Sample\Sample.cs" />
     <Compile Include="Extensions\RestlessExtensions.cs" />
     <Compile Include="Extensions\RestRequestExtensions.cs" />
     <Compile Include="Extensions\RestResponseExtensions.cs" />
@@ -57,7 +53,6 @@
     <Compile Include="Rest.cs" />
     <Compile Include="RestRequest.cs" />
     <Compile Include="RestResponse.cs" />
-    <Compile Include="Sample.cs" />
     <Compile Include="Serialization\Deserializers\DeserializeAsAttribute.cs" />
     <Compile Include="Serialization\Deserializers\DeserializerExtensions.cs" />
     <Compile Include="Serialization\Deserializers\DotNetXmlDeserializer.cs" />
@@ -75,7 +70,9 @@
     <Compile Include="Serialization\Serializers\SerializeAsAttribute.cs" />
     <Compile Include="Serialization\Serializers\XmlSerializer.cs" />
     <Compile Include="Serialization\SimpleJson.cs" />
-    <Compile Include="Util.cs" />
+    <Compile Include="Util.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Nulands - Muraad Nofal")]
 [assembly: AssemblyProduct("Restless")]
-[assembly: AssemblyCopyright("Copyright ©  2014 - Muraad Nofal")]
+[assembly: AssemblyCopyright("Copyright ©  2015 - Muraad Nofal")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("de")]
