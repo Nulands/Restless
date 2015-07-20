@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
 using System.IO;
+using System.Diagnostics;
 
 using Nulands.Restless;
 using Nulands.Restless.Extensions;
@@ -38,6 +39,13 @@ namespace Nulands.Restless.Sample
         public int Age { get; set; }
     }
 
+    /// <summary>
+    /// It is possible to inherit from RestRequest.
+    /// This can be usefull if a rest request has lots of parameter,
+    /// specially when some of the are optional and/or there are
+    /// lots of possible parameter combinations.
+    /// This is an example custom RestRequest that implements a fluent api style.
+    /// </summary>
     public class PersonGetRequest : RestRequest
     {
         public PersonGetRequest()
@@ -86,11 +94,20 @@ namespace Nulands.Restless.Sample
         }
     }
 
+    /// <summary>
+    /// Static factory methods can be useful and can
+    /// make the usage of the api even more fluent and intuitive.
+    /// They can be used to set common header. Examples could be
+    /// User-Agent or some Authentication
+    /// </summary>
     public class Persons
     {
-        public static PersonGetRequest GetByName()
+        public static PersonGetRequest GetByName(string name = "")
         {
-            return new PersonGetRequest();
+            var personGet = new PersonGetRequest();
+            if (!String.IsNullOrEmpty(name))
+                personGet.Name(name);
+            return personGet;
         }
 
         public static PersonCreateRequest Create()
@@ -100,10 +117,10 @@ namespace Nulands.Restless.Sample
 
     }
 
-    /*
+
     public class SampleTest
     {
-        public static async void RestRequestOnlySample()
+        public static async void RestRequest_Raw()
         {
             ///
             /// First a test using the "raw" RestRequest class.
@@ -111,21 +128,23 @@ namespace Nulands.Restless.Sample
             RestRequest request = new RestRequest();
             string url = "https://duckduckgo.com/";
 
-            var response = await request.Get().     // Set HTTP method to "GET"
-                Url(url).                           // Set our url
-                QParam("q", "RestlessHttpClient").  // Set a request query parameter
-                Fetch<IVoid>();                     // Get response, without serialization
+            RestResponse<IVoid> response = await request
+                .Get()                              // Set HTTP method to "GET"
+                .Url(url)                           // Set our url
+                .QParam("q", "RestlessHttpClient")  // Set a request query parameter
+                .Fetch();                           // Get response, without serialization
 
-            if (response.IsStatusCodeMissmatch)
+            if (!response.IsSuccessStatusCode)
             {
-                HttpStatusCode status = response.Response.StatusCode;
+                HttpStatusCode status = response.HttpResponse.StatusCode;
                 //...
             }
             else if (response.IsException)
-                Console.WriteLine(response.Exception);
+                Debug.WriteLine(response.Exception.Message);
             else
             {
-                HttpContent content = response.Response.Content;
+                HttpContent content = response.HttpResponse.Content;
+                string strContent = await content.ReadAsStringAsync();
                 // ...
             }
 
@@ -140,11 +159,11 @@ namespace Nulands.Restless.Sample
             url = "http://www.example.com/Person";
 
             var getPerson = new RestRequest();
-            RestResponse<Person> personResponse = await getPerson.
-                Get().                          // HTTP Method "GET"
-                Url(url).                       // Set url of Person get REST endpoint
-                QParam("name", "TestUser").     // The api wants the person name as query parameter
-                Fetch<Person>();                // Get response and deserialize to Person object.
+            RestResponse<Person> personResponse = await getPerson
+                .Get()                          // HTTP Method "GET"
+                .Url(url)                       // Set url of Person get REST endpoint
+                .QParam("name", "TestUser")     // The api wants the person name as query parameter
+                .Fetch<Person>();                // Get response and deserialize to Person object.
 
             if (personResponse.HasData)
             {
@@ -175,10 +194,10 @@ namespace Nulands.Restless.Sample
             //createPerson.Post().Url(url).AddFormUrl("name", "NewUser", "age", 99.ToString());        
 
             // Now create the new person and get the response.
-            RestResponse<IVoid> createResponse = await createPerson.Fetch<IVoid>();
+            RestResponse<IVoid> createResponse = await createPerson.Fetch();
 
             // createResponse.Response is the underlying HttpResponseMessage
-            if (createResponse.Response.StatusCode != HttpStatusCode.Created)
+            if (createResponse.HttpResponse.StatusCode != HttpStatusCode.Created)
             {
                 // do error handling
             }
@@ -201,19 +220,12 @@ namespace Nulands.Restless.Sample
 
             // Fetch request with success and error actions.
             await getPerson.Fetch<Person>(
-                (r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
-                (r) => Console.WriteLine(r.Exception.Message));
+                (r) => Debug.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
+                (r) => Debug.WriteLine(r.Exception.Message));
         }
 
-        public static async Task Test()
+        public static async Task Using_Custom_Requests()
         {
-            
-            // Now the PersonRequest only exposes the Name() and Fetch(...) methods. 
-            // All BaseRestRequest methods are protected and cannot be used.
-            // Thats why the BaseRestRequest methods are mostly protected.
-            // RestRequest is basically just some kind of decorator 
-            // for BaseRestRequest that makes all methods public.
-
             PersonGetRequest personGetRequest = new PersonGetRequest();
 
             RestResponse<Person> persGetResponse = await personGetRequest.Name("testUser").GetPerson();
@@ -226,15 +238,14 @@ namespace Nulands.Restless.Sample
 
             // or with actions
             await personGetRequest.Name("testUser").GetPerson(
-                (r) => Console.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
-                (r) => Console.WriteLine(r.Exception.Message));
+                (r) => Debug.WriteLine(r.Data.Name + " is " + r.Data.Age + " years old."),
+                (r) => Debug.WriteLine(r.Exception.Message));
 
+        }
 
-            // One can make a class with static methods that creates a custom request:
-
-            // usage:
-
-            persGetResponse = await Persons.GetByName().Name("testUser").GetPerson();
+        public static async Task Using_Factory_Methods()
+        {   
+            RestResponse<Person> persGetResponse = await Persons.GetByName("testUser").GetPerson();
             if (persGetResponse.HasData)
             {
                 var person = persGetResponse.Data;
@@ -243,21 +254,22 @@ namespace Nulands.Restless.Sample
             else
             {
                 // Do error processing. 
-                if (persGetResponse.IsException)
-                {
-                    //...
-                }
-                if (persGetResponse.IsStatusCodeMissmatch)
+                if (!persGetResponse.IsSuccessStatusCode)
                 {
                     // persGetResponse.Response.StatusCode;  
                 }
+                else if (persGetResponse.IsException)
+                {
+                    //...
+                }
+
             }
 
-            var persCreateResponse = await Persons.Create().Name("testUser2").Age(42).Create();
+            RestResponse<IVoid> persCreateResponse = await Persons.Create().Name("testUser2").Age(42).Create();
 
             // because PersonCreateRequest uses Fetch with IVoid,
             // there is no deserialized object in the Data property of the response.
-            if (persCreateResponse.IsStatusCodeMissmatch)
+            if (!persCreateResponse.IsSuccessStatusCode)
             {
                 //...
             }
@@ -267,6 +279,6 @@ namespace Nulands.Restless.Sample
             }
 
         }
-    }*/
+    }
      
 }

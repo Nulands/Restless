@@ -81,9 +81,6 @@
     <Compile Include="..\Restless\RestResponse.cs">
       <Link>RestResponse.cs</Link>
     </Compile>
-    <Compile Include="..\Restless\Sample.cs">
-      <Link>Sample.cs</Link>
-    </Compile>
     <Compile Include="..\Restless\Serialization\Deserializers\DeserializeAsAttribute.cs">
       <Link>Serialization\Deserializers\DeserializeAsAttribute.cs</Link>
     </Compile>
