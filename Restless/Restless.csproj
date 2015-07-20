@@ -30,7 +30,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>SIMPLE_JSON_TYPEINFO; WINDOWS_PHONE</DefineConstants>
+    <DefineConstants>SIMPLE_JSON_TYPEINFO; WINDOWS_PHONE; PETAJSON_NO_DYNAMIC; PETAJSON_NO_EMIT;PETAJSON_NO_DATACONTRACT;PETAJSON_PORTABLE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -64,6 +64,7 @@
     <Compile Include="Serialization\Extensions\ReflectionExtensions.cs" />
     <Compile Include="Serialization\Extensions\StringExtensions.cs" />
     <Compile Include="Serialization\Extensions\XmlExtensions.cs" />
+    <Compile Include="Serialization\PetaJson.cs" />
     <Compile Include="Serialization\Serializers\DotNetXmlSerializer.cs" />
     <Compile Include="Serialization\Serializers\ISerializer.cs" />
     <Compile Include="Serialization\Serializers\JsonSerializer.cs" />
