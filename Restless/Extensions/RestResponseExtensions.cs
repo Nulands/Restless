@@ -28,6 +28,8 @@ namespace Nulands.Restless.Extensions
             await response.HttpResponse.DownloadFromResponse(progress, writeAction, cancelToken);
         }
 
+
+
         public static async Task DownloadFromResponse(
             this RestResponse<IVoid> response,
 #if UNIVERSAL
@@ -47,6 +49,8 @@ namespace Nulands.Restless.Extensions
 #endif
                 , cancelToken);
         }
+
+
 
         public static async Task DownloadFromResponse(
             this HttpResponseMessage response,
@@ -90,6 +94,8 @@ namespace Nulands.Restless.Extensions
 #endif
         }
 
+
+
         public static async Task DownloadFromResponse(
             this HttpResponseMessage response,
             Action<int> progress,
@@ -130,6 +136,8 @@ namespace Nulands.Restless.Extensions
             }
 #endif
         }
+
+
 
         public static async Task DownloadFromResponse(
             this HttpResponseMessage response,

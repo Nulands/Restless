@@ -1,15 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
-using System.Reflection;
+#if UNIVERSAL
+using Windows.Web.Http;
+#else
+using System.Net.Http;
+#endif
 
 using Nulands.Restless.Extensions;
 using Nulands.Restless.OAuth;
 using Nulands.Restless.Util;
+
 
 namespace Nulands.Restless
 {
@@ -77,19 +79,24 @@ namespace Nulands.Restless
         public static string ClientId { get; set; }
 
 
-        public static RestRequest Get(string url)
+        public static RestRequest Get(string url, HttpClient client = null)
         {
-            return new RestRequest().Get().Url(url);
+            return new RestRequest(null, client).Get(url);
         }
 
-        public static RestRequest Post(string url)
+        public static RestRequest Post(string url, HttpClient client = null)
         {
-            return new RestRequest().Post().Url(url);
+            return new RestRequest(null, client).Post(url);
         }
 
-        public static RestRequest Put(string url)
+        public static RestRequest Put(string url, HttpClient client = null)
         {
-            return new RestRequest().Put().Url(url);
+            return new RestRequest(null, client).Put(url);
+        }
+
+        public static RestRequest Delete(string url, HttpClient client = null)
+        {
+            return new RestRequest(null, client).Delete(url);
         }
 
         #region Get a RestRequest, and set access tokens if needed

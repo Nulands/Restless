@@ -21,10 +21,11 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;SIMPLE_JSON_TYPEINFO; WINDOWS_PHONE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;SIMPLE_JSON_TYPEINFO;PETAJSON_NO_EMIT;PETAJSON_NO_DATACONTRACT;PETAJSON_PORTABLE;PETAJSON_NO_DYNAMIC</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>Doc\Restless.XML</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -38,6 +39,7 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleApp.cs" />
     <Compile Include="Extensions\RestlessExtensions.cs" />
     <Compile Include="Extensions\RestRequestExtensions.cs" />
     <Compile Include="Extensions\RestResponseExtensions.cs" />
@@ -57,7 +59,7 @@
     <Compile Include="Serialization\Deserializers\DeserializerExtensions.cs" />
     <Compile Include="Serialization\Deserializers\DotNetXmlDeserializer.cs" />
     <Compile Include="Serialization\Deserializers\IDeserializer.cs" />
-    <Compile Include="Serialization\Deserializers\JsonDeserializer.cs" />
+    <Compile Include="Serialization\Deserializers\PetaJsonDeserializer.cs" />
     <Compile Include="Serialization\Deserializers\XmlAttributeDeserializer.cs" />
     <Compile Include="Serialization\Deserializers\XmlDeserializer.cs" />
     <Compile Include="Serialization\Extensions\Helpers.cs" />
@@ -71,6 +73,7 @@
     <Compile Include="Serialization\Serializers\SerializeAsAttribute.cs" />
     <Compile Include="Serialization\Serializers\XmlSerializer.cs" />
     <Compile Include="Serialization\SimpleJson.cs" />
+    <Compile Include="TwitterClient.cs" />
     <Compile Include="Util.cs">
       <SubType>Code</SubType>
     </Compile>

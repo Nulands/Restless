@@ -1,43 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7FCBAF11-91AD-4325-B3B0-BBA107C53F90}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RestlessUniversal</RootNamespace>
-    <AssemblyName>RestlessUniversal</AssemblyName>
-    <DefaultLanguage>de-DE</DefaultLanguage>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworkProfile>Profile32</TargetFrameworkProfile>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;SIMPLE_JSON_TYPEINFO; WINDOWS_PHONE;UNIVERSAL</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+  <Import Project="$(VSToolsPath)\DNX\Microsoft.DNX.Props" Condition="'$(VSToolsPath)' != ''" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>b11c6f35-38d1-4605-ac5c-e43161c86f7d</ProjectGuid>
+    <RootNamespace>Restless.Next</RootNamespace>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">..\artifacts\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
+    <OutputPath Condition="'$(OutputPath)'=='' ">..\artifacts\bin\$(MSBuildProjectName)\</OutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;UNIVERSAL;SIMPLE_JSON_TYPEINFO; WINDOWS_PHONE; PETAJSON_NO_DYNAMIC; PETAJSON_NO_EMIT;PETAJSON_NO_DATACONTRACT;PETAJSON_PORTABLE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-    <TargetPlatform Include="Windows, Version=8.1" />
-    <TargetPlatform Include="WindowsPhoneApp, Version=8.1" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Restless\Extensions\RestlessExtensions.cs">
       <Link>Extensions\RestlessExtensions.cs</Link>
@@ -52,25 +28,25 @@
       <Link>IVoid.cs</Link>
     </Compile>
     <Compile Include="..\Restless\OAuth\AuthParameter.cs">
-      <Link>OAuth\AuthParameter.cs</Link>
+      <Link>Oauth\AuthParameter.cs</Link>
     </Compile>
     <Compile Include="..\Restless\OAuth\OAuth2.cs">
-      <Link>OAuth\OAuth2.cs</Link>
+      <Link>Oauth\OAuth2.cs</Link>
     </Compile>
     <Compile Include="..\Restless\OAuth\OAuthProvider.cs">
-      <Link>OAuth\OAuthProvider.cs</Link>
+      <Link>Oauth\OAuthProvider.cs</Link>
     </Compile>
     <Compile Include="..\Restless\OAuth\OAuthToken.cs">
-      <Link>OAuth\OAuthToken.cs</Link>
+      <Link>Oauth\OAuthToken.cs</Link>
     </Compile>
     <Compile Include="..\Restless\OAuth\OAuthTokenError.cs">
-      <Link>OAuth\OAuthTokenError.cs</Link>
+      <Link>Oauth\OAuthTokenError.cs</Link>
     </Compile>
     <Compile Include="..\Restless\OAuth\TokenItem.cs">
-      <Link>OAuth\TokenItem.cs</Link>
+      <Link>Oauth\TokenItem.cs</Link>
     </Compile>
     <Compile Include="..\Restless\OAuth\TokenManager.cs">
-      <Link>OAuth\TokenManager.cs</Link>
+      <Link>Oauth\TokenManager.cs</Link>
     </Compile>
     <Compile Include="..\Restless\Rest.cs">
       <Link>Rest.cs</Link>
@@ -135,21 +111,9 @@
     <Compile Include="..\Restless\Serialization\Serializers\XmlSerializer.cs">
       <Link>Serialization\Serializers\XmlSerializer.cs</Link>
     </Compile>
-    <Compile Include="..\Restless\Serialization\SimpleJson.cs">
-      <Link>Serialization\SimpleJson.cs</Link>
-    </Compile>
     <Compile Include="..\Restless\Util.cs">
       <Link>Util.cs</Link>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <Import Project="$(VSToolsPath)\DNX\Microsoft.DNX.targets" Condition="'$(VSToolsPath)' != ''" />
 </Project>

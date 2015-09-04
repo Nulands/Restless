@@ -28,32 +28,30 @@ namespace Nulands.Restless
 
     public class RouteGroup
     {
-        Route get = null;
-        Route post = null;
-        Route put = null;
-        Route delete = null;
-        Route update = null;
+        Lazy<Route> get = null;
+        Lazy<Route> post = null;
+        Lazy<Route> put = null;
+        Lazy<Route> delete = null;
+        Lazy<Route> update = null;
         string basePath = "";
 
         public static RouteGroup Create(string basePath = "", params Action<RouteGroup>[] routeAdder)
         {
+            
             var routeGroup = new RouteGroup(basePath);
             foreach (var rAdder in routeAdder)
                 rAdder(routeGroup);
             return routeGroup;
         }
 
-        public RouteGroup(string basePath = "", bool createAllGroups = false)
+        public RouteGroup(string basePath = "")
         {
             this.basePath = basePath;
-            if (createAllGroups)
-            {
-                get = new Route("GET", basePath);
-                post = new Route("POST", basePath);
-                put = new Route("PUT", basePath);
-                delete = new Route("DELETE", basePath);
-                update = new Route("UPDATE", basePath);
-            }
+            get = new Lazy<Route>(() => new Route("GET", basePath));
+            post = new Lazy<Route>(() => new Route("POST", basePath));
+            put = new Lazy<Route>(() => new Route("PUT", basePath));
+            delete = new Lazy<Route>(() => new Route("DELETE", basePath));
+            update = new Lazy<Route>(() => new Route("UPDATE", basePath));
         }
 
         public void ApplyModule(RouteGroupModule module)
@@ -61,10 +59,10 @@ namespace Nulands.Restless
             module.Apply(this);
         }
 
-        public Route Get { get { return get == null ? (get = new Route("GET", basePath)) : get; } }
-        public Route Post { get { return post == null ? (post = new Route("POST", basePath)) : post; } }
-        public Route Put { get { return put == null ? (put = new Route("PUT", basePath)) : put; } }
-        public Route Delete { get { return delete == null ? (delete = new Route("DELETE", basePath)) : delete; } }
-        public Route Update { get { return update == null ? (update = new Route("UPDATE", basePath)) : update; } }
+        public Route Get { get { return get.Value; } }
+        public Route Post { get { return post.Value; } }
+        public Route Put { get { return put.Value; } }
+        public Route Delete { get { return delete.Value; } }
+        public Route Update { get { return update.Value; } }
     }
 }

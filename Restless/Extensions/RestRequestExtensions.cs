@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using Windows.Storage;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.IO;
 using System.Text;
 #endif
 
@@ -25,104 +25,112 @@ namespace Nulands.Restless.Extensions
     {
         #region Set request methods GET, HEAD, POST, PUT ...
 
+        static T setUrlIfNotNullOrEmpty<T>(this T request, string url)
+            where T : RestRequest
+        {
+            if (!String.IsNullOrEmpty(url))
+                request.Url(url);
+            return request;
+        }
+
         /// <summary>
         /// Sets the HttpMethod given by string.
         /// </summary>
         /// <param name="method">The HttpMethod string. For example "GET".</param>
         /// <returns>this.</returns>
-        public static T Method<T>(this T request, string method)
+        public static T Method<T>(this T request, string method, string url = "")
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod(method);
-            return request;
+            return request.setUrlIfNotNullOrEmpty(url);
         }
 
         /// <summary>
         /// Set the HttpMethod to GET.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Get<T>(this T request)
+        public static T Get<T>(this T request, string url = "")
             where T : RestRequest
         {
             request.HttpRequest.Method = HttpMethod.Get;
-            return request;
+            return request.setUrlIfNotNullOrEmpty(url);
         }
 
         /// <summary>
         /// Set the HttpMethod to HEAD.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Head<T>(this T request)
+        public static T Head<T>(this T request, string url = "")
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("HEAD");
-            return request;
+            return request.setUrlIfNotNullOrEmpty(url);
         }
 
         /// <summary>
         /// Set the HttpMethod to POST.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Post<T>(this T request)
+        public static T Post<T>(this T request, string url = "")
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("POST");
-            return request;
+            return request.setUrlIfNotNullOrEmpty(url);
         }
 
         /// <summary>
         /// Set the HttpMethod to PUT.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Put<T>(this T request)
+        public static T Put<T>(this T request, string url = "")
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("PUT");
-            return request;
+            return request.setUrlIfNotNullOrEmpty(url);
         }
 
         /// <summary>
         /// Set the HttpMethod to DELETE.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Delete<T>(this T request)
+        public static T Delete<T>(this T request, string url = "")
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("DELETE");
-            return request;
+            return request.setUrlIfNotNullOrEmpty(url);
         }
 
         /// <summary>
         /// Set the HttpMethod to TRACE.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Trace<T>(this T request)
+        public static T Trace<T>(this T request, string url = "")
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("TRACE");
-            return request;
+            return request.setUrlIfNotNullOrEmpty(url);
         }
 
         /// <summary>
         /// Set the HttpMethod to CONNECT.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Connect<T>(this T request)
+        public static T Connect<T>(this T request, string url = "")
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("CONNECT");
-            return request;
+            return request.setUrlIfNotNullOrEmpty(url);
         }
 
         /// <summary>
         /// Set the HttpMethod to PATCH.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Patch<T>(this T request)
+        public static T Patch<T>(this T request, string url = "")
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("PATCH");
-            return request;
+            return request.setUrlIfNotNullOrEmpty(url);
         }
 
         #endregion
@@ -231,7 +239,7 @@ namespace Nulands.Restless.Extensions
 
             if (kvPairs == null || kvPairs.Length == 0)
             {
-                foreach (var element in request.param)
+                foreach (var element in request.Params)
                 {
                     foreach (var value in element.Value) // we can have the parameter with element.Key set multiple times.
                         keyValues.Add(new KeyValuePair<string, string>(element.Key, value.ToString()));
@@ -490,7 +498,7 @@ namespace Nulands.Restless.Extensions
             where T: RestRequest
         {
             action.ThrowIfNull("action");
-            action(request.client);
+            action(request.httpClient);
             return request;
         }
 
@@ -600,11 +608,11 @@ namespace Nulands.Restless.Extensions
                 request.Param(name, value);
             //param[name] = value;
             else if (type == ParameterType.Query)
-                request.query_params[name] = value;
+                request.QueryParams[name] = value;
             else // type == ParameterType.Url
             {
                 if (request.url.Contains("{" + name + "}"))
-                    request.url_params[name] = value;
+                    request.UrlParams[name] = value;
                 else
                     throw new ArgumentException("BaseRestRequest - ParameterType.Url - Url does not contain a parameter : " + name);
             }
@@ -630,7 +638,7 @@ namespace Nulands.Restless.Extensions
             request.url.ThrowIfNullOrEmpty("url - cannot set UrlParameter. Url is null or empty.");
 
             if (request.url.Contains("{" + name + "}"))
-                request.url_params[name] = value;
+                request.UrlParams[name] = value;
             else
                 throw new ArgumentException("BaseRestRequest - UrlParam - Url does not contain a parameter : " + name);
 
@@ -655,7 +663,7 @@ namespace Nulands.Restless.Extensions
             value.ThrowIfNullOrToStrEmpty("value");
 
             List<object> paramValues = null;
-            if (request.param.TryGetValue(name, out paramValues))
+            if (request.Params.TryGetValue(name, out paramValues))
             {
                 if (addAsMultiple)
                     paramValues.Add(value);
@@ -667,9 +675,24 @@ namespace Nulands.Restless.Extensions
                 // First time this parameter with given name is added.
                 paramValues = new List<object>();
                 paramValues.Add(value);
-                request.param[name] = paramValues;
+                request.Params[name] = paramValues;
             }
             //param[name] = value;
+            return request;
+        }
+
+        public static T Param<T>(this T request, params object[] parameters)
+            where T : RestRequest
+        {
+            parameters.ThrowIfNullOrEmpty("No parameters given");
+            parameters.ThrowIf(p => p.Length % 2 != 0, "No value for every parameter given");
+            
+            for (int i = 0; i < parameters.Length; i += 2)
+            {
+                request.Param(
+                    parameters[i].ToString(), 
+                    parameters[i + 1]);
+            }
             return request;
         }
 
@@ -686,7 +709,7 @@ namespace Nulands.Restless.Extensions
             name.ThrowIfNullOrEmpty("name");
             value.ThrowIfNullOrToStrEmpty("value");
 
-            request.query_params[name] = value;
+            request.QueryParams[name] = value;
             return request;
         }
 
@@ -737,22 +760,21 @@ namespace Nulands.Restless.Extensions
         public static async Task<HttpResponseMessage> GetResponseAsync<T>(this T request)
             where T : RestRequest
         {
-            //if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
-            //    request.AddFormUrl();           // Add form url encoded parameter to request if needed
             request.HandleFormUrlParameter();
 
             request.request.RequestUri = new Uri(
                 request.url.CreateRequestUri(
-                    request.query_params, 
-                    request.param, 
+                    request.QueryParams, 
+                    request.Params, 
                     request.request.Method.Method, 
                     request.AllowFormUrlWithGET));
 #if UNIVERSAL
-            return await request.client.SendRequestAsync(request.request);
+            return await request.httpClient.SendRequestAsync(request.request);
 #else
-            return await request.client.SendAsync(request.request);
+            return await request.httpClient.SendAsync(request.request);
 #endif
         }
+
 
         /// <summary>
         /// Sends the request and returns a RestResponse with generic type IVoid.
@@ -767,10 +789,17 @@ namespace Nulands.Restless.Extensions
             Action<RestResponse<IVoid>> errorAction = null)
             where T: RestRequest
         {
-            //if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
-            //    request.AddFormUrl();           // Add form url encoded parameter to request if needed
             request.HandleFormUrlParameter();
             return await request.buildAndSendRequest<IVoid>(successAction, errorAction);
+        }
+
+        public static async Task<RestResponse<IVoid>> GetRestResponseAsync<T>(
+            this T request, HttpClient client,
+            Action<RestResponse<IVoid>> succ = null,
+            Action<RestResponse<IVoid>> err = null) where T : RestRequest
+        {
+            request.HandleFormUrlParameter();
+            return await request.buildAndSendRequest<IVoid>(succ, err, client);
         }
 
         #endregion
@@ -790,10 +819,17 @@ namespace Nulands.Restless.Extensions
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            //if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
-            //    request.AddFormUrl();           // Add form url encoded parameter to request if needed
             request.HandleFormUrlParameter();
             return await request.buildAndSendRequest<IVoid>(successAction, errorAction);
+        }
+
+        public static async Task<RestResponse<IVoid>> Fetch(
+            this RestRequest request, HttpClient client,
+            Action<RestResponse<IVoid>> successAction = null,
+            Action<RestResponse<IVoid>> errorAction = null)
+        {
+            request.HandleFormUrlParameter();
+            return await request.buildAndSendRequest<IVoid>(successAction, errorAction, client);
         }
 
         /// <summary>
@@ -809,17 +845,24 @@ namespace Nulands.Restless.Extensions
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
-            //if (request.request.Method.Method != "GET" && request.request.Content == null && request.param.Count > 0)
-            //    request.AddFormUrl();           // Add form url encoded parameter to request if needed
             request.HandleFormUrlParameter();
             return await request.buildAndSendRequest<T>(successAction, errorAction);
+        }
+
+        public static async Task<RestResponse<T>> Fetch<T>(
+            this RestRequest request, HttpClient client,
+            Action<RestResponse<T>> successAction = null,
+            Action<RestResponse<T>> errorAction = null)
+        {
+            request.HandleFormUrlParameter();
+            return await request.buildAndSendRequest<T>(successAction, errorAction, client);
         }
 
         static RestRequest HandleFormUrlParameter(this RestRequest request)
         {
             bool canAddFormUrl = request.request.Method.Method != "GET" || request.AllowFormUrlWithGET;
 
-            if (canAddFormUrl && request.request.Content == null && request.param.Count > 0)
+            if (canAddFormUrl && request.request.Content == null && request.Params.Count > 0)
                 request.AddFormUrl();           // Add form url encoded parameter to request if needed
             return request;
         }
@@ -831,10 +874,11 @@ namespace Nulands.Restless.Extensions
             this RestRequest request,
             string localPath,
             string contentType,
+            HttpClient client = null,
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await request.UploadFileBinary<IVoid>(localPath, contentType, successAction, errorAction);
+            return await request.UploadFileBinary<IVoid>(localPath, contentType, client, successAction, errorAction);
         }
 
         public static async Task<RestResponse<IVoid>> UploadFileBinary(
@@ -845,10 +889,11 @@ namespace Nulands.Restless.Extensions
             Stream streamContent,
 #endif
             String contentType,
+            HttpClient client = null,
             Action<RestResponse<IVoid>> successAction = null,
             Action<RestResponse<IVoid>> errorAction = null)
         {
-            return await request.UploadFileBinary<IVoid>(streamContent, contentType, successAction, errorAction);
+            return await request.UploadFileBinary<IVoid>(streamContent, contentType, client, successAction, errorAction);
         }
 
         /// <summary>
@@ -865,6 +910,7 @@ namespace Nulands.Restless.Extensions
             this RestRequest request,
             string localPath,
             string contentType,
+            HttpClient client = null,
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
@@ -876,12 +922,12 @@ namespace Nulands.Restless.Extensions
             StorageFile storageFile = await StorageFile.GetFileFromPathAsync(localPath);
             using(IInputStream fileStream = await storageFile.OpenSequentialReadAsync())
             {
-                result = await request.UploadFileBinary<T>(fileStream, contentType, successAction, errorAction);
+                result = await request.UploadFileBinary<T>(fileStream, contentType, client, successAction, errorAction);
             }
 #else
             using (Stream fileStream = Rest.File.OpenRead(localPath))
             {
-                result = await request.UploadFileBinary<T>(fileStream, contentType, successAction, errorAction);
+                result = await request.UploadFileBinary<T>(fileStream, contentType, client, successAction, errorAction);
             }
 #endif
             return result;
@@ -904,6 +950,7 @@ namespace Nulands.Restless.Extensions
             Stream streamContent,
 #endif
             String contentType,
+            HttpClient client = null,
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
@@ -912,7 +959,7 @@ namespace Nulands.Restless.Extensions
 
             request.AddStream(streamContent, contentType);
 
-            return await request.buildAndSendRequest<T>(successAction, errorAction);
+            return await request.buildAndSendRequest<T>(successAction, errorAction, client);
         }
 
         #endregion
@@ -935,6 +982,7 @@ namespace Nulands.Restless.Extensions
             this RestRequest request,
             string localPath,
             string contentType,
+            HttpClient client = null,
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
@@ -946,12 +994,12 @@ namespace Nulands.Restless.Extensions
             StorageFile file = await StorageFile.GetFileFromPathAsync(localPath);
             using (IInputStream fileStream = await file.OpenSequentialReadAsync())
             {
-                result = await request.UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction);
+                result = await request.UploadFileFormData<T>(fileStream, contentType, localPath, client, successAction, errorAction);
             }
 #else
             using (Stream fileStream = Rest.File.OpenRead(localPath))
             {
-                result = await request.UploadFileFormData<T>(fileStream, contentType, localPath, successAction, errorAction);
+                result = await request.UploadFileFormData<T>(fileStream, contentType, localPath, client, successAction, errorAction);
             }
 #endif
             return result;
@@ -978,6 +1026,7 @@ namespace Nulands.Restless.Extensions
 #endif
             string contentType,
             string localPath,
+            HttpClient client = null,
             Action<RestResponse<T>> successAction = null,
             Action<RestResponse<T>> errorAction = null)
         {
@@ -991,17 +1040,17 @@ namespace Nulands.Restless.Extensions
 
             // TODO: create and add (random?) boundary
             request.AddMultipartForm();
-            if (request.param.Count > 0)
+            if (request.Params.Count > 0)
                 request.AddFormUrl();           // Add form url encoded parameter to request if needed    
 
             request.AddStream(
                 streamContent, 
                 contentType, 
-                1024, 
-                System.IO.Path.GetFileNameWithoutExtension(localPath), 
-                System.IO.Path.GetFileName(localPath));
+                1024,
+                Path.GetFileNameWithoutExtension(localPath),
+                Path.GetFileName(localPath));
 
-            return await request.buildAndSendRequest<T>(successAction, errorAction);
+            return await request.buildAndSendRequest<T>(successAction, errorAction, client);
         }
 
         #endregion 

@@ -22,10 +22,10 @@ namespace Nulands.Restless
 
     public class RestServer<T> : RouteGroup
     {
-        //RouteGroup routes = new RouteGroup();
         public T Internal { get; private set; }
+
         public RestServerContext ServerContext { get; set; }
-        //public RouteGroup Routes { get { return routes; } }
+        
         public FProperty<bool> IsListening { get; set; }
 
 
@@ -44,39 +44,12 @@ namespace Nulands.Restless
         {
             pool = new WorkerPool(4, true, false, 0);
             ServerContext.StartFunc();
-            /*if (verbose)
-            {
-                Console.WriteLine("Server loop starting...");
-                Console.WriteLine("Routes: ");
-                foreach (var route in Get.ContextHandler)
-                {
-                    Console.WriteLine(route.Key);
-                }
-                Console.WriteLine("----------------------------------------------");
-            }*/
+
             while(true)
             {
                 RestListenerContext httpContext = await ServerContext.GetContextAsync();
-
-                /*if (verbose)
-                {
-                    Console.WriteLine("----------------------------------------------");
-                    Console.WriteLine("Httpcontext received");
-                    Console.WriteLine("Method: " + httpContext.Request.HttpMethod);
-                    Console.WriteLine("RawUrl: " + httpContext.Request.RawUrl);
-                    Console.WriteLine("URL: " + httpContext.Request.Url);
-                }*/
-
                 AddSession(httpContext);
-                switch(httpContext.Request.HttpMethod)
-                {
-                    case "GET": HandleContext(Get, httpContext); break;
-                    case "POST": HandleContext(Post, httpContext); break;
-                    case "PUT": HandleContext(Put, httpContext); break;
-                    case "UPDATE": HandleContext(Update, httpContext); break;
-                    case "DELETE": HandleContext(Delete, httpContext); break;
-                    default: ServerContext.DefaultHandler(httpContext); break;
-                }
+                HandleContext(httpContext);
             }
         }
 
@@ -103,16 +76,22 @@ namespace Nulands.Restless
             }
         }
 
-        private Task HandleContext(Route route, RestListenerContext context)
+        void HandleContext(RestListenerContext context)
+        {
+            switch (context.Request.HttpMethod)
+            {
+                case "GET": HandleContextRoute(Get, context); break;
+                case "POST": HandleContextRoute(Post, context); break;
+                case "PUT": HandleContextRoute(Put, context); break;
+                case "UPDATE": HandleContextRoute(Update, context); break;
+                case "DELETE": HandleContextRoute(Delete, context); break;
+                default: ServerContext.DefaultHandler(context); break;
+            }
+        }
+
+        Task HandleContextRoute(Route route, RestListenerContext context)
         {
             Action<RestListenerContext> handlerAction = route[context.Request.RawUrl];
-            /*if (verbose)
-            {
-                Console.WriteLine("----------------------------------------------");
-                Console.WriteLine("Handler action " + handlerAction);
-                Console.WriteLine("Handler action is null? " + (handlerAction == null));
-            }*/
-
             Task handlerTask = null;
             if (handlerAction != null)
                 handlerTask = pool.Run(() => handlerAction(context));

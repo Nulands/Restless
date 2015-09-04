@@ -18,6 +18,7 @@
  * */
 
 using System;
+using System.Threading.Tasks;
 #if UNIVERSAL
 using Windows.Web;
 using Windows.Web.Http;

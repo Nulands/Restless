@@ -74,28 +74,44 @@ namespace Nulands.Restless
     /// to send the constructed request.</remarks>
     public class RestRequest : IDisposable
     {
+        public object this[string key]
+        {
+            set
+            {
+                key.ThrowIfNullOrEmpty("RestRequest parameter key is null or empty");
+                value.ThrowIfNullOrToStrEmpty("RestRequest parameter value is null, empty or unable to get a valid ToString");
+
+                List<object> values = null;
+                if(!Params.TryGetValue(key, out values))
+                {
+                    values = new List<object>();
+                    Params[key] = values;
+                }
+                values.Add(value);
+            }
+        }
         #region Variables 
 
         /// <summary>
         /// Content (de)serialization handler.
         /// </summary>
-        internal Dictionary<string, IDeserializer> content_handler = new Dictionary<string, IDeserializer>();
+        public readonly Dictionary<string, IDeserializer> ContentHandler = new Dictionary<string, IDeserializer>();
 
         /// <summary>
         /// Url query parameters: ?name=value
         /// </summary>
-        internal Dictionary<string, object> query_params = new Dictionary<string, object>(); 
+        public readonly Dictionary<string, object> QueryParams = new Dictionary<string, object>();
 
         /// <summary>
         /// When method is GET then added as query parameters too.
         /// Otherwise added as FormUrlEncoded parameters: name=value
         /// </summary>
-        internal Dictionary<string, List<object>> param = new Dictionary<string, List<object>>();
+        public readonly Dictionary<string, List<object>> Params = new Dictionary<string, List<object>>();
 
         /// <summary>
         /// Url parameters ../{name}.
         /// </summary>
-        internal Dictionary<string, object> url_params = new Dictionary<string, object>();
+        public readonly Dictionary<string, object> UrlParams = new Dictionary<string, object>();
 
         /// <summary>
         /// The url string. Can contain {name} and/or format strings {0}.
@@ -114,7 +130,7 @@ namespace Nulands.Restless
         /// <summary>
         /// HttpClient used to send the request message.
         /// </summary>
-        internal HttpClient client = new HttpClient();
+        internal HttpClient httpClient = null;
 
         /// <summary>
         /// Internal request message.
@@ -130,8 +146,8 @@ namespace Nulands.Restless
         /// </summary>
         internal HttpClient HttpClient
         {
-            get { return client; }
-            set { client = value; }
+            get { return httpClient; }
+            set { httpClient = value; }
         }
 
         /// <summary>
@@ -147,15 +163,16 @@ namespace Nulands.Restless
 
         #endregion
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="defaultRequest">The initial request message, or null if not used.</param>
-        /// <param name="httpClient">The initial http client, or null if not used.</param>
         public RestRequest()
         {
             AllowFormUrlWithGET = false;
-            registerDefaultHandlers();
+            RegisterDefaultHandlers();
+        }
+
+        public RestRequest(IDeserializer jsonDeserializer, IDeserializer xmlDeserializer = null)
+        {
+            AllowFormUrlWithGET = false;
+            RegisterDefaultHandlers(jsonDeserializer, xmlDeserializer);
         }
 
         /// <summary>
@@ -163,13 +180,15 @@ namespace Nulands.Restless
         /// </summary>
         /// <param name="defaultRequest">The initial request message, or null if not used.</param>
         /// <param name="httpClient">The initial http client, or null if not used.</param>
-        public RestRequest(HttpRequestMessage defaultRequest, HttpClient httpClient = null)
+        public RestRequest(
+            HttpRequestMessage defaultRequest, HttpClient httpClient = null, 
+            IDeserializer jsonDeserializer = null, IDeserializer xmlDeserializer = null)
         {
             if (defaultRequest != null)
                 request = defaultRequest;
             if (httpClient != null)
-                client = httpClient;
-            registerDefaultHandlers();
+                this.httpClient = httpClient;
+            RegisterDefaultHandlers(jsonDeserializer, xmlDeserializer);
         }
 
         #region Helper functions
@@ -187,8 +206,13 @@ namespace Nulands.Restless
         /// <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
         internal async Task<RestResponse<T>> buildAndSendRequest<T>(
             Action<RestResponse<T>> successAction = null, 
-            Action<RestResponse<T>> errorAction = null)
+            Action<RestResponse<T>> errorAction = null,
+            HttpClient client = null)
         {
+            httpClient = client;
+            if (httpClient == null)
+                httpClient = new HttpClient();
+
             // RestResponse<T> result = new RestResponse<T>();
             // TODO: Good or bad to have a reference from the response to the request?!
             // TODO: the result.Response.RequestMessage already points to this.Request?! (underlying Http request).
@@ -199,13 +223,13 @@ namespace Nulands.Restless
                 if(urlFormatParams != null && urlFormatParams.Length > 0)
                     url = String.Format(url, urlFormatParams);  
 
-                if(url_params != null && url_params.Count > 0)
+                if(UrlParams != null && UrlParams.Count > 0)
                 {
-                    foreach (var item in url_params)
+                    foreach (var item in UrlParams)
                         url = url.Replace("{" + item.Key + "}", item.Value.ToString());
                 }
 
-                request.RequestUri = new Uri(url.CreateRequestUri(query_params, param, request.Method.Method, AllowFormUrlWithGET));
+                request.RequestUri = new Uri(url.CreateRequestUri(QueryParams, Params, request.Method.Method, AllowFormUrlWithGET));
 
 #if UNIVERSAL
                 var tmp = client.SendRequestAsync(request);
@@ -245,23 +269,10 @@ namespace Nulands.Restless
         /// <returns>True if already containing value for given name, false otherwise.</returns>
         protected bool containsParam(string name)
         {
-            return param.ContainsKey(name);
+            return Params.ContainsKey(name);
         }
         
         #region Serialization
-        
-        private void registerDefaultHandlers()
-        {
-            // TODO: Why not reusing the deserializer?
-            // register default handlers
-            content_handler.Add("application/json", new JsonDeserializer());
-            content_handler.Add("application/xml", new XmlDeserializer());
-            content_handler.Add("text/json", new JsonDeserializer());
-            content_handler.Add("text/x-json", new JsonDeserializer());
-            content_handler.Add("text/javascript", new JsonDeserializer());
-            content_handler.Add("text/xml", new XmlDeserializer());
-            content_handler.Add("*", new XmlDeserializer());
-        }
 
         private async Task<T> tryDeserialization<T>(HttpResponseMessage response)
         {
@@ -273,7 +284,25 @@ namespace Nulands.Restless
                 result = deserializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
             }
             return result;
+        }
 
+        public void RegisterDefaultHandlers(IDeserializer jsonDeserializer = null, IDeserializer xmlDeserializer = null)
+        {
+            //JsonDeserializer jsonDeserializer = new JsonDeserializer();
+            if (jsonDeserializer == null)
+                jsonDeserializer = new PetaJsonDeserializer();
+
+            if(xmlDeserializer == null)
+                xmlDeserializer = new XmlDeserializer();
+
+            // register default handlers
+            ContentHandler.Add("application/json", jsonDeserializer);
+            ContentHandler.Add("application/xml", xmlDeserializer);
+            ContentHandler.Add("text/json", jsonDeserializer);
+            ContentHandler.Add("text/x-json", jsonDeserializer);
+            ContentHandler.Add("text/javascript", jsonDeserializer);
+            ContentHandler.Add("text/xml", xmlDeserializer);
+            ContentHandler.Add("*", xmlDeserializer);
         }
 
         /// <summary>
@@ -283,21 +312,21 @@ namespace Nulands.Restless
         /// <returns>IDeserializer instance</returns>
         protected IDeserializer GetHandler(string contentType)
         {
-            if (string.IsNullOrEmpty(contentType) && content_handler.ContainsKey("*"))
+            if (string.IsNullOrEmpty(contentType) && ContentHandler.ContainsKey("*"))
             {
-                return content_handler["*"];
+                return ContentHandler["*"];
             }
 
             var semicolonIndex = contentType.IndexOf(';');
             if (semicolonIndex > -1) contentType = contentType.Substring(0, semicolonIndex);
             IDeserializer handler = null;
-            if (content_handler.ContainsKey(contentType))
+            if (ContentHandler.ContainsKey(contentType))
             {
-                handler = content_handler[contentType];
+                handler = ContentHandler[contentType];
             }
-            else if (content_handler.ContainsKey("*"))
+            else if (ContentHandler.ContainsKey("*"))
             {
-                handler = content_handler["*"];
+                handler = ContentHandler["*"];
             }
 
             return handler;
@@ -312,10 +341,10 @@ namespace Nulands.Restless
         /// </summary>
         public void Dispose()
         {
-            if (client != null)
+            if (httpClient != null)
             {
-                client.Dispose();
-                client = null;
+                httpClient.Dispose();
+                httpClient = null;
             }
             if (request != null)
             {

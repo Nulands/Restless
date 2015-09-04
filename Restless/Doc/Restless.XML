@@ -115,56 +115,56 @@
             <param name="from"></param>
             <param name="excludePropertys"></param>
         </member>
-        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Method``1(``0,System.String)">
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Method``1(``0,System.String,System.String)">
             <summary>
             Sets the HttpMethod given by string.
             </summary>
             <param name="method">The HttpMethod string. For example "GET".</param>
             <returns>this.</returns>
         </member>
-        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Get``1(``0)">
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Get``1(``0,System.String)">
             <summary>
             Set the HttpMethod to GET.
             </summary>
             <returns>this.</returns>
         </member>
-        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Head``1(``0)">
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Head``1(``0,System.String)">
             <summary>
             Set the HttpMethod to HEAD.
             </summary>
             <returns>this.</returns>
         </member>
-        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Post``1(``0)">
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Post``1(``0,System.String)">
             <summary>
             Set the HttpMethod to POST.
             </summary>
             <returns>this.</returns>
         </member>
-        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Put``1(``0)">
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Put``1(``0,System.String)">
             <summary>
             Set the HttpMethod to PUT.
             </summary>
             <returns>this.</returns>
         </member>
-        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Delete``1(``0)">
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Delete``1(``0,System.String)">
             <summary>
             Set the HttpMethod to DELETE.
             </summary>
             <returns>this.</returns>
         </member>
-        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Trace``1(``0)">
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Trace``1(``0,System.String)">
             <summary>
             Set the HttpMethod to TRACE.
             </summary>
             <returns>this.</returns>
         </member>
-        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Connect``1(``0)">
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Connect``1(``0,System.String)">
             <summary>
             Set the HttpMethod to CONNECT.
             </summary>
             <returns>this.</returns>
         </member>
-        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Patch``1(``0)">
+        <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.Patch``1(``0,System.String)">
             <summary>
             Set the HttpMethod to PATCH.
             </summary>
@@ -350,7 +350,7 @@
             <param name="value">The parameter value (should be convertible to string).</param>
             <returns>this.</returns>
         </member>
-        <!-- Ungültiger XML-Kommentar wurde für den Member "M:Nulands.Restless.Extensions.RestRequestExtensions.Param``1(``0,System.String,System.Object,System.Boolean)" ignoriert -->
+        <!-- Badly formed XML comment ignored for member "M:Nulands.Restless.Extensions.RestRequestExtensions.Param``1(``0,System.String,System.Object,System.Boolean)" -->
         <member name="M:Nulands.Restless.Extensions.RestRequestExtensions.QParam``1(``0,System.String,System.Object)">
             <summary>
             Adds a query parameter (?name=value) to the request.
@@ -461,6 +461,45 @@
             <param name="successAction">Action that is called on success. (No exceptions and HttpStatus code is ok).</param>
             <param name="errorAction">Action that is called when an error occures. (Exceptions or HttpStatus code not ok).</param>
             <returns>A taks containing the RestResponse with the deserialized data if T is not IVoid and no error occured.</returns>
+        </member>
+        <member name="T:Nulands.Restless.Extensions.ReflectionExtensions">
+            <summary>
+            Reflection extensions
+            </summary>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.GetAttribute``1(System.Reflection.MemberInfo)">
+            <summary>
+            Retrieve an attribute from a member (property)
+            </summary>
+            <typeparam name="T">Type of attribute to retrieve</typeparam>
+            <param name="prop">Member to retrieve attribute from</param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.GetAttribute``1(System.Type)">
+            <summary>
+            Retrieve an attribute from a type
+            </summary>
+            <typeparam name="T">Type of attribute to retrieve</typeparam>
+            <param name="type">Type to retrieve attribute from</param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.IsSubclassOfRawGeneric(System.Type,System.Type)">
+            <summary>
+            Checks a type to see if it derives from a raw generic (e.g. List[[]])
+            </summary>
+            <param name="toCheck"></param>
+            <param name="generic"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.FindEnumValue(System.Type,System.String,System.Globalization.CultureInfo)">
+            <summary>
+            Find a value from a System.Enum by trying several possible variants
+            of the string value of the enum.
+            </summary>
+            <param name="type">Type of enum</param>
+            <param name="value">Value for which to search</param>
+            <param name="culture">The culture used to calculate the name variants</param>
+            <returns></returns>
         </member>
         <member name="T:Nulands.Restless.IVoid">
             <summary>
@@ -656,12 +695,15 @@
             Internal request message.
             </summary>
         </member>
-        <member name="M:Nulands.Restless.RestRequest.#ctor">
+        <member name="P:Nulands.Restless.RestRequest.HttpClient">
             <summary>
-            Constructor.
+            HttpClient property.
             </summary>
-            <param name="defaultRequest">The initial request message, or null if not used.</param>
-            <param name="httpClient">The initial http client, or null if not used.</param>
+        </member>
+        <member name="P:Nulands.Restless.RestRequest.HttpRequest">
+            <summary>
+            HttpRequestMessage property.
+            </summary>
         </member>
         <member name="M:Nulands.Restless.RestRequest.#ctor(System.Net.Http.HttpRequestMessage,System.Net.Http.HttpClient)">
             <summary>
@@ -702,16 +744,6 @@
             Dispose the request.
             </summary>
         </member>
-        <member name="P:Nulands.Restless.RestRequest.HttpClient">
-            <summary>
-            HttpClient property.
-            </summary>
-        </member>
-        <member name="P:Nulands.Restless.RestRequest.HttpRequest">
-            <summary>
-            HttpRequestMessage property.
-            </summary>
-        </member>
         <member name="T:Nulands.Restless.RestResponse`1">
             <summary>
             A class representing a REST response message.
@@ -731,19 +763,6 @@
             Constructor.
             </summary>
             <param name="request">Reference to a BaseRestRequest.</param>
-        </member>
-        <member name="M:Nulands.Restless.RestResponse`1.ThrowIfException">
-            <summary>
-            If an exception occurred during the request throw it again.
-            Usage:
-            var data = response.ThrowIfException().Data;
-            </summary>
-            <returns>this.</returns>
-        </member>
-        <member name="M:Nulands.Restless.RestResponse`1.Dispose">
-            <summary>
-            Dispose the request.
-            </summary>
         </member>
         <member name="P:Nulands.Restless.RestResponse`1.Request">
             <summary>
@@ -785,6 +804,19 @@
             Check if a deserialized object is available.
             </summary>
         </member>
+        <member name="M:Nulands.Restless.RestResponse`1.ThrowIfException">
+            <summary>
+            If an exception occurred during the request throw it again.
+            Usage:
+            var data = response.ThrowIfException().Data;
+            </summary>
+            <returns>this.</returns>
+        </member>
+        <member name="M:Nulands.Restless.RestResponse`1.Dispose">
+            <summary>
+            Dispose the request.
+            </summary>
+        </member>
         <member name="T:Nulands.Restless.Deserializers.DeserializeAsAttribute">
             <summary>
             Allows control how class and property names and values are deserialized by XmlAttributeDeserializer
@@ -804,45 +836,6 @@
             <summary>
             Wrapper for System.Xml.Serialization.XmlSerializer.
             </summary>
-        </member>
-        <member name="T:Nulands.Restless.Extensions.ReflectionExtensions">
-            <summary>
-            Reflection extensions
-            </summary>
-        </member>
-        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.GetAttribute``1(System.Reflection.MemberInfo)">
-            <summary>
-            Retrieve an attribute from a member (property)
-            </summary>
-            <typeparam name="T">Type of attribute to retrieve</typeparam>
-            <param name="prop">Member to retrieve attribute from</param>
-            <returns></returns>
-        </member>
-        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.GetAttribute``1(System.Type)">
-            <summary>
-            Retrieve an attribute from a type
-            </summary>
-            <typeparam name="T">Type of attribute to retrieve</typeparam>
-            <param name="type">Type to retrieve attribute from</param>
-            <returns></returns>
-        </member>
-        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.IsSubclassOfRawGeneric(System.Type,System.Type)">
-            <summary>
-            Checks a type to see if it derives from a raw generic (e.g. List[[]])
-            </summary>
-            <param name="toCheck"></param>
-            <param name="generic"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Nulands.Restless.Extensions.ReflectionExtensions.FindEnumValue(System.Type,System.String,System.Globalization.CultureInfo)">
-            <summary>
-            Find a value from a System.Enum by trying several possible variants
-            of the string value of the enum.
-            </summary>
-            <param name="type">Type of enum</param>
-            <param name="value">Value for which to search</param>
-            <param name="culture">The culture used to calculate the name variants</param>
-            <returns></returns>
         </member>
         <member name="M:Nulands.Restless.StringExtensions.UrlEncode(System.String)">
             <summary>
@@ -1062,13 +1055,6 @@
             When specified at the property level the class-level specification is overridden
             </summary>
         </member>
-        <member name="M:Nulands.Restless.Serializers.SerializeAsAttribute.TransformName(System.String)">
-            <summary>
-            Called by the attribute when NameStyle is speficied
-            </summary>
-            <param name="input">The string to transform</param>
-            <returns>String</returns>
-        </member>
         <member name="P:Nulands.Restless.Serializers.SerializeAsAttribute.Name">
             <summary>
             The name to use for the serialized element
@@ -1093,6 +1079,13 @@
             <summary>
             The order to serialize the element. Default is int.MaxValue.
             </summary>
+        </member>
+        <member name="M:Nulands.Restless.Serializers.SerializeAsAttribute.TransformName(System.String)">
+            <summary>
+            Called by the attribute when NameStyle is speficied
+            </summary>
+            <param name="input">The string to transform</param>
+            <returns>String</returns>
         </member>
         <member name="T:Nulands.Restless.Serializers.NameStyle">
             <summary>
@@ -1191,6 +1184,12 @@
             </summary>
             <param name="comparer">The <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> implementation to use when comparing keys, or null to use the default <see cref="T:System.Collections.Generic.EqualityComparer`1"/> for the type of the key.</param>
         </member>
+        <member name="P:SimpleJson.JsonObject.Item(System.Int32)">
+            <summary>
+            Gets the <see cref="T:System.Object"/> at the specified index.
+            </summary>
+            <value></value>
+        </member>
         <member name="M:SimpleJson.JsonObject.Add(System.String,System.Object)">
             <summary>
             Adds the specified key.
@@ -1207,6 +1206,12 @@
                 <c>true</c> if the specified key contains key; otherwise, <c>false</c>.
             </returns>
         </member>
+        <member name="P:SimpleJson.JsonObject.Keys">
+            <summary>
+            Gets the keys.
+            </summary>
+            <value>The keys.</value>
+        </member>
         <member name="M:SimpleJson.JsonObject.Remove(System.String)">
             <summary>
             Removes the specified key.
@@ -1221,6 +1226,18 @@
             <param name="key">The key.</param>
             <param name="value">The value.</param>
             <returns></returns>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Values">
+            <summary>
+            Gets the values.
+            </summary>
+            <value>The values.</value>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Item(System.String)">
+            <summary>
+            Gets or sets the <see cref="T:System.Object"/> with the specified key.
+            </summary>
+            <value></value>
         </member>
         <member name="M:SimpleJson.JsonObject.Add(System.Collections.Generic.KeyValuePair{System.String,System.Object})">
             <summary>
@@ -1248,6 +1265,20 @@
             </summary>
             <param name="array">The array.</param>
             <param name="arrayIndex">Index of the array.</param>
+        </member>
+        <member name="P:SimpleJson.JsonObject.Count">
+            <summary>
+            Gets the count.
+            </summary>
+            <value>The count.</value>
+        </member>
+        <member name="P:SimpleJson.JsonObject.IsReadOnly">
+            <summary>
+            Gets a value indicating whether this instance is read only.
+            </summary>
+            <value>
+            	<c>true</c> if this instance is read only; otherwise, <c>false</c>.
+            </value>
         </member>
         <member name="M:SimpleJson.JsonObject.Remove(System.Collections.Generic.KeyValuePair{System.String,System.Object})">
             <summary>
@@ -1277,44 +1308,6 @@
             <returns>
             A json <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
             </returns>
-        </member>
-        <member name="P:SimpleJson.JsonObject.Item(System.Int32)">
-            <summary>
-            Gets the <see cref="T:System.Object"/> at the specified index.
-            </summary>
-            <value></value>
-        </member>
-        <member name="P:SimpleJson.JsonObject.Keys">
-            <summary>
-            Gets the keys.
-            </summary>
-            <value>The keys.</value>
-        </member>
-        <member name="P:SimpleJson.JsonObject.Values">
-            <summary>
-            Gets the values.
-            </summary>
-            <value>The values.</value>
-        </member>
-        <member name="P:SimpleJson.JsonObject.Item(System.String)">
-            <summary>
-            Gets or sets the <see cref="T:System.Object"/> with the specified key.
-            </summary>
-            <value></value>
-        </member>
-        <member name="P:SimpleJson.JsonObject.Count">
-            <summary>
-            Gets the count.
-            </summary>
-            <value>The count.</value>
-        </member>
-        <member name="P:SimpleJson.JsonObject.IsReadOnly">
-            <summary>
-            Gets a value indicating whether this instance is read only.
-            </summary>
-            <value>
-            	<c>true</c> if this instance is read only; otherwise, <c>false</c>.
-            </value>
         </member>
         <member name="T:SimpleJson.SimpleJson">
             <summary>
@@ -1360,6 +1353,5 @@
             (can be integer, double, null, etc).
             </summary>
         </member>
-        <!-- Ungültiger XML-Kommentar wurde für den Member "M:Nulands.Restless.Util.Util.EvalExpression(System.Linq.Expressions.Expression)" ignoriert -->
     </members>
 </doc>

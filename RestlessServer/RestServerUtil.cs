@@ -40,6 +40,8 @@ namespace Nulands.Restless
             return value;
         }
     }
+
+
     public static class RestServerUtil
     {
         private static List<RestListenerContext> contextCache = new List<RestListenerContext>(250);
@@ -90,6 +92,7 @@ namespace Nulands.Restless
             response.Close = httpResponse.Close;
             response.Redirect = httpResponse.Redirect;
             response.SetCookie = httpResponse.SetCookie;
+
             response.ContentLength64 = FProperty.Create(() => httpResponse.ContentLength64, cl => httpResponse.ContentLength64 = cl);
             response.ContentType = FProperty.Create(() => httpResponse.ContentType, ct => httpResponse.ContentType = ct);
             response.ContentEncoding = FProperty.Create(() => httpResponse.ContentEncoding, ce => httpResponse.ContentEncoding = ce);

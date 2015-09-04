@@ -1,0 +1,52 @@
+{
+  "version": "1.0.0-*",
+  "description": "Restless.Next Class Library",
+  "authors": [ "Muraad" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+
+  "dependencies": {
+    "System.Collections": "4.0.11-beta-23225",
+    "System.Linq": "4.0.1-beta-23225",
+    "System.Threading": "4.0.11-beta-23225",
+    "System.Runtime": "4.0.21-beta-23225",
+    "Microsoft.CSharp": "4.0.0",
+    "System.Net.Http": "4.0.1-beta-23225",
+    "System.Text.Encoding": "4.0.11-beta-23225",
+    "System.Xml.XmlSerializer": "4.0.11-beta-23225"
+  },
+
+  "frameworks": {
+    "dnx46": { },
+    "dnxcore50": {
+      "dependencies": {
+        "System.Collections": "4.0.0.0",
+        "System.Diagnostics.Debug": "4.0.10.0",
+        "System.Globalization": "4.0.10.0",
+        "System.Linq": "4.0.0.0",
+        "System.Linq.Expressions": "4.0.0.0",
+        "System.Reflection": "4.0.10.0",
+        "System.Reflection.Extensions": "4.0.0.0",
+        "System.Resources.ResourceManager": "4.0.0.0",
+        "System.Runtime": "4.0.20.0",
+        "System.Runtime.Extensions": "4.0.10.0",
+        "System.Threading": "4.0.0.0",
+        "System.Threading.Tasks": "4.0.10.0"
+      }
+    }
+  },
+  "configurations": {
+    "Debug": {
+      "compilationOptions": {
+        "define": [ "PETAJSON_NO_DYNAMIC", "PETAJSON_NO_EMIT", "PETAJSON_NO_DATACONTRACT", "PETAJSON_PORTABLE", "SIMPLE_JSON_TYPEINFO", "WINDOWS_PHONE" ]
+      }
+    },
+    "Release": {
+      "compilationOptions": {
+        "define": [ "PETAJSON_NO_DYNAMIC", "PETAJSON_NO_EMIT", "PETAJSON_NO_DATACONTRACT", "PETAJSON_PORTABLE", "SIMPLE_JSON_TYPEINFO", "WINDOWS_PHONE" ],
+        "optimize": true
+      }
+    }
+  }
+}

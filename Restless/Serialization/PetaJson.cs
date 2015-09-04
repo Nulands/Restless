@@ -54,9 +54,88 @@ namespace PetaJson
         NonStrictParser = 0x00000008,
     }
 
+
+    public static class JsonStrategy
+    {
+        // MN Modified
+
+        public static readonly bool TryToConvertStringValuesToNumericals = true;
+
+        public static Func<MemberInfo, string> MethodInfoNameToJsonMemberInfoName { get; set; }
+
+        public static Func<string, string, bool> CompareJsonAndClrMemberNames { get; set; }
+
+        static JsonStrategy()
+        {
+            MethodInfoNameToJsonMemberInfoName = MethodNamePascalCaseTo_snake_case;
+            CompareJsonAndClrMemberNames = CompareEverythingToLowerRemoveUnderscore;
+        }
+
+        public static bool CompareEverythingToLowerRemoveUnderscore(string first, string second)
+        {
+            first = Transform(first);
+            second = Transform(second);
+            first = first.Replace("_", "");
+            second = second.Replace("_", "");
+            first = first.ToLower();
+            second = second.ToLower();
+            return first == second;
+        }
+
+        public static string MethodNamePascalCaseTo_snake_case(MemberInfo mi)
+        {
+            string name = mi.Name;
+            StringBuilder strBuilder = new StringBuilder();
+            for (int i = 0; i < name.Length; i++)
+            {
+                char c = name[i];
+                if (Char.IsUpper(c))
+                {
+                    c = Char.ToLower(c);
+                    if (i == 0)
+                        strBuilder.Append(c);
+                    else
+                        strBuilder.Append("_" + c);
+                }
+                else
+                    strBuilder.Append(c);
+            }
+            return strBuilder.ToString();
+        }
+
+        public static string MethodNameToLower(MemberInfo mi)
+        {
+            string name = mi.Name;
+            return name.Substring(0, 1).ToLower() + name.Substring(1);
+        }
+
+
+        #region Helper 
+
+        static string Transform(string data)
+        {
+            string result = data;
+            result = result.Replace("\r", "");
+            result = result.Replace("\n", "");
+            result = result.Replace("\t", "");
+            result = result.Replace(Environment.NewLine, "");
+            return result;
+        }
+
+        #endregion
+    }
+
     // API
     public static class Json
     {
+        // MN: from facebook/simplejson.cs
+        public static readonly string[] Iso8601Format = new string[]
+                                                             {
+                                                                 @"yyyy-MM-dd\THH:mm:ss.FFFFFFF\Z",
+                                                                 @"yyyy-MM-dd\THH:mm:ss\Z",
+                                                                 @"yyyy-MM-dd\THH:mm:ssK"
+                                                             };
+
         static Json()
         {
             WriteWhitespaceDefault = true;
@@ -701,6 +780,7 @@ namespace PetaJson
                         case LiteralKind.SignedInteger:
                         case LiteralKind.UnsignedInteger:
                         case LiteralKind.FloatingPoint:
+                        case LiteralKind.String:            // MN added
                             object val = Convert.ChangeType(reader.GetLiteralString(), type, CultureInfo.InvariantCulture);
                             reader.NextToken();
                             return val;
@@ -725,11 +805,24 @@ namespace PetaJson
                 _parsers.Set(typeof(double), numberConverter);
                 _parsers.Set(typeof(DateTime), (reader, type) =>
                 {
-                    return reader.ReadLiteral(literal => Utils.FromUnixMilliseconds((long)Convert.ChangeType(literal, typeof(long), CultureInfo.InvariantCulture)));
+                    return reader.ReadLiteral(literal =>
+                    {
+                        // MN
+                        long t = 0;
+                        if (long.TryParse(literal.ToString(), out t))
+                            return Utils.FromUnixMilliseconds((long)Convert.ChangeType(literal, typeof(long), CultureInfo.InvariantCulture));
+                        
+                        return DateTime.ParseExact(literal.ToString(), Json.Iso8601Format, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+                    });
                 });
                 _parsers.Set(typeof(byte[]), (reader, type) =>
                 {
                     return reader.ReadLiteral(literal => Convert.FromBase64String((string)Convert.ChangeType(literal, typeof(string), CultureInfo.InvariantCulture)));
+                });
+                // MN: GUID serialization
+                _parsers.Set(typeof(Guid), (reader, type) =>
+                {
+                    return reader.ReadLiteral(literal => Guid.Parse(literal.ToString()));
                 });
             }
 
@@ -1062,7 +1155,8 @@ namespace PetaJson
                     dict.Clear();
                     ParseDictionary(key =>
                     {
-                        dict.Add(Convert.ChangeType(key, typeKey), Parse(typeValue));
+                        // MN: ChangeType
+                        dict.Add(ChangeType(key, typeKey), Parse(typeValue));
                     });
 
                     return;
@@ -1124,6 +1218,13 @@ namespace PetaJson
                 throw new InvalidOperationException(string.Format("Don't know how to parse into type '{0}'", type.FullName));
             }
 
+            // MN: ChangeType
+            object ChangeType(object obj, Type type)
+            {
+                if (obj is string && typeof(Guid).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
+                    return Guid.Parse((string)obj);
+                return Convert.ChangeType(obj, type);
+            }
             public T Parse<T>()
             {
                 return (T)Parse(typeof(T));
@@ -1270,6 +1371,12 @@ namespace PetaJson
                     w.WriteRaw(Convert.ToBase64String((byte[])o));
                     w.WriteRaw("\"");
                 });
+                // MN: GUID serialization
+                _formatters.Add(typeof(Guid), (w, o) =>
+                {
+                    Guid guid = (Guid)o;
+                    w.WriteStringLiteral(guid.ToString());
+                });
             }
 
             public static Func<Type, Action<IJsonWriter, object>> _formatterResolver;
@@ -1414,7 +1521,10 @@ namespace PetaJson
                     {
                         case '\"': _writer.Write("\\\""); break;
                         case '\\': _writer.Write("\\\\"); break;
-                        case '/': _writer.Write("\\/"); break;
+                        // MN TODO: a value of http:// becomes http:/\/\. Somehow strange
+                        // TODO: Is this because of the POTABLE stuff?
+                        //case '/': _writer.Write("\\/"); break;
+                        case '/': _writer.Write('/'); break;
                         case '\b': _writer.Write("\\b"); break;
                         case '\f': _writer.Write("\\f"); break;
                         case '\n': _writer.Write("\\n"); break;
@@ -1601,15 +1711,50 @@ namespace PetaJson
                     _mi = value;
 
                     // Also create getters and setters
+                    // MN Modified
+                    // 1. This must be done lazy. e.g. it is not allowed
+                    //    to cast to PropertyInfo/FieldInfo outside and pass it
+                    //    to the lambdas. It have to be done lazy inside the lambdas
+                    // 2. For PropertyInfos its checked if they are readable or writeable
+                    //    If not the lambda is silently doing nothing
+                    //    For FieldInfo´s we don´t want to set static´s or const´s (== IsLiteral && IsStatic)
+                    //    Specialy for const´s exceptions are thrown
+                    // TODO: Maybe all this should be checked earlier and forced via the Deprecated flag?
                     if (_mi is PropertyInfo)
                     {
-                        GetValue = (obj) => ((PropertyInfo)_mi).GetValue(obj, null);
-                        SetValue = (obj, val) => ((PropertyInfo)_mi).SetValue(obj, val, null);
+                        GetValue = (obj) =>
+                        {
+                            object result = null;
+                            PropertyInfo propInfo = _mi as PropertyInfo;
+                            if (propInfo.CanRead)
+                                result = propInfo.GetValue(obj, null);
+                            return result;
+                        };
+
+                        SetValue = (obj, val) =>
+                        {
+                            PropertyInfo propInfo = _mi as PropertyInfo;
+                            if (propInfo.CanWrite)
+                                propInfo.SetValue(obj, val, null);
+                        };
                     }
                     else
                     {
-                        GetValue = ((FieldInfo)_mi).GetValue;
-                        SetValue = ((FieldInfo)_mi).SetValue;
+                        GetValue = (obj) =>
+                        {
+                            object result = null;
+                            FieldInfo field = _mi as FieldInfo;
+                            if (!field.IsLiteral && !field.IsStatic)
+                                result = field.GetValue(obj);
+                            return result;
+                        };
+
+                        SetValue = (obj, val) =>
+                        {
+                            FieldInfo field = _mi as FieldInfo;
+                            if (!field.IsLiteral && !field.IsStatic)
+                                field.SetValue(obj, val);
+                        };
                     }
                 }
             }
@@ -1754,6 +1899,7 @@ namespace PetaJson
                 if (loaded != null)
                     loaded.OnJsonLoaded(r);
             }
+            
 
             // The member info is stored in a list (as opposed to a dictionary) so that
             // the json is written in the same order as the fields/properties are defined
@@ -1768,7 +1914,7 @@ namespace PetaJson
                 {
                     int index = (i + _lastFoundIndex) % Members.Count;
                     var jmi = Members[index];
-                    if (jmi.JsonKey == name)
+                    if(JsonStrategy.CompareJsonAndClrMemberNames(jmi.JsonKey, name))  // MN
                     {
                         _lastFoundIndex = index;
                         found = jmi;
@@ -1804,7 +1950,14 @@ namespace PetaJson
 
                     // Parse and set
                     var val = r.Parse(jmi.MemberType);
-                    jmi.SetValue(into, val);
+                    try
+                    {
+                        jmi.SetValue(into, val);
+                    }
+                    catch(Exception exc)
+                    {
+                        Debug.WriteLine(exc.Message);
+                    }
                     return;
                 }
             }
@@ -1869,19 +2022,20 @@ namespace PetaJson
                                 return new JsonMemberInfo()
                                 {
                                     Member = mi,
-                                    JsonKey = attr.Key ?? mi.Name.Substring(0, 1).ToLower() + mi.Name.Substring(1),
+                                    JsonKey = attr.Key ?? JsonStrategy.MethodInfoNameToJsonMemberInfoName(mi), // MN
                                     KeepInstance = attr.KeepInstance,
                                     Deprecated = attr.Deprecated,
                                 };
                             }
 
                             // Serialize all publics?
-                            if (serializeAllPublics && Utils.IsPublic(mi))
+                            // MN: No only the ones with getter AND setter
+                            if (serializeAllPublics && Utils.IsPublicFull(mi)) // Utils.IsPublic(mi))
                             {
                                 return new JsonMemberInfo()
                                 {
                                     Member = mi,
-                                    JsonKey = mi.Name.Substring(0, 1).ToLower() + mi.Name.Substring(1),
+                                    JsonKey = JsonStrategy.MethodInfoNameToJsonMemberInfoName(mi),  // MN
                                 };
                             }
 
@@ -1998,7 +2152,24 @@ namespace PetaJson
                     return Enumerable.Empty<FieldInfo>();
 
 #if PETAJSON_PORTABLE
-                return t.GetTypeInfo().DeclaredMembers.Where(x => x is FieldInfo || x is PropertyInfo).Concat(GetAllFieldsAndProperties(t.GetTypeInfo().BaseType));
+                return t.GetTypeInfo()
+                    .DeclaredMembers
+                    .Where(x =>
+                        {
+                            // MN Modified
+                            FieldInfo field = x as FieldInfo;
+                            // No "const" or "static fields"
+                            if (field != null && !field.IsLiteral && !field.IsStatic)
+                                return true;
+
+                            PropertyInfo propInfo = x as PropertyInfo;
+                            // Only property´s that are readable and writeable
+                            if (propInfo != null)
+                                return propInfo.CanRead && propInfo.CanWrite;
+
+                            return false;
+                        })
+                    .Concat(GetAllFieldsAndProperties(t.GetTypeInfo().BaseType));
 #else
                 BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
                 return t.GetMembers(flags).Where(x => x is FieldInfo || x is PropertyInfo).Concat(GetAllFieldsAndProperties(t.BaseType));
@@ -2043,6 +2214,34 @@ namespace PetaJson
                     var gm = pi.GetGetMethod(true);
 #endif
                     return (gm != null && gm.IsPublic);
+                }
+
+                return false;
+            }
+
+            // MN Modified, checks Getter AND Setter
+            public static bool IsPublicFull(MemberInfo mi)
+            {
+                // Public field
+                var fi = mi as FieldInfo;
+                if (fi != null)
+                    return fi.IsPublic;
+
+                // Public property
+                var pi = mi as PropertyInfo;
+                if (pi != null)
+                {
+#if PETAJSON_PORTABLE
+                    var gm = pi.GetMethod;
+#else
+                    var gm = pi.GetGetMethod(true);
+#endif
+#if PETAJSON_PORTABLE
+                    var sm = pi.SetMethod;
+#else
+                    var sm = pi.GetSetMethod(true);
+#endif
+                    return (gm != null && gm.IsPublic && sm != null && sm.IsPublic);
                 }
 
                 return false;

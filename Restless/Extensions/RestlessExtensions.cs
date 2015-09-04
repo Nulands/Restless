@@ -75,7 +75,7 @@ namespace Nulands.Restless
             if(enumerable == null)
                 throw new ArgumentNullException(memberName + "-" + (msg == null ? "" : msg));
             if (enumerable.Count() == 0)
-                throw new ArgumentException("IEnumerable is empty.", memberName + "-" + (msg == null ? "" : msg));
+                throw new ArgumentException("IEnumerable is empty.", memberName + "-" + (msg == null ? " " : msg));
         }
         
         /// <summary>
@@ -87,10 +87,13 @@ namespace Nulands.Restless
         public static void ThrowIfNullOrEmpty(this string obj, string msg = "", [CallerMemberName]string memberName = "")
         {
             if (obj == null)
-                throw new ArgumentNullException(memberName + "-" + (msg == null ? "" : msg));
+                throw new ArgumentNullException(memberName + "-" + (msg == null ? " " : msg));
 
             if (obj.Length == 0)
-                throw new ArgumentException("String is empty", memberName + "-" + (msg == null ? "" : msg));
+            {
+                string errorMsg = memberName + "-" + (msg == null ? " " : msg);
+                throw new ArgumentException("String is empty", memberName + "-" + (msg == null ? " " : msg));
+            }
         }
 
 
