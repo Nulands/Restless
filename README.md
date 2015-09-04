@@ -39,8 +39,211 @@ http://choosealicense.com/licenses/apache-2.0/
 Restless API
 =======
 
+#### HTTP Methods
+
+```c#
+
+RestRequest request = new RestRequest();
+request.Get("www.example.com/endpoint/", "queryparam1", "value1", "queryparam2", "value2");
+request.Post("www.example.com/endpoint/", "form-url-param1", "value1", ...);
+request.Put("www.example.com/endpoint/", "form-url-param1", "value1", ...);
+request.Delete("www.example.com/endpoint/", "form-url-param1", "value1", ...);
+request.Head(...);
+request.Post(...);
+request.Trace(...);
+request.Connect(...);
+
+// Via static Rest class
+
+RestRequest request = Rest.Post(...);
+
+```
+
+#### Request parameter
+
+```c#
+
+/// <summary>
+/// Parameter type enum. Query, FormUrlEncoded or Url.
+/// </summary>
+public enum ParameterType
+{
+    NotSpecified,
+    /// <summary>
+    /// Parameter is added to the URL as query parameter (?name=value).
+    /// </summary>
+    Query,
+    /// <summary>
+    /// Parameter is added to a POST request with FormUrlEncoded Http content.
+    /// </summary>
+    FormUrlEncoded,
+    /// <summary>
+    /// Parameter is used to format the URL string (replaces a {name}).
+    /// </summary>
+    Url
+}
+
+.... 
 
 
+// Query parameter  (GET)
+request.QParam("query-parameter", "value");
+request.QParam("query-parameter", 42);
+
+// Form url encoded parameter (POST, PUT, ..)
+request.Param("form-url-param1", "value", addAsMultiple: true);
+request.Param("form-url-param1", "value2", addAsMultiple: true);
+
+// Add multiple at once, value can be any object
+request.Param("form-url-param1", "value2", "form-url-param2", 42, ...);
+
+// Specify parameter type explicit
+request.Param("param-name", "value", ParameterType.FormUrlEncoded);
+
+// ...
+request.Url("www.example.com/endpoint/{id}");
+request.UrlParam("id", 123456);
+
+// ..
+request.Url("www.example.com/{0}/{1}")
+       .UrlFormat("endpoint", 123456);
+
+// Additional things
+
+// Allow POST (Form-Url-Encoded) parameters with HTTP method GET
+// otherwise (default) all params added via request.Param(..)
+// becomes query parameters
+request.SetAllowFormUrlWithGET(true);
+
+// Throws exception if valueObj is null, and only adds the parameter
+// if valueObj.ToString() is not null or empty
+request.ParamIfNotEmpty("name", valueObj, ParameterType.FormUrlEncoded);
+```
+
+#### Add HTTP content
+
+```c#
+// Multipart
+request.AddMultipart("subtype", "boundary");
+// Multipart form data
+request.AddMultipartForm("boundary");
+
+// All AddXY methods take additional parameters for "boundary names"
+// if the underlying content is a multipart
+
+byte[] data = ...;
+request.AddByteArray(data);
+
+Stream stream = ...;
+request.AddStream(stream, "media/type");
+
+request.AddString("Hello world", Encoding.UTF8);
+
+Person person = ...;
+request.AddJson(person);
+
+request.AddXml(person);
+
+```
+
+#### Authentication
+
+```c#
+// added as Authorization header (username:password, Base64 encoded)
+request.Basic("username", "password");
+// or
+request.Basic("username:password");
+
+// Add OAuth token
+// default is "Bearer" and toBase64=true
+request.Bearer("token", tokenType: "Bearer", toBase64: true);
+
+// Cookie
+request.Cookie("name", "value");
+
+```
+
+#### Sending the request and getting the response
+
+```c#
+Request request = ...;
+
+// Without response deserialization
+RestResponse<IVoid> response = await request.Fetch();
+
+// All Fetch methods lets you specify a HttpClient to use (optional)
+// if null (default) a new one is created for this request
+HttpClient client = ...;
+var response = await request.Fetch(client);
+
+// With response content deserialization
+RestResponse<Person> response = await request.Fetch<Person>();
+
+// Upload file as binary content using StreamContent
+RestResponse<IVoid> response = await request.UploadFileBinary(stream, "content/type");
+
+// Upload file and MultipartFormDataContent
+// on Fetch
+// 1. Creates Multipart-form-data content
+// 2. Adds all form url encoded parameters
+// 3. Adds a stream content 
+Request request = Rest.Post(...);
+request.Param("param1", "value1", "param2", 42, ...)
+RestResponse<IVoid> response = await request.UploadFileFormData(stream, "content/type", "/local/Path/To/File.xy");
+
+// with response deserialization
+RestResponse<FileMetaData> response = await request.UploadFileFormData<FileMetaData(
+    stream, 
+    "content/type", 
+    "/local/Path/To/File.xy");
+    
+if(response.IsSuccessStatusCode && response.HasData)
+{
+    FileMetaData uploadedFile = response.Data;
+    ...
+}
+else
+{
+    HttpStatusCode statusCode = response.HttpResponse.StatusCode;
+    ..
+    if(response.IsException)
+    {
+        Console.WriteLine(response.Exception.Message);
+        ...
+    }
+}
+```
+
+#### RestResponse
+
+```c#
+
+RestResponse<Person> response = await request.Fetch<Person>();
+
+// The RestRequest that lead to this response
+response.Request;
+
+// If exception was thrown
+bool isException = request.IsException; 
+Exception exc = request.Exception;
+
+// Check if is RestResponse<IVoid> 
+response.IsNothing;
+
+// Successfull response
+bool isSuccStatusCode = response.IsSuccessStatusCode; 
+
+// Deserialized data;
+if(response.HasData)
+{
+    Person person = response.Data;
+    ...
+}
+
+// Underlying native System.Net.Http.HttpResponseMessage
+var httpResponseMsg = response.HttpResponse;
+
+```
 Using the RestRequest class
 ----
 
