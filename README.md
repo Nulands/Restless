@@ -6,8 +6,6 @@ Restless
 Restless API
 =======
 
-Overview 
-
 - [HTTP Methods](#http-methods)
 - [Request paramter](#request-parameter)
 - [Adding content](#http-content)
@@ -18,11 +16,6 @@ Overview
 - [Sample](#sample)
 
 ## License
-
-Published under Apache License 2.0
-For a overview of the license visit 
-http://choosealicense.com/licenses/apache-2.0/
-
 
 ```
 Copyright 2015 Muraad Nofal
@@ -40,6 +33,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+For a overview of the license visit 
+http://choosealicense.com/licenses/apache-2.0/
 
 ----------------------------------------------------
 
@@ -49,7 +44,14 @@ limitations under the License.
 ```c#
 
 RestRequest request = new RestRequest();
+// Simple
+request.Get();    // HTTP method set to GET
+// with url
+request.Get("www.example.com/endpoint/");
+// with url and (query) parameters
 request.Get("www.example.com/endpoint/", "queryparam1", "value1", "queryparam2", "value2");
+
+// other HTTP methods
 request.Post("www.example.com/endpoint/", "form-url-param1", "value1", ...);
 request.Put("www.example.com/endpoint/", "form-url-param1", "value1", ...);
 request.Delete("www.example.com/endpoint/", "form-url-param1", "value1", ...);
@@ -59,7 +61,6 @@ request.Trace(...);
 request.Connect(...);
 
 // Via static Rest class
-
 RestRequest request = Rest.Post(...);
 
 ```
