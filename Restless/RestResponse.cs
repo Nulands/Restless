@@ -69,7 +69,7 @@ namespace Nulands.Restless
         public Exception Exception { get; internal set; }
 
         /// <summary>
-        /// The "raw" HttpResponseMessage.
+        /// The "raw" HttpResponseMessage.// 
         /// </summary>
         public HttpResponseMessage HttpResponse { get; internal set; }
 

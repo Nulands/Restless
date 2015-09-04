@@ -46,7 +46,7 @@ namespace Nulands.Restless.OAuth
     public class OAuth2
     {
         public const string RESPONSE_TYPE_CODE = "code";
-        public const string REDIRECT_OOB = "urn:ietf:wg:oauth:2.0:oob";
+        public const string REDIRECT_OOB = "urn:ietf:wg:oauth:  2.0:oob";
         public const string REDIRECT_OOB_AUTO = "urn:ietf:wg:oauth:2.0:oob:auto";
         public const string REDIRECT_LOCALHOST = "http://localhost";
 

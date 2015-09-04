@@ -23,6 +23,55 @@ namespace Nulands.Restless.Extensions
     
     public static class RestRequestExtensions
     {
+        /*
+        public static void Test()
+        {
+            
+            RestRequest request = new RestRequest();
+            request.Get("www.example.com/endpoint/", "queryparam1", "value1", "queryparam2", "value2");
+            request.Post("www.example.com/endpoint/", "form-url-param1", "value1", ...);
+            request.Put("www.example.com/endpoint/", "form-url-param1", "value1", ...);
+            request.Delete("www.example.com/endpoint/", "form-url-param1", "value1", ...);
+            request.Head(...);
+            request.Post(...);
+            request.Trace(...);
+            request.Connect(...);
+
+            request.SetAllowFormUrlWithGET(true);
+            request.ParamIfNotEmpty("name", valueObj, ParameterType.FormUrlEncoded);
+            request.QParam("query-parameter", "value");
+            request.QParam("query-parameter", 42);
+
+            request.Param("form-url-param1", "value", addAsMultiple: true);
+            request.Param("form-url-param1", "value2", addAsMultiple: true);
+
+            request.Param("form-url-param1", "value2", "form-url-param2", 42, ...);
+
+            request.Param("param-name", "value", ParameterType.FormUrlEncoded);
+
+            request.Url("www.example.com/endpoint/{id}");
+
+            request.UrlParam("id", 123456);
+
+
+            request
+                .Url("www.example.com/{0}/{1}")
+                .UrlFormat("endpoint", 123456);
+
+            request.AddMultipart("subtype", "boundary");
+            request.AddMultipartForm("boundary");
+
+            // All AddXY methods take additional parameters for "boundary names"
+            // if the underlying content is a multipart
+
+            request.AddByteArray(new byte[1024]..);
+            request.AddStream(stream, "media/type");
+            request.AddString("Hello world", Encoding.UTF8);
+            request.AddJson<Person>(personObject);
+            request.AddXml<Person>(personObject);
+
+            request.Bearer("token", tokenType: "Bearer", toBase64: true);
+        }*/
         #region Set request methods GET, HEAD, POST, PUT ...
 
         static T setUrlIfNotNullOrEmpty<T>(this T request, string url)
@@ -869,7 +918,7 @@ namespace Nulands.Restless.Extensions
             request.HandleFormUrlParameter();
             return await request.buildAndSendRequest<IVoid>(successAction, errorAction);
         }
-
+        
         public static async Task<RestResponse<IVoid>> Fetch(
             this RestRequest request, HttpClient client,
             Action<RestResponse<IVoid>> successAction = null,
