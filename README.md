@@ -44,7 +44,14 @@ http://choosealicense.com/licenses/apache-2.0/
 ```c#
 
 RestRequest request = new RestRequest();
+// Simple
+request.Get();    // HTTP method set to GET
+// with url
+request.Get("www.example.com/endpoint/");
+// with url and (query) parameters
 request.Get("www.example.com/endpoint/", "queryparam1", "value1", "queryparam2", "value2");
+
+// other HTTP methods
 request.Post("www.example.com/endpoint/", "form-url-param1", "value1", ...);
 request.Put("www.example.com/endpoint/", "form-url-param1", "value1", ...);
 request.Delete("www.example.com/endpoint/", "form-url-param1", "value1", ...);
@@ -54,7 +61,6 @@ request.Trace(...);
 request.Connect(...);
 
 // Via static Rest class
-
 RestRequest request = Rest.Post(...);
 
 ```
