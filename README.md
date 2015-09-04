@@ -6,8 +6,6 @@ Restless
 Restless API
 =======
 
-Overview 
-
 - [HTTP Methods](#http-methods)
 - [Request paramter](#request-parameter)
 - [Adding content](#http-content)
@@ -18,11 +16,6 @@ Overview
 - [Sample](#sample)
 
 ## License
-
-Published under Apache License 2.0
-For a overview of the license visit 
-http://choosealicense.com/licenses/apache-2.0/
-
 
 ```
 Copyright 2015 Muraad Nofal
@@ -40,6 +33,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+For a overview of the license visit 
+http://choosealicense.com/licenses/apache-2.0/
 
 ----------------------------------------------------
 
