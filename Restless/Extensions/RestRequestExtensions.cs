@@ -45,15 +45,23 @@ namespace Nulands.Restless.Extensions
             return request.setUrlIfNotNullOrEmpty(url);
         }
 
+        public static T Get<T>(this T request, params object[] parameters)
+           where T : RestRequest
+        {
+            return request.Get("", parameters);
+        }
+
         /// <summary>
         /// Set the HttpMethod to GET.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Get<T>(this T request, string url = "")
+        public static T Get<T>(this T request, string url, params object[] parameters)
             where T : RestRequest
         {
             request.HttpRequest.Method = HttpMethod.Get;
-            return request.setUrlIfNotNullOrEmpty(url);
+            return request
+                .setUrlIfNotNullOrEmpty(url)
+                .QParams(parameters);        
         }
 
         /// <summary>
@@ -67,37 +75,61 @@ namespace Nulands.Restless.Extensions
             return request.setUrlIfNotNullOrEmpty(url);
         }
 
+        public static T Post<T>(this T request, params object[] parameters)
+            where T : RestRequest
+        {
+            return request.Post("", parameters);
+        }
+
         /// <summary>
         /// Set the HttpMethod to POST.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Post<T>(this T request, string url = "")
+        public static T Post<T>(this T request, string url, params object[] parameters)
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("POST");
-            return request.setUrlIfNotNullOrEmpty(url);
+            return request
+                .setUrlIfNotNullOrEmpty(url)
+                .Param(parameters);
+        }
+
+        public static T Put<T>(this T request, params object[] parameters)
+            where T : RestRequest
+        {
+            return request.Put("", parameters);
         }
 
         /// <summary>
         /// Set the HttpMethod to PUT.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Put<T>(this T request, string url = "")
+        public static T Put<T>(this T request, string url, params object[] parameters)
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("PUT");
-            return request.setUrlIfNotNullOrEmpty(url);
+            return request
+                .setUrlIfNotNullOrEmpty(url)
+                .Param(parameters);
+        }
+
+        public static T Delete<T>(this T request, params object[] parameters)
+            where T : RestRequest
+        {
+            return request.Delete("", parameters);
         }
 
         /// <summary>
         /// Set the HttpMethod to DELETE.
         /// </summary>
         /// <returns>this.</returns>
-        public static T Delete<T>(this T request, string url = "")
+        public static T Delete<T>(this T request, string url, params object[] parameters)
             where T : RestRequest
         {
             request.HttpRequest.Method = new HttpMethod("DELETE");
-            return request.setUrlIfNotNullOrEmpty(url);
+            return request
+                .setUrlIfNotNullOrEmpty(url)
+                .Param(parameters);
         }
 
         /// <summary>
@@ -684,7 +716,7 @@ namespace Nulands.Restless.Extensions
         public static T Param<T>(this T request, params object[] parameters)
             where T : RestRequest
         {
-            parameters.ThrowIfNullOrEmpty("No parameters given");
+            //parameters.ThrowIfNullOrEmpty("No parameters given");
             parameters.ThrowIf(p => p.Length % 2 != 0, "No value for every parameter given");
             
             for (int i = 0; i < parameters.Length; i += 2)
@@ -710,6 +742,21 @@ namespace Nulands.Restless.Extensions
             value.ThrowIfNullOrToStrEmpty("value");
 
             request.QueryParams[name] = value;
+            return request;
+        }
+
+        public static T QParams<T>(this T request, params object[] parameters)
+            where T : RestRequest
+        {
+            //parameters.ThrowIfNullOrEmpty("No parameters given");
+            parameters.ThrowIf(p => p.Length % 2 != 0, "No value for every query parameter given");
+
+            for (int i = 0; i < parameters.Length; i += 2)
+            {
+                request.QParam(
+                    parameters[i].ToString(),
+                    parameters[i + 1]);
+            }
             return request;
         }
 

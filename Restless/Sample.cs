@@ -52,6 +52,8 @@ namespace Nulands.Restless.Sample
             : base()
         {
             this.Url("http://www.example.com/Person").Get();
+
+            
         }
 
         public PersonGetRequest Name(string name)
@@ -160,8 +162,7 @@ namespace Nulands.Restless.Sample
 
             var getPerson = new RestRequest();
             RestResponse<Person> personResponse = await getPerson
-                .Get()                          // HTTP Method "GET"
-                .Url(url)                       // Set url of Person get REST endpoint
+                .Get(url)    // HTTP Method "GET" and set the url for the Person get REST endpoint
                 .QParam("name", "TestUser")     // The api wants the person name as query parameter
                 .Fetch<Person>();                // Get response and deserialize to Person object.
 
