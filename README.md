@@ -1,13 +1,23 @@
 Restless
 ========
 
-```
+``` $ git clone https://github.com/Nulands/Restless.git ```
 
-$ git clone https://github.com/Nulands/Restless.git
+Restless API
+=======
 
-    
-```
-More documentation will follow:
+Overview 
+
+- [HTTP Methods](#http-methods)
+- [Request paramter](#request-parameter)
+- [Adding content](#http-content)
+- [Authentication](#http-authentication)
+- [Sending the request and getting the response](#request-response)
+- [RestResponse class](#RestResponse)
+- [OAauth2](#oauth2)
+- [Sample](#sample)
+
+## License
 
 Published under Apache License 2.0
 For a overview of the license visit 
@@ -15,7 +25,6 @@ http://choosealicense.com/licenses/apache-2.0/
 
 
 ```
-
     Copyright 2015 Muraad Nofal
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,17 +38,13 @@ http://choosealicense.com/licenses/apache-2.0/
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-    
-
 ```
 
 
 ----------------------------------------------------
 
-Restless API
-=======
 
-#### HTTP Methods
+##<a name="http-methods"></a> HTTP Methods
 
 ```c#
 
@@ -59,7 +64,7 @@ RestRequest request = Rest.Post(...);
 
 ```
 
-#### Request parameter
+####<a name="request-parameter"></a>  Request parameter
 
 ```c#
 
@@ -120,7 +125,7 @@ request.SetAllowFormUrlWithGET(true);
 request.ParamIfNotEmpty("name", valueObj, ParameterType.FormUrlEncoded);
 ```
 
-#### Add HTTP content
+####<a name="http-content"></a>  Add HTTP content
 
 ```c#
 // Multipart
@@ -146,7 +151,7 @@ request.AddXml(person);
 
 ```
 
-#### Authentication
+####<a name="http-authentication"></a>  Authentication
 
 ```c#
 // added as Authorization header (username:password, Base64 encoded)
@@ -163,7 +168,7 @@ request.Cookie("name", "value");
 
 ```
 
-#### Sending the request and getting the response
+####<a name="request-response"></a>  Sending the request and getting the response
 
 ```c#
 Request request = ...;
@@ -214,7 +219,7 @@ else
 }
 ```
 
-#### RestResponse
+####<a name="RestResponse"></a>  RestResponse
 
 ```c#
 
@@ -244,10 +249,107 @@ if(response.HasData)
 var httpResponseMsg = response.HttpResponse;
 
 ```
-Using the RestRequest class
+
+##<a name="oauth2"></a> OAuth2
+
+```c#
+
+// Constants
+public class OAuth2
+{
+    public const string RESPONSE_TYPE_CODE = "code";
+    public const string REDIRECT_OOB = "urn:ietf:wg:oauth:  2.0:oob";
+    public const string REDIRECT_OOB_AUTO = "urn:ietf:wg:oauth:2.0:oob:auto";
+    public const string REDIRECT_LOCALHOST = "http://localhost";
+
+    public const string GRANT_TYPE_AUTH_CODE = "authorization_code";
+    public const string GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
+    public const string GRANT_TYPE_PASSWORD = "password";
+    public const string GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
+}
+    
+// Usage
+RestResponse<IVoid> response = Rest.OAuth.CodeAuthorizationUrl(
+    "authorizationUrl",
+    "clientId",
+    "redirect_uri",
+    "scope",
+    "state");
+    
+    
+
+// Get an access token (grant_type : authorization_code)
+RestResponse<OAuthToken> tokenResponse = Rest.OAuth.TokenFromAuthorizationCode(
+    "tokenEndpoint",
+    "code",
+    "clientId",
+    "clientSecret",     // optional from here on
+    "redirectUri",      // See OAauth2.REDIRECT_OOB, .REDIRECT_OOB_AUTO, .REDIRECT_LOCALHOST strings
+    "userName",
+    "password",
+    addToDefaultTokenManager: true);
+    
+OAuthToken token = tokenResponse.Data;
+
+string accessToken = token.AccessToken;
+string refreshToken = token.RefreshToken;
+long? expiration = token.ExpiresIn;
+
+// Refreshing an access token   (grant_type : refresh_token)
+
+RestResponse<OAuthToken tokenResponse = Rest.OAuth.RefreshAccessToken(
+    "tokenEndpoint",
+    "refreshToken",
+    "clientId",     // Optional from here on
+    "clientSecret",
+    "scope",
+    "userName",
+    "password");
+
+// Using the TokenManager class to automatically refresh tokens
+// on retreival
+
+// Create a new one
+TokenManager tokenManager = new TokenManager();
+// or use static one
+Rest.TokenManager.XY(...);
+
+// Adding a token
+OAuthToken token = ...;
+Rest.TokenManager.Add("clientId", "clientId", "tokenEndpoint", token);
+
+...
+// Retreive
+OAuthToken token = await Rest.TokenManager.Get("clientId");
+// Or custom OAuthToken
+MyOAuthToken token = await Rest.TokenManager.Get<MyOAuthToken>("clientId");
+
+// Remove
+Rest.TokenManager.Remove("clientId");
+
+// Loading
+TokenItem[] tokens = ...;
+Rest.TokenManager.Load(tokens);
+// Or
+Rest.TokenManager.Load(token1, token2, ...);
+
+// Saving (for persistance)
+var serializer = new MySerializer();
+Rest.TokenManager.Save(token => serializer.Serialize(token));
+// or simply
+Rest.TokenManager.Save(serializer.Serialize);
+
+// argument can be 
+Action<TokenItem> saveAction = item => ...;
+//or
+Action<IEnumerable<TokenItem>> saveAction = items => ...;
+
+
+```
+
 ----
 
-#### Sample.cs
+##<a name="sample"></a> Sample.cs
 
 ```c#
     public class Person
