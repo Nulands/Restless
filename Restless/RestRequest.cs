@@ -144,7 +144,7 @@ namespace Nulands.Restless
         /// <summary>
         /// HttpClient property.
         /// </summary>
-        internal HttpClient HttpClient
+        public HttpClient HttpClient
         {
             get { return httpClient; }
             set { httpClient = value; }
@@ -193,6 +193,59 @@ namespace Nulands.Restless
 
         #region Helper functions
 
+        public RestRequest HandleFormUrlParameter()
+        {
+            bool canAddFormUrl = request.Method.Method != "GET" || AllowFormUrlWithGET;
+
+            if (canAddFormUrl && request.Content == null && Params.Count > 0)
+                this.AddFormUrl();           // Add form url encoded parameter to request if needed
+            return this;
+        }
+
+        public async Task<HttpResponseMessage> GetResponseAsync(
+             string clientId, bool toBase64 = true)
+        {
+            if (httpClient == null)
+                httpClient = new HttpClient();
+
+            if (!String.IsNullOrEmpty(clientId))
+            {
+                var token = await Rest.TokenManager.Get(clientId);
+                if (token != null && !String.IsNullOrEmpty(token.AccessToken))
+                    this.Bearer(token.AccessToken, String.IsNullOrEmpty(token.TokenType) ? "Bearer" : token.TokenType, toBase64);
+            }
+
+            this.HandleFormUrlParameter();
+
+            request.RequestUri = new Uri(
+                url.CreateRequestUri(
+                    QueryParams,
+                    Params,
+                    request.Method.Method,
+                    AllowFormUrlWithGET));
+#if UNIVERSAL
+            return await httpClient.SendRequestAsync(request);
+#else
+            return await httpClient.SendAsync(request);
+#endif
+        }
+
+        internal async Task<RestResponse<T>> buildAndSendRequest<T>(
+            string clientId,
+            bool toBase64 = true,
+            Action<RestResponse<T>> successAction = null,
+            Action<RestResponse<T>> errorAction = null,
+            HttpClient client = null)
+        {
+            if (!String.IsNullOrEmpty(clientId))
+            {
+                var token = await Rest.TokenManager.Get(clientId);
+                if (token != null && !String.IsNullOrEmpty(token.AccessToken))
+                    this.Bearer(token.AccessToken, String.IsNullOrEmpty(token.TokenType) ? "Bearer" : token.TokenType, toBase64);
+            }
+            return await buildAndSendRequest<T>(successAction, errorAction, client);
+        }
+
         /// <summary>
         /// A helper function that is doing all the "hard" work setting up the request and sending it.
         /// 1) The Url is formated using String.Format if UrlParam´s where added.
@@ -235,7 +288,7 @@ namespace Nulands.Restless
                 var tmp = client.SendRequestAsync(request);
                 result.HttpResponse = await tmp.AsTask(CancellationTokenSource.CreateLinkedTokenSource(internalToken, externalToken).Token);
 #else
-                result.HttpResponse = await client.SendAsync(
+                result.HttpResponse = await httpClient.SendAsync(
                     request, 
                     CancellationTokenSource.CreateLinkedTokenSource(internalToken, externalToken).Token);
 #endif

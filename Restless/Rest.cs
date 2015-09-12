@@ -101,46 +101,42 @@ namespace Nulands.Restless
 
         #region Get a RestRequest, and set access tokens if needed
 
-        public static T Request<T>(bool setDefaultAccessToken = true, string accessToken = "", bool toBase64 = true, string tokenType = "Bearer")
+        public static T Request<T>(string accessToken = "", bool toBase64 = true, string tokenType = "Bearer")
             where T : RestRequest, new()
         {
             T request = new T();
 
             if (!String.IsNullOrEmpty(accessToken))
                 request.Bearer(accessToken, tokenType, toBase64);
-            else if (setDefaultAccessToken && !String.IsNullOrEmpty(ClientId))
-                request = Request<T>(ClientId);
 
             request.CancelToken(Cancellation.Token);
 
             return request;
         }
 
-        public static T Request<T>(string clientId = "", bool toBase64 = true)
+        public static RestRequest Request(string accessToken = "", bool toBase64 = true, string tokenType = "Bearer")
+        {
+            return Request<RestRequest>(accessToken, toBase64, tokenType);
+        }
+
+        public static async Task<T> Request<T>(string clientId = "", bool toBase64 = true)
             where T : RestRequest, new()
         {
             T request = new T();
             if (String.IsNullOrEmpty(clientId))
                 clientId = ClientId;    // Set to "default" ClientId
 
-            var task = Task.Run(() => TokenManager.Get(clientId));
-            task.Wait();
-            var token = task.Result;
-            //var token = await TokenManager.Get(clientId);
+            var token = await TokenManager.Get(clientId);
+
             if (token != null && !String.IsNullOrEmpty(token.AccessToken))
                 request.Bearer(token.AccessToken, String.IsNullOrEmpty(token.TokenType) ? "Bearer" : token.TokenType, toBase64);
             request.CancelToken(Cancellation.Token);
             return request;
         }
 
-        public static RestRequest Request(bool setDefaultAccessToken = true, string accessToken = "", bool toBase64 = true, string tokenType = "Bearer")
+        public static async Task<RestRequest> Request(string clientId, bool toBase64 = true)
         {
-            return Request<RestRequest>(setDefaultAccessToken, accessToken, toBase64, tokenType);
-        }
-
-        public static RestRequest Request(string clientId, bool toBase64 = true)
-        {
-            return Request<RestRequest>(clientId, toBase64);
+            return await Request<RestRequest>(clientId, toBase64);
         }
 
         #endregion

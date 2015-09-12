@@ -37,11 +37,13 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
+    <Compile Include="Extensions\RestRequestExtensionsUpload.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleApp.cs" />
     <Compile Include="Extensions\RestlessExtensions.cs" />
     <Compile Include="Extensions\RestRequestExtensions.cs" />
+    <Compile Include="Extensions\RestRequestExtensionsGetResponseAndFetch.cs" />
     <Compile Include="Extensions\RestResponseExtensions.cs" />
     <Compile Include="IVoid.cs" />
     <Compile Include="OAuth\AuthParameter.cs" />
